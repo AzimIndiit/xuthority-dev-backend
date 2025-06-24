@@ -1,0 +1,1097 @@
+{
+    "item": [
+        {
+            "name": "auth",
+            "description": "",
+            "item": [
+                {
+                    "name": "register",
+                    "description": "",
+                    "item": [
+                        {
+                            "id": "2d6f2cce-c062-454c-899e-788b8f8294cb",
+                            "name": "Register a new user",
+                            "request": {
+                                "name": "Register a new user",
+                                "description": {},
+                                "url": {
+                                    "path": [
+                                        "auth",
+                                        "register"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "POST",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"firstName\": \"<string>\",\n  \"lastName\": \"<string>\",\n  \"email\": \"<email>\",\n  \"password\": \"<string>\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "headerFamily": "json",
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "auth": null
+                            },
+                            "response": [
+                                {
+                                    "id": "9f7351b0-a596-48ab-a833-dd3d22a1e2e8",
+                                    "name": "Registration successful",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "register"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"firstName\": \"<string>\",\n  \"lastName\": \"<string>\",\n  \"email\": \"<email>\",\n  \"password\": \"<string>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Created",
+                                    "code": 201,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"<string>\",\n      \"firstName\": \"<string>\",\n      \"lastName\": \"<string>\",\n      \"email\": \"<string>\",\n      \"role\": \"vendor\",\n      \"region\": \"<string>\",\n      \"followers\": \"<integer>\",\n      \"following\": \"<integer>\",\n      \"companyName\": \"<string>\",\n      \"companyEmail\": \"<string>\",\n      \"industry\": \"<string>\",\n      \"companySize\": \"<string>\",\n      \"acceptedTerms\": \"<boolean>\",\n      \"acceptedMarketing\": \"<boolean>\",\n      \"createdAt\": \"<dateTime>\",\n      \"updatedAt\": \"<dateTime>\"\n    },\n    \"token\": \"<string>\"\n  },\n  \"message\": \"<string>\",\n  \"meta\": {}\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                },
+                                {
+                                    "id": "28d7d2c2-b6a8-44d8-bdb5-d29f79f83164",
+                                    "name": "Validation failed",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "register"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"firstName\": \"<string>\",\n  \"lastName\": \"<string>\",\n  \"email\": \"<email>\",\n  \"password\": \"<string>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Bad Request",
+                                    "code": 400,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"error\": {\n    \"message\": \"<string>\",\n    \"code\": \"<string>\",\n    \"statusCode\": \"<integer>\",\n    \"details\": {}\n  }\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                },
+                                {
+                                    "id": "23461d8a-e323-402b-9eb7-8cf0e4e7ba0d",
+                                    "name": "Email already registered",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "register"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"firstName\": \"<string>\",\n  \"lastName\": \"<string>\",\n  \"email\": \"<email>\",\n  \"password\": \"<string>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Conflict",
+                                    "code": 409,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"error\": {\n    \"message\": \"<string>\",\n    \"code\": \"<string>\",\n    \"statusCode\": \"<integer>\",\n    \"details\": {}\n  }\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                }
+                            ],
+                            "event": [],
+                            "protocolProfileBehavior": {
+                                "disableBodyPruning": true
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "login",
+                    "description": "",
+                    "item": [
+                        {
+                            "id": "1ca5027e-af60-40ee-9d8e-ebda633373fc",
+                            "name": "Login with email and password",
+                            "request": {
+                                "name": "Login with email and password",
+                                "description": {},
+                                "url": {
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "POST",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"<email>\",\n  \"password\": \"<string>\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "headerFamily": "json",
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "auth": null
+                            },
+                            "response": [
+                                {
+                                    "id": "108c13c5-de0a-40e3-a70f-84d5c99849e8",
+                                    "name": "Login successful",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "login"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"email\": \"<email>\",\n  \"password\": \"<string>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"<string>\",\n      \"firstName\": \"<string>\",\n      \"lastName\": \"<string>\",\n      \"email\": \"<string>\",\n      \"role\": \"vendor\",\n      \"region\": \"<string>\",\n      \"followers\": \"<integer>\",\n      \"following\": \"<integer>\",\n      \"companyName\": \"<string>\",\n      \"companyEmail\": \"<string>\",\n      \"industry\": \"<string>\",\n      \"companySize\": \"<string>\",\n      \"acceptedTerms\": \"<boolean>\",\n      \"acceptedMarketing\": \"<boolean>\",\n      \"createdAt\": \"<dateTime>\",\n      \"updatedAt\": \"<dateTime>\"\n    },\n    \"token\": \"<string>\"\n  },\n  \"message\": \"<string>\",\n  \"meta\": {}\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                },
+                                {
+                                    "id": "8aa696fc-b74d-450d-b612-e81a2346574d",
+                                    "name": "Validation failed",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "login"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"email\": \"<email>\",\n  \"password\": \"<string>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Bad Request",
+                                    "code": 400,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"error\": {\n    \"message\": \"<string>\",\n    \"code\": \"<string>\",\n    \"statusCode\": \"<integer>\",\n    \"details\": {}\n  }\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                },
+                                {
+                                    "id": "637825c9-7245-4cce-a0ee-15294ad9bbc4",
+                                    "name": "Invalid credentials",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "login"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"email\": \"<email>\",\n  \"password\": \"<string>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Unauthorized",
+                                    "code": 401,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"error\": {\n    \"message\": \"<string>\",\n    \"code\": \"<string>\",\n    \"statusCode\": \"<integer>\",\n    \"details\": {}\n  }\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                }
+                            ],
+                            "event": [],
+                            "protocolProfileBehavior": {
+                                "disableBodyPruning": true
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "google",
+                    "description": "",
+                    "item": [
+                        {
+                            "id": "3fa37ac8-61d6-45c0-839b-e8b4d521d688",
+                            "name": "Authenticate with Google OAuth",
+                            "request": {
+                                "name": "Authenticate with Google OAuth",
+                                "description": {},
+                                "url": {
+                                    "path": [
+                                        "auth",
+                                        "google"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "POST",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"token\": \"<string>\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "headerFamily": "json",
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "auth": null
+                            },
+                            "response": [
+                                {
+                                    "id": "0da142a6-e698-4fae-8967-9d278fc4c226",
+                                    "name": "OAuth login success",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "google"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"token\": \"<string>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"<string>\",\n      \"firstName\": \"<string>\",\n      \"lastName\": \"<string>\",\n      \"email\": \"<string>\",\n      \"role\": \"vendor\",\n      \"region\": \"<string>\",\n      \"followers\": \"<integer>\",\n      \"following\": \"<integer>\",\n      \"companyName\": \"<string>\",\n      \"companyEmail\": \"<string>\",\n      \"industry\": \"<string>\",\n      \"companySize\": \"<string>\",\n      \"acceptedTerms\": \"<boolean>\",\n      \"acceptedMarketing\": \"<boolean>\",\n      \"createdAt\": \"<dateTime>\",\n      \"updatedAt\": \"<dateTime>\"\n    },\n    \"token\": \"<string>\"\n  },\n  \"message\": \"<string>\",\n  \"meta\": {}\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                },
+                                {
+                                    "id": "92028e72-f9d2-4d6e-9125-24b549cedbc1",
+                                    "name": "Not implemented",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "google"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"token\": \"<string>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Not Implemented",
+                                    "code": 501,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"error\": {\n    \"message\": \"<string>\",\n    \"code\": \"<string>\",\n    \"statusCode\": \"<integer>\",\n    \"details\": {}\n  }\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                }
+                            ],
+                            "event": [],
+                            "protocolProfileBehavior": {
+                                "disableBodyPruning": true
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "linkedin",
+                    "description": "",
+                    "item": [
+                        {
+                            "id": "40298f4f-9c22-4679-b37e-96a7abdb56ab",
+                            "name": "Authenticate with LinkedIn OAuth",
+                            "request": {
+                                "name": "Authenticate with LinkedIn OAuth",
+                                "description": {},
+                                "url": {
+                                    "path": [
+                                        "auth",
+                                        "linkedin"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "POST",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"token\": \"<string>\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "headerFamily": "json",
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "auth": null
+                            },
+                            "response": [
+                                {
+                                    "id": "17d7d66e-7cd0-4473-bf08-3d6f145fe231",
+                                    "name": "OAuth login success",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "linkedin"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"token\": \"<string>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"<string>\",\n      \"firstName\": \"<string>\",\n      \"lastName\": \"<string>\",\n      \"email\": \"<string>\",\n      \"role\": \"vendor\",\n      \"region\": \"<string>\",\n      \"followers\": \"<integer>\",\n      \"following\": \"<integer>\",\n      \"companyName\": \"<string>\",\n      \"companyEmail\": \"<string>\",\n      \"industry\": \"<string>\",\n      \"companySize\": \"<string>\",\n      \"acceptedTerms\": \"<boolean>\",\n      \"acceptedMarketing\": \"<boolean>\",\n      \"createdAt\": \"<dateTime>\",\n      \"updatedAt\": \"<dateTime>\"\n    },\n    \"token\": \"<string>\"\n  },\n  \"message\": \"<string>\",\n  \"meta\": {}\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                },
+                                {
+                                    "id": "3cf80b1e-92cf-49bf-8e32-eefec432f3ae",
+                                    "name": "Not implemented",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "linkedin"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"token\": \"<string>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Not Implemented",
+                                    "code": 501,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"error\": {\n    \"message\": \"<string>\",\n    \"code\": \"<string>\",\n    \"statusCode\": \"<integer>\",\n    \"details\": {}\n  }\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                }
+                            ],
+                            "event": [],
+                            "protocolProfileBehavior": {
+                                "disableBodyPruning": true
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "register-vendor",
+                    "description": "",
+                    "item": [
+                        {
+                            "id": "a27c391c-b1b1-4975-b6a8-49cc87d3a798",
+                            "name": "Register a new vendor",
+                            "request": {
+                                "name": "Register a new vendor",
+                                "description": {},
+                                "url": {
+                                    "path": [
+                                        "auth",
+                                        "register-vendor"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "POST",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"firstName\": \"<string>\",\n  \"lastName\": \"<string>\",\n  \"email\": \"<email>\",\n  \"password\": \"<string>\",\n  \"companyName\": \"<string>\",\n  \"companyEmail\": \"<email>\",\n  \"industry\": \"<string>\",\n  \"companySize\": \"<string>\",\n  \"acceptedTerms\": \"<boolean>\",\n  \"acceptedMarketing\": \"<boolean>\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "headerFamily": "json",
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "auth": null
+                            },
+                            "response": [
+                                {
+                                    "id": "2d080e9d-7fdf-43b8-ab6b-f80745d328eb",
+                                    "name": "Vendor registration successful",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "register-vendor"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"firstName\": \"<string>\",\n  \"lastName\": \"<string>\",\n  \"email\": \"<email>\",\n  \"password\": \"<string>\",\n  \"companyName\": \"<string>\",\n  \"companyEmail\": \"<email>\",\n  \"industry\": \"<string>\",\n  \"companySize\": \"<string>\",\n  \"acceptedTerms\": \"<boolean>\",\n  \"acceptedMarketing\": \"<boolean>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Created",
+                                    "code": 201,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"<string>\",\n      \"firstName\": \"<string>\",\n      \"lastName\": \"<string>\",\n      \"email\": \"<string>\",\n      \"role\": \"vendor\",\n      \"region\": \"<string>\",\n      \"followers\": \"<integer>\",\n      \"following\": \"<integer>\",\n      \"companyName\": \"<string>\",\n      \"companyEmail\": \"<string>\",\n      \"industry\": \"<string>\",\n      \"companySize\": \"<string>\",\n      \"acceptedTerms\": \"<boolean>\",\n      \"acceptedMarketing\": \"<boolean>\",\n      \"createdAt\": \"<dateTime>\",\n      \"updatedAt\": \"<dateTime>\"\n    },\n    \"token\": \"<string>\"\n  },\n  \"message\": \"<string>\",\n  \"meta\": {}\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                },
+                                {
+                                    "id": "a798aa3d-7241-47ee-ab82-514fb2f1ad37",
+                                    "name": "Validation failed",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "register-vendor"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"firstName\": \"<string>\",\n  \"lastName\": \"<string>\",\n  \"email\": \"<email>\",\n  \"password\": \"<string>\",\n  \"companyName\": \"<string>\",\n  \"companyEmail\": \"<email>\",\n  \"industry\": \"<string>\",\n  \"companySize\": \"<string>\",\n  \"acceptedTerms\": \"<boolean>\",\n  \"acceptedMarketing\": \"<boolean>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Bad Request",
+                                    "code": 400,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"error\": {\n    \"message\": \"<string>\",\n    \"code\": \"<string>\",\n    \"statusCode\": \"<integer>\",\n    \"details\": {}\n  }\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                },
+                                {
+                                    "id": "a7894272-8c8e-4160-8bdb-0b24f6dbffac",
+                                    "name": "Email already registered",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "auth",
+                                                "register-vendor"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"firstName\": \"<string>\",\n  \"lastName\": \"<string>\",\n  \"email\": \"<email>\",\n  \"password\": \"<string>\",\n  \"companyName\": \"<string>\",\n  \"companyEmail\": \"<email>\",\n  \"industry\": \"<string>\",\n  \"companySize\": \"<string>\",\n  \"acceptedTerms\": \"<boolean>\",\n  \"acceptedMarketing\": \"<boolean>\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "headerFamily": "json",
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Conflict",
+                                    "code": 409,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"error\": {\n    \"message\": \"<string>\",\n    \"code\": \"<string>\",\n    \"statusCode\": \"<integer>\",\n    \"details\": {}\n  }\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                }
+                            ],
+                            "event": [],
+                            "protocolProfileBehavior": {
+                                "disableBodyPruning": true
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "files",
+            "description": "",
+            "item": [
+                {
+                    "name": "upload",
+                    "description": "",
+                    "item": [
+                        {
+                            "id": "dd7db075-cab6-4f38-9835-6dd44083a207",
+                            "name": "Upload file(s) to S3",
+                            "request": {
+                                "name": "Upload file(s) to S3",
+                                "description": {},
+                                "url": {
+                                    "path": [
+                                        "files",
+                                        "upload"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "multipart/form-data"
+                                    },
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "POST",
+                                "body": {
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "description": {
+                                                "content": "",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "file",
+                                            "value": "<binary>",
+                                            "type": "text"
+                                        }
+                                    ]
+                                },
+                                "auth": null
+                            },
+                            "response": [
+                                {
+                                    "id": "4b03168a-1c0d-4d8f-98e2-aad16a3b3ea3",
+                                    "name": "File(s) uploaded successfully",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "files",
+                                                "upload"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "multipart/form-data"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "formdata",
+                                            "formdata": [
+                                                {
+                                                    "description": {
+                                                        "content": "",
+                                                        "type": "text/plain"
+                                                    },
+                                                    "key": "file",
+                                                    "value": "<binary>",
+                                                    "type": "text"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "status": "Created",
+                                    "code": 201,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"data\": [\n    {\n      \"_id\": \"<string>\",\n      \"originalName\": \"<string>\",\n      \"mimeType\": \"<string>\",\n      \"size\": \"<integer>\",\n      \"url\": \"<string>\",\n      \"s3Key\": \"<string>\",\n      \"uploadedBy\": \"<string>\",\n      \"createdAt\": \"<dateTime>\"\n    },\n    {\n      \"_id\": \"<string>\",\n      \"originalName\": \"<string>\",\n      \"mimeType\": \"<string>\",\n      \"size\": \"<integer>\",\n      \"url\": \"<string>\",\n      \"s3Key\": \"<string>\",\n      \"uploadedBy\": \"<string>\",\n      \"createdAt\": \"<dateTime>\"\n    }\n  ],\n  \"message\": \"<string>\",\n  \"meta\": {}\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                },
+                                {
+                                    "id": "ed8ff7e0-3b5d-4e35-afd4-ef14241b0c13",
+                                    "name": "No file(s) uploaded",
+                                    "originalRequest": {
+                                        "url": {
+                                            "path": [
+                                                "files",
+                                                "upload"
+                                            ],
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "multipart/form-data"
+                                            },
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "method": "POST",
+                                        "body": {
+                                            "mode": "formdata",
+                                            "formdata": [
+                                                {
+                                                    "description": {
+                                                        "content": "",
+                                                        "type": "text/plain"
+                                                    },
+                                                    "key": "file",
+                                                    "value": "<binary>",
+                                                    "type": "text"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "status": "Bad Request",
+                                    "code": 400,
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n  \"success\": \"<boolean>\",\n  \"error\": {\n    \"message\": \"<string>\",\n    \"code\": \"<string>\",\n    \"statusCode\": \"<integer>\",\n    \"details\": {}\n  }\n}",
+                                    "cookie": [],
+                                    "_postman_previewlanguage": "json"
+                                }
+                            ],
+                            "event": [],
+                            "protocolProfileBehavior": {
+                                "disableBodyPruning": true
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "event": [],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8081/api/v1"
+        }
+    ],
+    "info": {
+        "_postman_id": "17a92f9c-bede-453d-b611-14236d662d20",
+        "name": "Xuthority API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "description": {
+            "content": "API documentation for Xuthority authentication endpoints.",
+            "type": "text/plain"
+        }
+    }
+}

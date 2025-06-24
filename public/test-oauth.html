@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OAuth Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .oauth-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .result { margin-top: 10px; padding: 10px; background: #f0f0f0; }
+        .btn { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>OAuth Login Test</h1>
+    
+    <div class="oauth-section">
+        <h2>Google OAuth</h2>
+        <button class="btn" onclick="testGoogleOAuth()">Test Google OAuth</button>
+        <div id="google-result" class="result"></div>
+    </div>
+
+    <div class="oauth-section">
+        <h2>LinkedIn OAuth</h2>
+        <button class="btn" onclick="testLinkedInOAuth()">Test LinkedIn OAuth</button>
+        <div id="linkedin-result" class="result"></div>
+    </div>
+
+    <script>
+        function testGoogleOAuth() {
+            document.getElementById('google-result').innerHTML = 'Redirecting to Google...';
+            window.location.href = '/api/v1/auth/google';
+        }
+
+        function testLinkedInOAuth() {
+            document.getElementById('linkedin-result').innerHTML = 'Redirecting to LinkedIn...';
+            window.location.href = '/api/v1/auth/linkedin';
+        }
+    </script>
+</body>
+</html> 

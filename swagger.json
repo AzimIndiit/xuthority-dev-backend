@@ -1,0 +1,425 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Xuthority API",
+    "version": "1.0.0",
+    "description": "API documentation for Xuthority authentication endpoints."
+  },
+  "servers": [
+    { "url": "/api/v1" }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registration successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthSuccessResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "409": { "$ref": "#/components/responses/ConflictError" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login with email and password",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthSuccessResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/AuthError" }
+        }
+      }
+    },
+    "/auth/google": {
+      "post": {
+        "summary": "Authenticate with Google OAuth",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OAuthRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/OAuthSuccess" },
+          "501": { "$ref": "#/components/responses/NotImplemented" }
+        }
+      }
+    },
+    "/auth/linkedin": {
+      "post": {
+        "summary": "Authenticate with LinkedIn OAuth",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OAuthRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/OAuthSuccess" },
+          "501": { "$ref": "#/components/responses/NotImplemented" }
+        }
+      }
+    },
+    "/auth/register-vendor": {
+      "post": {
+        "summary": "Register a new vendor",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterVendorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Vendor registration successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthSuccessResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "409": { "$ref": "#/components/responses/ConflictError" }
+        }
+      }
+    },
+    "/files/upload": {
+      "post": {
+        "summary": "Upload file(s) to S3",
+        "tags": ["Files"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "description": "Single file upload"
+                      }
+                    },
+                    "required": ["file"]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "files": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "binary"
+                        },
+                        "description": "Multiple file upload"
+                      }
+                    },
+                    "required": ["files"]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "File(s) uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/File" }
+                    },
+                    "message": { "type": "string", "example": "File(s) uploaded successfully" },
+                    "meta": { "type": "object" }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "data": [
+                    {
+                      "_id": "60f7c2b8e1b1c2a1b8e1b1c2",
+                      "originalName": "example.png",
+                      "mimeType": "image/png",
+                      "size": 123456,
+                      "url": "https://bucket.s3.region.amazonaws.com/1627891234567-file.png",
+                      "s3Key": "1627891234567-file.png",
+                      "uploadedBy": "60f7c2b8e1b1c2a1b8e1b1c1",
+                      "createdAt": "2023-01-01T00:00:00.000Z"
+                    }
+                  ],
+                  "message": "File(s) uploaded successfully",
+                  "meta": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No file(s) uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": { "type": "string", "example": "No file(s) uploaded" },
+                        "code": { "type": "string", "example": "NO_FILE" },
+                        "statusCode": { "type": "integer", "example": 400 },
+                        "details": { "type": "object" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["firstName", "lastName", "email", "password"],
+        "properties": {
+          "firstName": { "type": "string", "example": "Nikol" },
+          "lastName": { "type": "string", "example": "Hansen" },
+          "email": { "type": "string", "format": "email", "example": "nikolhansen11@gmail.com" },
+          "password": { "type": "string", "format": "password", "example": "Password123!" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email", "example": "nikolhansen11@gmail.com" },
+          "password": { "type": "string", "format": "password", "example": "Password123!" }
+        }
+      },
+      "OAuthRequest": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "description": "OAuth access token" }
+        }
+      },
+      "AuthSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": { "$ref": "#/components/schemas/User" },
+              "token": { "type": "string", "description": "JWT token" }
+            }
+          },
+          "message": { "type": "string", "example": "Registration successful" },
+          "meta": { "type": "object" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" },
+          "email": { "type": "string" },
+          "role": { "type": "string", "enum": ["user", "vendor"] },
+          "region": { "type": "string" },
+          "followers": { "type": "integer" },
+          "following": { "type": "integer" },
+          "companyName": { "type": "string" },
+          "companyEmail": { "type": "string" },
+          "industry": { "type": "string" },
+          "companySize": { "type": "string" },
+          "acceptedTerms": { "type": "boolean" },
+          "acceptedMarketing": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RegisterVendorRequest": {
+        "type": "object",
+        "required": ["firstName", "lastName", "email", "password", "companyName", "companyEmail", "industry", "companySize", "acceptedTerms"],
+        "properties": {
+          "firstName": { "type": "string", "example": "Jane" },
+          "lastName": { "type": "string", "example": "Doe" },
+          "email": { "type": "string", "format": "email", "example": "jane.doe@company.com" },
+          "password": { "type": "string", "format": "password", "example": "Password123!" },
+          "companyName": { "type": "string", "example": "Acme Corp" },
+          "companyEmail": { "type": "string", "format": "email", "example": "info@acme.com" },
+          "industry": { "type": "string", "example": "IT and Services" },
+          "companySize": { "type": "string", "example": "100-200 Employees" },
+          "acceptedTerms": { "type": "boolean", "example": true },
+          "acceptedMarketing": { "type": "boolean", "example": false }
+        }
+      },
+      "File": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "originalName": { "type": "string" },
+          "mimeType": { "type": "string" },
+          "size": { "type": "integer" },
+          "url": { "type": "string" },
+          "s3Key": { "type": "string" },
+          "uploadedBy": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "responses": {
+      "ValidationError": {
+        "description": "Validation failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": { "type": "boolean", "example": false },
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Validation failed" },
+                    "code": { "type": "string", "example": "VALIDATION_ERROR" },
+                    "statusCode": { "type": "integer", "example": 400 },
+                    "details": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ConflictError": {
+        "description": "Email already registered",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": { "type": "boolean", "example": false },
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Email already registered" },
+                    "code": { "type": "string", "example": "EMAIL_EXISTS" },
+                    "statusCode": { "type": "integer", "example": 400 },
+                    "details": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "AuthError": {
+        "description": "Invalid credentials",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": { "type": "boolean", "example": false },
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Invalid credentials" },
+                    "code": { "type": "string", "example": "INVALID_CREDENTIALS" },
+                    "statusCode": { "type": "integer", "example": 401 },
+                    "details": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "OAuthSuccess": {
+        "description": "OAuth login success",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/AuthSuccessResponse" }
+          }
+        }
+      },
+      "NotImplemented": {
+        "description": "Not implemented",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": { "type": "boolean", "example": false },
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Google OAuth not implemented" },
+                    "code": { "type": "string", "example": "NOT_IMPLEMENTED" },
+                    "statusCode": { "type": "integer", "example": 501 },
+                    "details": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
