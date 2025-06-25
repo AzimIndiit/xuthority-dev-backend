@@ -1,7 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const { validateRegister, validateLogin, validateVendorRegister } = require('../validators/authValidator');
+const { 
+  validateRegister, 
+  validateLogin, 
+  validateVendorRegister,
+  validateForgotPassword,
+  validateResetPassword,
+  validateVerifyResetToken
+} = require('../validators/authValidator');
 const passport = require('../config/passport');
 const jwt = require('jsonwebtoken');
 
@@ -28,6 +35,15 @@ router.post('/login', validateLogin, authController.login);
 
 // Vendor registration
 router.post('/register-vendor', validateVendorRegister, authController.registerVendor);
+
+// Forgot password - Send reset email
+router.post('/forgot-password', validateForgotPassword, authController.forgotPassword);
+
+// Reset password with token
+router.post('/reset-password', validateResetPassword, authController.resetPassword);
+
+// Verify reset token validity
+router.post('/verify-reset-token', validateVerifyResetToken, authController.verifyResetToken);
 
 // Google OAuth login (initiate)
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));

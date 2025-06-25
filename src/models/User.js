@@ -31,15 +31,31 @@ const userSchema = new mongoose.Schema({
     linkedin: { type: String, trim: true, default: '' },
     twitter: { type: String, trim: true, default: '' },
   },
-  followers: { type: Number, default: 0 },
-  following: { type: Number, default: 0 },
+  followersCount: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  followingCount: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   role: { type: String, enum: USER_ROLES, default: 'user' },
   authProvider: { type: String, enum: ['email', 'google', 'linkedin'], default: 'email' },
   acceptedTerms: { type: Boolean, required: true },
   acceptedMarketing: { type: Boolean, default: false },
   accessToken: { type: String, default: '' },
+  
+  // Password reset fields
+  passwordResetToken: { type: String },
+  passwordResetExpires: { type: Date },
+  passwordResetAttempts: { type: Number, default: 0 },
+  passwordResetLastAttempt: { type: Date },
 }, {
   timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
 module.exports = mongoose.model('User', userSchema);

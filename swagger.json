@@ -3,22 +3,1687 @@
   "info": {
     "title": "Xuthority API",
     "version": "1.0.0",
-    "description": "API documentation for Xuthority authentication endpoints."
+    "description": "Automatically generated API documentation.",
+    "contact": {
+      "name": "Xuthority",
+      "url": "https://xuthority.com",
+      "email": "support@xuthority.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "termsOfService": "https://xuthority.com/terms",
+    "xuthority": "https://xuthority.com",
+    "xuthorityDev": "https://xuthority-dev.com",
+    "xuthorityDevApi": "http://localhost:8081/api/v1",
+    "xuthorityDevApiDocs": "http://localhost:8081/api-docs",
+    "xuthorityDevApiDocsSwagger": "http://localhost:8081/swagger.json",
+    "xuthorityDevApiDocsSwaggerUi": "http://localhost:8081/api-docs",
+    "xuthorityDevApiDocsSwaggerUiSwagger": "http://localhost:8081/swagger.json"
   },
   "servers": [
-    { "url": "/api/v1" }
+    {
+      "url": "http://localhost:8081/api/v1"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Product": {
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "software",
+          "vendor"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Product ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Product name"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Product URL slug"
+          },
+          "description": {
+            "type": "string",
+            "description": "Product description"
+          },
+          "website": {
+            "type": "string",
+            "description": "Product website URL"
+          },
+          "software": {
+            "type": "string",
+            "enum": [
+              "SaaS",
+              "Desktop Application",
+              "Mobile App",
+              "Web Application",
+              "API/Service",
+              "Plugin/Extension",
+              "Other"
+            ]
+          },
+          "solutions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "industries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "marketSegment": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "pricing": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "price": {
+                  "type": "number"
+                },
+                "seats": {
+                  "type": "number"
+                },
+                "currency": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "vendor": {
+            "$ref": "#/components/schemas/User"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "archived",
+              "pending_review"
+            ]
+          },
+          "views": {
+            "type": "number"
+          },
+          "likes": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Software": {
+        "type": "object",
+        "required": [
+          "name",
+          "createdBy"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Software ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Software name"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Software slug (auto-generated)"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "default": "active",
+            "description": "Software status"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "User ID who created the software"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Solution": {
+        "type": "object",
+        "required": [
+          "name",
+          "createdBy"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Solution ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Solution name"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Solution slug (auto-generated)"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "default": "active",
+            "description": "Solution status"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "User ID who created the solution"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
   ],
   "paths": {
-    "/auth/register": {
+    "/files/upload": {
       "post": {
-        "summary": "Register a new user",
-        "tags": ["Auth"],
+        "summary": "Upload a single file",
+        "tags": [
+          "Files"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "File to upload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "fileId": {
+                          "type": "string",
+                          "description": "Unique file identifier"
+                        },
+                        "fileName": {
+                          "type": "string",
+                          "description": "Original file name"
+                        },
+                        "fileSize": {
+                          "type": "number",
+                          "description": "File size in bytes"
+                        },
+                        "fileType": {
+                          "type": "string",
+                          "description": "MIME type of the file"
+                        },
+                        "uploadDate": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "Upload timestamp"
+                        },
+                        "fileUrl": {
+                          "type": "string",
+                          "description": "URL to access the uploaded file"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "File uploaded successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid file or validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid file type or size"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "FILE_VALIDATION_ERROR"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 400
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Authentication required"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "UNAUTHORIZED"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 401
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large - File size exceeds limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "File size exceeds maximum limit"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "FILE_TOO_LARGE"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 413
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Internal server error"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "INTERNAL_ERROR"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 500
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/upload-multiple": {
+      "post": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Upload multiple files",
+        "description": "Upload multiple files (up to 5 files) to the system",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "description": "Array of files to upload (max 5 files)",
+                    "minItems": 1,
+                    "maxItems": 5
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Files uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "example": "507f1f77bcf86cd799439011"
+                              },
+                              "filename": {
+                                "type": "string",
+                                "example": "document.pdf"
+                              },
+                              "originalName": {
+                                "type": "string",
+                                "example": "original-document.pdf"
+                              },
+                              "mimeType": {
+                                "type": "string",
+                                "example": "application/pdf"
+                              },
+                              "size": {
+                                "type": "integer",
+                                "example": 1024000
+                              },
+                              "url": {
+                                "type": "string",
+                                "example": "https://s3.amazonaws.com/bucket/document.pdf"
+                              },
+                              "uploadedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00.000Z"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Files uploaded successfully"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer",
+                          "example": 3
+                        },
+                        "uploaded": {
+                          "type": "integer",
+                          "example": 3
+                        },
+                        "failed": {
+                          "type": "integer",
+                          "example": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid file data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid file data"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "INVALID_FILE_DATA"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 400
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Authentication required"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "UNAUTHORIZED"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 401
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large - File size exceeds limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "File size exceeds maximum limit"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "FILE_TOO_LARGE"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 413
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Internal server error"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "INTERNAL_ERROR"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 500
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "follow/toggle/{userId}": {
+      "post": {
+        "summary": "Toggle follow status for a user",
+        "description": "Follow or unfollow a user. If not following, will follow. If already following, will unfollow.",
+        "tags": [
+          "Follow"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "ID of the user to follow/unfollow"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Follow status toggled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "type": "string",
+                          "enum": [
+                            "followed",
+                            "unfollowed"
+                          ],
+                          "description": "The action performed"
+                        },
+                        "isFollowing": {
+                          "type": "boolean",
+                          "description": "Current follow status after toggle"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string"
+                            },
+                            "username": {
+                              "type": "string"
+                            },
+                            "followersCount": {
+                              "type": "number"
+                            },
+                            "followingCount": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Successfully followed user"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Target user not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests - Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "follow/{userId}/stats": {
+      "get": {
+        "summary": "Get user's follow statistics",
+        "description": "Retrieve follow statistics for the specified user including follower and following counts",
+        "tags": [
+          "Follow"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "ID of the user whose statistics to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved follow statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "followersCount": {
+                          "type": "number",
+                          "description": "Number of users following this user"
+                        },
+                        "followingCount": {
+                          "type": "number",
+                          "description": "Number of users this user is following"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Follow statistics retrieved successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/software": {
+      "get": {
+        "summary": "Get all software with search and pagination",
+        "tags": [
+          "Software"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "Number of items per page"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search query"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "inactive"
+              ]
+            },
+            "description": "Filter by status"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "name",
+                "status",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Sort field"
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "description": "Sort order"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Software list retrieved successfully"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create new software",
+        "tags": [
+          "Software"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Software name"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "inactive"
+                    ],
+                    "default": "active"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Software created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/software/active": {
+      "get": {
+        "summary": "Get active software only",
+        "tags": [
+          "Software"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "Number of items per page"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Active software retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/software/{id}": {
+      "get": {
+        "summary": "Get software by ID",
+        "tags": [
+          "Software"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Software ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Software retrieved successfully"
+          },
+          "404": {
+            "description": "Software not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update software",
+        "tags": [
+          "Software"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Software ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Software name"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "inactive"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Software updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Software not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete software",
+        "tags": [
+          "Software"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Software ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Software deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Software not found"
+          }
+        }
+      }
+    },
+    "/api/v1/software/slug/{slug}": {
+      "get": {
+        "summary": "Get software by slug",
+        "tags": [
+          "Software"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Software slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Software retrieved successfully"
+          },
+          "404": {
+            "description": "Software not found"
+          }
+        }
+      }
+    },
+    "/api/v1/software/{id}/toggle-status": {
+      "patch": {
+        "summary": "Toggle software status",
+        "tags": [
+          "Software"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Software ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Software status toggled successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Software not found"
+          }
+        }
+      }
+    },
+    "/api/v1/solutions": {
+      "get": {
+        "summary": "Get all solutions with search and pagination",
+        "tags": [
+          "Solutions"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "Number of items per page"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search query"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "inactive"
+              ]
+            },
+            "description": "Filter by status"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "name",
+                "status",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Sort field"
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "description": "Sort order"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solutions list retrieved successfully"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create new solution",
+        "tags": [
+          "Solutions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Solution name"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "inactive"
+                    ],
+                    "default": "active"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Solution created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/solutions/active": {
+      "get": {
+        "summary": "Get active solutions only",
+        "tags": [
+          "Solutions"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "Number of items per page"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Active solutions retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/solutions/{id}": {
+      "get": {
+        "summary": "Get solution by ID",
+        "tags": [
+          "Solutions"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Solution ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solution retrieved successfully"
+          },
+          "404": {
+            "description": "Solution not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update solution",
+        "tags": [
+          "Solutions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Solution ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Solution name"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "inactive"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Solution updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Solution not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete solution",
+        "tags": [
+          "Solutions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Solution ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solution deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Solution not found"
+          }
+        }
+      }
+    },
+    "/api/v1/solutions/slug/{slug}": {
+      "get": {
+        "summary": "Get solution by slug",
+        "tags": [
+          "Solutions"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Solution slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solution retrieved successfully"
+          },
+          "404": {
+            "description": "Solution not found"
+          }
+        }
+      }
+    },
+    "/api/v1/solutions/{id}/toggle-status": {
+      "patch": {
+        "summary": "Toggle solution status",
+        "tags": [
+          "Solutions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Solution ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solution status toggled successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Solution not found"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "firstName",
+                  "lastName",
+                  "email",
+                  "password",
+                  "acceptedTerms"
+                ],
+                "properties": {
+                  "firstName": {
+                    "type": "string",
+                    "example": "John"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "john.doe@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "Password123!"
+                  },
+                  "acceptedTerms": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "acceptedMarketing": {
+                    "type": "boolean",
+                    "example": false
+                  }
+                }
               }
             }
           }
@@ -28,24 +1693,93 @@
             "description": "Registration successful",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AuthSuccessResponse" }
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Registration successful"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
               }
             }
           },
-          "400": { "$ref": "#/components/responses/ValidationError" },
-          "409": { "$ref": "#/components/responses/ConflictError" }
+          "400": {
+            "description": "Validation error or user already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "statusCode": {
+                          "type": "integer"
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
     "/auth/login": {
       "post": {
         "summary": "Login with email and password",
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "john.doe@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "Password123!"
+                  }
+                }
+              }
             }
           }
         },
@@ -54,172 +1788,54 @@
             "description": "Login successful",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AuthSuccessResponse" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/ValidationError" },
-          "401": { "$ref": "#/components/responses/AuthError" }
-        }
-      }
-    },
-    "/auth/google": {
-      "post": {
-        "summary": "Authenticate with Google OAuth",
-        "tags": ["Auth"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/OAuthRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": { "$ref": "#/components/responses/OAuthSuccess" },
-          "501": { "$ref": "#/components/responses/NotImplemented" }
-        }
-      }
-    },
-    "/auth/linkedin": {
-      "post": {
-        "summary": "Authenticate with LinkedIn OAuth",
-        "tags": ["Auth"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/OAuthRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": { "$ref": "#/components/responses/OAuthSuccess" },
-          "501": { "$ref": "#/components/responses/NotImplemented" }
-        }
-      }
-    },
-    "/auth/register-vendor": {
-      "post": {
-        "summary": "Register a new vendor",
-        "tags": ["Auth"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterVendorRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Vendor registration successful",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/AuthSuccessResponse" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/ValidationError" },
-          "409": { "$ref": "#/components/responses/ConflictError" }
-        }
-      }
-    },
-    "/files/upload": {
-      "post": {
-        "summary": "Upload file(s) to S3",
-        "tags": ["Files"],
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "oneOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "file": {
-                        "type": "string",
-                        "format": "binary",
-                        "description": "Single file upload"
-                      }
-                    },
-                    "required": ["file"]
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "files": {
-                        "type": "array",
-                        "items": {
-                          "type": "string",
-                          "format": "binary"
-                        },
-                        "description": "Multiple file upload"
-                      }
-                    },
-                    "required": ["files"]
-                  }
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "File(s) uploaded successfully",
-            "content": {
-              "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "data": {
-                      "type": "array",
-                      "items": { "$ref": "#/components/schemas/File" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
                     },
-                    "message": { "type": "string", "example": "File(s) uploaded successfully" },
-                    "meta": { "type": "object" }
-                  }
-                },
-                "example": {
-                  "success": true,
-                  "data": [
-                    {
-                      "_id": "60f7c2b8e1b1c2a1b8e1b1c2",
-                      "originalName": "example.png",
-                      "mimeType": "image/png",
-                      "size": 123456,
-                      "url": "https://bucket.s3.region.amazonaws.com/1627891234567-file.png",
-                      "s3Key": "1627891234567-file.png",
-                      "uploadedBy": "60f7c2b8e1b1c2a1b8e1b1c1",
-                      "createdAt": "2023-01-01T00:00:00.000Z"
+                    "data": {
+                      "type": "object"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Login successful"
+                    },
+                    "meta": {
+                      "type": "object"
                     }
-                  ],
-                  "message": "File(s) uploaded successfully",
-                  "meta": {}
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "No file(s) uploaded",
+            "description": "Validation error",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": false },
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
                     "error": {
                       "type": "object",
                       "properties": {
-                        "message": { "type": "string", "example": "No file(s) uploaded" },
-                        "code": { "type": "string", "example": "NO_FILE" },
-                        "statusCode": { "type": "integer", "example": 400 },
-                        "details": { "type": "object" }
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "statusCode": {
+                          "type": "integer"
+                        },
+                        "details": {
+                          "type": "object"
+                        }
                       }
                     }
                   }
@@ -229,190 +1845,605 @@
           }
         }
       }
-    }
-  },
-  "components": {
-    "schemas": {
-      "RegisterRequest": {
-        "type": "object",
-        "required": ["firstName", "lastName", "email", "password"],
-        "properties": {
-          "firstName": { "type": "string", "example": "Nikol" },
-          "lastName": { "type": "string", "example": "Hansen" },
-          "email": { "type": "string", "format": "email", "example": "nikolhansen11@gmail.com" },
-          "password": { "type": "string", "format": "password", "example": "Password123!" }
-        }
-      },
-      "LoginRequest": {
-        "type": "object",
-        "required": ["email", "password"],
-        "properties": {
-          "email": { "type": "string", "format": "email", "example": "nikolhansen11@gmail.com" },
-          "password": { "type": "string", "format": "password", "example": "Password123!" }
-        }
-      },
-      "OAuthRequest": {
-        "type": "object",
-        "properties": {
-          "token": { "type": "string", "description": "OAuth access token" }
-        }
-      },
-      "AuthSuccessResponse": {
-        "type": "object",
-        "properties": {
-          "success": { "type": "boolean", "example": true },
-          "data": {
-            "type": "object",
-            "properties": {
-              "user": { "$ref": "#/components/schemas/User" },
-              "token": { "type": "string", "description": "JWT token" }
+    },
+    "/auth/register-vendor": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Register a new vendor",
+        "description": "Register a new vendor account with company information",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "firstName",
+                  "lastName",
+                  "email",
+                  "password",
+                  "companyName",
+                  "companyEmail",
+                  "industry",
+                  "companySize",
+                  "acceptedTerms"
+                ],
+                "properties": {
+                  "firstName": {
+                    "type": "string",
+                    "description": "Vendor's first name",
+                    "example": "John"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "description": "Vendor's last name",
+                    "example": "Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Vendor's email address",
+                    "example": "john.doe@company.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "description": "Vendor's password (minimum 8 characters)",
+                    "example": "securePassword123"
+                  },
+                  "companyName": {
+                    "type": "string",
+                    "description": "Company name",
+                    "example": "Tech Solutions Inc"
+                  },
+                  "companyEmail": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Company email address",
+                    "example": "contact@techsolutions.com"
+                  },
+                  "industry": {
+                    "type": "string",
+                    "description": "Industry sector",
+                    "example": "Technology"
+                  },
+                  "companySize": {
+                    "type": "string",
+                    "enum": [
+                      "1-10",
+                      "11-50",
+                      "51-200",
+                      "201-500",
+                      "500+"
+                    ],
+                    "description": "Company size range",
+                    "example": "51-200"
+                  },
+                  "acceptedTerms": {
+                    "type": "string",
+                    "enum": [
+                      "true",
+                      "false"
+                    ],
+                    "description": "Whether terms and conditions were accepted",
+                    "example": "true"
+                  },
+                  "acceptedMarketing": {
+                    "type": "string",
+                    "enum": [
+                      "true",
+                      "false"
+                    ],
+                    "description": "Whether marketing communications were accepted",
+                    "example": "false"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Vendor registration successful (existing user with valid token)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        },
+                        "token": {
+                          "type": "string",
+                          "description": "JWT access token",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Vendor registration successful"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
             }
           },
-          "message": { "type": "string", "example": "Registration successful" },
-          "meta": { "type": "object" }
-        }
-      },
-      "User": {
-        "type": "object",
-        "properties": {
-          "_id": { "type": "string" },
-          "firstName": { "type": "string" },
-          "lastName": { "type": "string" },
-          "email": { "type": "string" },
-          "role": { "type": "string", "enum": ["user", "vendor"] },
-          "region": { "type": "string" },
-          "followers": { "type": "integer" },
-          "following": { "type": "integer" },
-          "companyName": { "type": "string" },
-          "companyEmail": { "type": "string" },
-          "industry": { "type": "string" },
-          "companySize": { "type": "string" },
-          "acceptedTerms": { "type": "boolean" },
-          "acceptedMarketing": { "type": "boolean" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
-        }
-      },
-      "RegisterVendorRequest": {
-        "type": "object",
-        "required": ["firstName", "lastName", "email", "password", "companyName", "companyEmail", "industry", "companySize", "acceptedTerms"],
-        "properties": {
-          "firstName": { "type": "string", "example": "Jane" },
-          "lastName": { "type": "string", "example": "Doe" },
-          "email": { "type": "string", "format": "email", "example": "jane.doe@company.com" },
-          "password": { "type": "string", "format": "password", "example": "Password123!" },
-          "companyName": { "type": "string", "example": "Acme Corp" },
-          "companyEmail": { "type": "string", "format": "email", "example": "info@acme.com" },
-          "industry": { "type": "string", "example": "IT and Services" },
-          "companySize": { "type": "string", "example": "100-200 Employees" },
-          "acceptedTerms": { "type": "boolean", "example": true },
-          "acceptedMarketing": { "type": "boolean", "example": false }
-        }
-      },
-      "File": {
-        "type": "object",
-        "properties": {
-          "_id": { "type": "string" },
-          "originalName": { "type": "string" },
-          "mimeType": { "type": "string" },
-          "size": { "type": "integer" },
-          "url": { "type": "string" },
-          "s3Key": { "type": "string" },
-          "uploadedBy": { "type": "string" },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "201": {
+            "description": "Vendor registration successful (new user created)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        },
+                        "token": {
+                          "type": "string",
+                          "description": "JWT access token",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Vendor registration successful"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
         }
       }
     },
-    "responses": {
-      "ValidationError": {
-        "description": "Validation failed",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean", "example": false },
-                "error": {
-                  "type": "object",
-                  "properties": {
-                    "message": { "type": "string", "example": "Validation failed" },
-                    "code": { "type": "string", "example": "VALIDATION_ERROR" },
-                    "statusCode": { "type": "integer", "example": 400 },
-                    "details": { "type": "object" }
+    "/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Request password reset",
+        "description": "Send password reset email to user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com",
+                    "description": "Email address to send reset link to"
                   }
                 }
               }
             }
           }
-        }
-      },
-      "ConflictError": {
-        "description": "Email already registered",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean", "example": false },
-                "error": {
+        },
+        "responses": {
+          "200": {
+            "description": "Reset email sent (or would be sent)",
+            "content": {
+              "application/json": {
+                "schema": {
                   "type": "object",
                   "properties": {
-                    "message": { "type": "string", "example": "Email already registered" },
-                    "code": { "type": "string", "example": "EMAIL_EXISTS" },
-                    "statusCode": { "type": "integer", "example": 400 },
-                    "details": { "type": "object" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Reset password with token",
+        "description": "Reset user password using the token from email",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "newPassword",
+                  "confirmNewPassword"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "example": "abc123def456...",
+                    "description": "Password reset token from email"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "example": "NewPassword123!",
+                    "description": "New password (8+ chars, uppercase, lowercase, number)"
+                  },
+                  "confirmNewPassword": {
+                    "type": "string",
+                    "example": "NewPassword123!",
+                    "description": "Confirmation of new password"
                   }
                 }
               }
             }
           }
-        }
-      },
-      "AuthError": {
-        "description": "Invalid credentials",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean", "example": false },
-                "error": {
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "application/json": {
+                "schema": {
                   "type": "object",
                   "properties": {
-                    "message": { "type": "string", "example": "Invalid credentials" },
-                    "code": { "type": "string", "example": "INVALID_CREDENTIALS" },
-                    "statusCode": { "type": "integer", "example": 401 },
-                    "details": { "type": "object" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid token or validation error"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/auth/verify-reset-token": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Verify password reset token",
+        "description": "Check if password reset token is valid and not expired",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "example": "abc123def456...",
+                    "description": "Password reset token to verify"
                   }
                 }
               }
             }
           }
-        }
-      },
-      "OAuthSuccess": {
-        "description": "OAuth login success",
-        "content": {
-          "application/json": {
-            "schema": { "$ref": "#/components/schemas/AuthSuccessResponse" }
-          }
-        }
-      },
-      "NotImplemented": {
-        "description": "Not implemented",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean", "example": false },
-                "error": {
+        },
+        "responses": {
+          "200": {
+            "description": "Token is valid",
+            "content": {
+              "application/json": {
+                "schema": {
                   "type": "object",
                   "properties": {
-                    "message": { "type": "string", "example": "Google OAuth not implemented" },
-                    "code": { "type": "string", "example": "NOT_IMPLEMENTED" },
-                    "statusCode": { "type": "integer", "example": 501 },
-                    "details": { "type": "object" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "userId": {
+                          "type": "string"
+                        },
+                        "firstName": {
+                          "type": "string"
+                        },
+                        "lastName": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired token"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/followers/{userId}/remove": {
+      "delete": {
+        "summary": "Remove a follower",
+        "tags": [
+          "Follow"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the follower to remove"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully removed follower"
+          },
+          "400": {
+            "description": "User is not a follower"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/users/{userId}/followers": {
+      "get": {
+        "summary": "Get a specific user's followers (public)",
+        "tags": [
+          "Follow"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the user"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            },
+            "description": "Items per page"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search term for filtering followers"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User followers retrieved successfully"
+          }
+        }
+      }
+    },
+    "/users/{userId}/following": {
+      "get": {
+        "summary": "Get a specific user's following (public)",
+        "tags": [
+          "Follow"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the user"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            },
+            "description": "Items per page"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search term for filtering following"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User following retrieved successfully"
+          }
+        }
+      }
+    },
+    "/follow/status/{userId}": {
+      "get": {
+        "summary": "Check if current user is following a specific user",
+        "tags": [
+          "Follow"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the user to check"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Follow status retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "isFollowing": {
+                          "type": "boolean"
+                        },
+                        "userId": {
+                          "type": "string"
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -420,6 +2451,1536 @@
           }
         }
       }
+    },
+    "/users/{userId}/stats": {
+      "get": {
+        "summary": "Get follow statistics for a user",
+        "tags": [
+          "Follow"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the user"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Follow stats retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "followers": {
+                          "type": "number"
+                        },
+                        "following": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/follow/toggle/{userId}": {
+      "post": {
+        "summary": "Toggle follow/unfollow a user",
+        "description": "Follows a user if not already following, unfollows if already following",
+        "tags": [
+          "Follow"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the user to follow/unfollow"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully toggled follow status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "type": "string",
+                          "enum": [
+                            "followed",
+                            "unfollowed"
+                          ],
+                          "example": "followed"
+                        },
+                        "isFollowing": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "targetUser": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string"
+                            },
+                            "firstName": {
+                              "type": "string"
+                            },
+                            "lastName": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "followersCount": {
+                              "type": "number"
+                            },
+                            "followingCount": {
+                              "type": "number"
+                            },
+                            "isFollowing": {
+                              "type": "boolean"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Successfully followed John Doe"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (can't follow self, etc.)"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/products": {
+      "post": {
+        "summary": "Create a new product (Vendors only)",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "description",
+                  "software"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 100
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 2000
+                  },
+                  "website": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "software": {
+                    "type": "string",
+                    "enum": [
+                      "SaaS",
+                      "Desktop Application",
+                      "Mobile App",
+                      "Web Application",
+                      "API/Service",
+                      "Plugin/Extension",
+                      "Other"
+                    ]
+                  },
+                  "solutions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "industries": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "features": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "pricing": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "price": {
+                          "type": "number"
+                        },
+                        "seats": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "403": {
+            "description": "Only vendors can create products"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get products with filtering and pagination",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "published",
+                "archived",
+                "pending_review"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "software",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "name",
+                "views",
+                "likes"
+              ],
+              "default": "createdAt"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/{productId}": {
+      "get": {
+        "summary": "Get product by ID",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product ID"
+          },
+          {
+            "in": "query",
+            "name": "incrementViews",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Whether to increment view count"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product retrieved successfully"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update product (Vendor only - own products)",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "website": {
+                    "type": "string"
+                  },
+                  "software": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "published",
+                      "archived",
+                      "pending_review"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product updated successfully"
+          },
+          "403": {
+            "description": "Can only update own products"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete product (Vendor only - own products)",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deleted successfully"
+          },
+          "403": {
+            "description": "Can only delete own products"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/products/slug/{slug}": {
+      "get": {
+        "summary": "Get product by slug",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product retrieved successfully"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/products/vendor/{vendorId}": {
+      "get": {
+        "summary": "Get vendor's products",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vendorId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Vendor ID"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vendor products retrieved successfully"
+          },
+          "404": {
+            "description": "Vendor not found"
+          }
+        }
+      }
+    },
+    "/products/my": {
+      "get": {
+        "summary": "Get current vendor's products",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "My products retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/{productId}/like": {
+      "post": {
+        "summary": "Toggle product like",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product like toggled successfully"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/products/search": {
+      "get": {
+        "summary": "Search products",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search query"
+          },
+          {
+            "in": "query",
+            "name": "software",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "industries",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/stats": {
+      "get": {
+        "summary": "Get product statistics",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistics retrieved successfully"
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get all users with pagination",
+        "description": "Retrieve a paginated list of all users in the system",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Number of users per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User"
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Users fetched successfully"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "example": 10
+                            },
+                            "totalPages": {
+                              "type": "integer",
+                              "example": 5
+                            },
+                            "total": {
+                              "type": "integer",
+                              "example": 50
+                            }
+                          }
+                        },
+                        "total": {
+                          "type": "integer",
+                          "example": 50
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/users/profile": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update user profile",
+        "description": "Update the authenticated user's profile fields",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "type": "string",
+                    "example": "Jane"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "Doe"
+                  },
+                  "region": {
+                    "type": "string",
+                    "example": "US"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Bio..."
+                  },
+                  "industry": {
+                    "type": "string",
+                    "example": "Tech"
+                  },
+                  "title": {
+                    "type": "string",
+                    "example": "CTO"
+                  },
+                  "companyName": {
+                    "type": "string",
+                    "example": "Acme Corp"
+                  },
+                  "companySize": {
+                    "type": "string",
+                    "example": "51-100 Employees"
+                  },
+                  "companyEmail": {
+                    "type": "string",
+                    "example": "contact@acme.com"
+                  },
+                  "socialLinks": {
+                    "type": "object",
+                    "properties": {
+                      "linkedin": {
+                        "type": "string",
+                        "example": "https://linkedin.com/in/janedoe"
+                      },
+                      "twitter": {
+                        "type": "string",
+                        "example": "https://twitter.com/janedoe"
+                      }
+                    }
+                  },
+                  "acceptedMarketing": {
+                    "type": "boolean",
+                    "example": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Profile updated successfully"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "User not found"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "USER_NOT_FOUND"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 404
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Internal server error"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "INTERNAL_ERROR"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 500
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get current user's profile",
+        "description": "Retrieve the authenticated user's complete profile information",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Profile retrieved successfully"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Authentication required"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "UNAUTHORIZED"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 401
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "User not found"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "USER_NOT_FOUND"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 404
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/users/public-profile/{userId}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get user's public profile",
+        "description": "Retrieve any user's public profile information (limited data)",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "ID of the user whose profile to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string"
+                            },
+                            "firstName": {
+                              "type": "string"
+                            },
+                            "lastName": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "region": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "industry": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "companyName": {
+                              "type": "string"
+                            },
+                            "companySize": {
+                              "type": "string"
+                            },
+                            "socialLinks": {
+                              "type": "object"
+                            },
+                            "followersCount": {
+                              "type": "number"
+                            },
+                            "followingCount": {
+                              "type": "number"
+                            },
+                            "userType": {
+                              "type": "string",
+                              "enum": [
+                                "user",
+                                "vendor"
+                              ]
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Public profile retrieved successfully"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid user ID format"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "INVALID_ID"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 400
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "User not found"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "USER_NOT_FOUND"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 404
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/users/change-password": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Change user password",
+        "description": "Change the authenticated user's password by providing current password and new password",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "currentPassword",
+                  "newPassword",
+                  "confirmNewPassword"
+                ],
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "example": "OldPassword123!",
+                    "description": "Current password for verification"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "example": "NewPassword123!",
+                    "description": "New password (must contain uppercase, lowercase, and number)"
+                  },
+                  "confirmNewPassword": {
+                    "type": "string",
+                    "example": "NewPassword123!",
+                    "description": "Confirmation of new password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password changed successfully"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid current password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 400
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/users/search": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Search users",
+        "description": "Search for users by name, email, or other criteria",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Search query"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            },
+            "description": "Number of users per page"
+          },
+          {
+            "in": "query",
+            "name": "userType",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user",
+                "vendor"
+              ]
+            },
+            "description": "Filter by user type"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users found successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "users": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string"
+                              },
+                              "firstName": {
+                                "type": "string"
+                              },
+                              "lastName": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "userType": {
+                                "type": "string"
+                              },
+                              "followers": {
+                                "type": "number"
+                              },
+                              "following": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        },
+                        "pagination": {
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - missing or invalid search query"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
     }
-  }
+  },
+  "tags": []
 }

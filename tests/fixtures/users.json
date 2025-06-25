@@ -1,0 +1,12 @@
+[
+  {
+        "firstName": "User",
+        "lastName": "One",
+        "email": "user1@example.com",
+        "password": "UserPass123!",
+        "role": "user",
+        "acceptedTerms": "true",
+        "acceptedMarketing": true
+  }
+
+]

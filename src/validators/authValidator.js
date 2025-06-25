@@ -125,8 +125,95 @@ const validateVendorRegister = [
   },
 ];
 
+// Forgot password validation
+const validateForgotPassword = [
+  body('email')
+    .trim()
+    .normalizeEmail({ gmail_remove_dots: false })
+    .notEmpty().withMessage('Email is required')
+    .isEmail().withMessage('Valid email address is required'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          statusCode: 400,
+          details: errors.mapped(),
+        },
+      });
+    }
+    next();
+  },
+];
+
+// Reset password validation
+const validateResetPassword = [
+  body('token')
+    .trim()
+    .notEmpty().withMessage('Reset token is required')
+    .isLength({ min: 64, max: 64 }).withMessage('Invalid reset token format'),
+  body('newPassword')
+    .trim()
+    .notEmpty().withMessage('New password is required')
+    .isLength({ min: 8, max: 128 }).withMessage('New password must be between 8 and 128 characters'),
+    // .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('New password must contain at least one lowercase letter, one uppercase letter, and one number'),
+  body('confirmNewPassword')
+    .trim()
+    .notEmpty().withMessage('Password confirmation is required')
+    .custom((value, { req }) => {
+      if (value !== req.body.newPassword) {
+        throw new Error('Password confirmation does not match new password');
+      }
+      return true;
+    }),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          statusCode: 400,
+          details: errors.mapped(),
+        },
+      });
+    }
+    next();
+  },
+];
+
+// Verify reset token validation
+const validateVerifyResetToken = [
+  body('token')
+    .trim()
+    .notEmpty().withMessage('Reset token is required')
+    .isLength({ min: 64, max: 64 }).withMessage('Invalid reset token format'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          statusCode: 400,
+          details: errors.mapped(),
+        },
+      });
+    }
+    next();
+  },
+];
+
 module.exports = {
   validateRegister,
   validateLogin,
   validateVendorRegister,
+  validateForgotPassword,
+  validateResetPassword,
+  validateVerifyResetToken,
 };
