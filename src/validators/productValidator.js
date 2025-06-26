@@ -1,589 +1,405 @@
 const { body, param, query } = require('express-validator');
-
-// Product creation validation
-const createProductValidator = [
-  body('name')
-    .notEmpty()
-    .withMessage('Product name is required')
-    .isLength({ min: 3, max: 100 })
-    .withMessage('Product name must be between 3 and 100 characters')
-    .trim(),
-
-  body('description')
-    .notEmpty()
-    .withMessage('Product description is required')
-    .isLength({ min: 10, max: 2000 })
-    .withMessage('Description must be between 10 and 2000 characters')
-    .trim(),
-
-  body('website')
-    .optional()
-    .isURL()
-    .withMessage('Website must be a valid URL'),
-
-  body('software')
-    .notEmpty()
-    .withMessage('Software category is required')
-    .isIn([
-      'SaaS',
-      'Desktop Application',
-      'Mobile App',
-      'Web Application',
-      'API/Service',
-      'Plugin/Extension',
-      'Other'
-    ])
-    .withMessage('Invalid software category'),
-
-  body('solutions')
-    .optional()
-    .isArray()
-    .withMessage('Solutions must be an array'),
-
-  body('solutions.*')
-    .optional()
-    .isIn([
-      'Analytics',
-      'CRM',
-      'E-commerce',
-      'Marketing',
-      'Sales',
-      'HR',
-      'Finance',
-      'Project Management',
-      'Communication',
-      'Security',
-      'DevOps',
-      'Other'
-    ])
-    .withMessage('Invalid solution category'),
-
-  body('whoCanUse')
-    .optional()
-    .isArray()
-    .withMessage('Who can use must be an array'),
-
-  body('whoCanUse.*')
-    .optional()
-    .isIn([
-      'Small Business',
-      'Medium Business',
-      'Enterprise',
-      'Startups',
-      'Freelancers',
-      'Developers',
-      'Marketers',
-      'Sales Teams',
-      'Everyone'
-    ])
-    .withMessage('Invalid user category'),
-
-  body('industries')
-    .optional()
-    .isArray()
-    .withMessage('Industries must be an array'),
-
-  body('industries.*')
-    .optional()
-    .isIn([
-      'Technology',
-      'Healthcare',
-      'Finance',
-      'Education',
-      'Retail',
-      'Manufacturing',
-      'Real Estate',
-      'Marketing',
-      'Consulting',
-      'Non-profit',
-      'Government',
-      'Other'
-    ])
-    .withMessage('Invalid industry'),
-
-  body('integrations')
-    .optional()
-    .isArray()
-    .withMessage('Integrations must be an array'),
-
-  body('integrations.*')
-    .optional()
-    .isIn([
-      'Slack',
-      'Microsoft Teams',
-      'Google Workspace',
-      'Salesforce',
-      'HubSpot',
-      'Zapier',
-      'API',
-      'Webhooks',
-      'Custom',
-      'None'
-    ])
-    .withMessage('Invalid integration'),
-
-  body('languages')
-    .optional()
-    .isArray()
-    .withMessage('Languages must be an array'),
-
-  body('languages.*')
-    .optional()
-    .isIn([
-      'English',
-      'Spanish',
-      'French',
-      'German',
-      'Italian',
-      'Portuguese',
-      'Chinese',
-      'Japanese',
-      'Korean',
-      'Russian',
-      'Arabic',
-      'Hindi',
-      'Multi-language'
-    ])
-    .withMessage('Invalid language'),
-
-  body('marketSegment')
-    .optional()
-    .isArray()
-    .withMessage('Market segment must be an array'),
-
-  body('marketSegment.*')
-    .optional()
-    .isIn([
-      'SMB',
-      'Mid-Market',
-      'Enterprise',
-      'Startup',
-      'Government',
-      'Education',
-      'Non-profit',
-      'Global'
-    ])
-    .withMessage('Invalid market segment'),
-
-  body('brandColors.primary')
-    .optional()
-    .matches(/^#([0-9A-F]{3}){1,2}$/i)
-    .withMessage('Primary color must be a valid hex color'),
-
-  body('brandColors.secondary')
-    .optional()
-    .matches(/^#([0-9A-F]{3}){1,2}$/i)
-    .withMessage('Secondary color must be a valid hex color'),
-
-  body('shortDescription')
-    .optional()
-    .isLength({ max: 200 })
-    .withMessage('Short description must not exceed 200 characters')
-    .trim(),
-
-  body('metaTitle')
-    .optional()
-    .isLength({ max: 60 })
-    .withMessage('Meta title must not exceed 60 characters')
-    .trim(),
-
-  body('metaDescription')
-    .optional()
-    .isLength({ max: 160 })
-    .withMessage('Meta description must not exceed 160 characters')
-    .trim(),
-
-  body('keywords')
-    .optional()
-    .isArray()
-    .withMessage('Keywords must be an array'),
-
-  body('keywords.*')
-    .optional()
-    .isLength({ max: 50 })
-    .withMessage('Each keyword must not exceed 50 characters')
-    .trim(),
-
-  // Features validation
-  body('features')
-    .optional()
-    .isArray()
-    .withMessage('Features must be an array'),
-
-  body('features.*.title')
-    .optional()
-    .notEmpty()
-    .withMessage('Feature title is required')
-    .isLength({ max: 100 })
-    .withMessage('Feature title must not exceed 100 characters')
-    .trim(),
-
-  body('features.*.description')
-    .optional()
-    .notEmpty()
-    .withMessage('Feature description is required')
-    .isLength({ max: 500 })
-    .withMessage('Feature description must not exceed 500 characters')
-    .trim(),
-
-  // Pricing validation
-  body('pricing')
-    .optional()
-    .isArray()
-    .withMessage('Pricing must be an array'),
-
-  body('pricing.*.name')
-    .optional()
-    .notEmpty()
-    .withMessage('Pricing plan name is required')
-    .isLength({ max: 50 })
-    .withMessage('Pricing plan name must not exceed 50 characters')
-    .trim(),
-
-  body('pricing.*.price')
-    .optional()
-    .isNumeric()
-    .withMessage('Price must be a number')
-    .isFloat({ min: 0 })
-    .withMessage('Price must be a positive number'),
-
-  body('pricing.*.currency')
-    .optional()
-    .isIn(['USD', 'EUR', 'GBP', 'CAD', 'AUD'])
-    .withMessage('Invalid currency'),
-
-  body('pricing.*.billingPeriod')
-    .optional()
-    .isIn(['monthly', 'yearly', 'one-time', 'custom'])
-    .withMessage('Invalid billing period'),
-
-  body('pricing.*.seats')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Seats must be a positive integer'),
-
-  body('pricing.*.description')
-    .optional()
-    .isLength({ max: 300 })
-    .withMessage('Pricing description must not exceed 300 characters')
-    .trim(),
-
-  body('pricing.*.features')
-    .optional()
-    .isArray()
-    .withMessage('Pricing features must be an array'),
-
-  body('pricing.*.features.*')
-    .optional()
-    .isLength({ max: 100 })
-    .withMessage('Each pricing feature must not exceed 100 characters')
-    .trim(),
-
-  body('pricing.*.isPopular')
-    .optional()
-    .isBoolean()
-    .withMessage('isPopular must be a boolean'),
-
-  // Status validation
-  body('status')
-    .optional()
-    .isIn(['draft', 'published', 'archived', 'pending_review'])
-    .withMessage('Invalid status')
-];
-
-// Product update validation (similar to create but all fields optional)
-const updateProductValidator = [
-  body('name')
-    .optional()
-    .notEmpty()
-    .withMessage('Product name cannot be empty')
-    .isLength({ min: 3, max: 100 })
-    .withMessage('Product name must be between 3 and 100 characters')
-    .trim(),
-
-  body('description')
-    .optional()
-    .notEmpty()
-    .withMessage('Product description cannot be empty')
-    .isLength({ min: 10, max: 2000 })
-    .withMessage('Description must be between 10 and 2000 characters')
-    .trim(),
-
-  body('website')
-    .optional()
-    .isURL()
-    .withMessage('Website must be a valid URL'),
-
-  body('software')
-    .optional()
-    .isIn([
-      'SaaS',
-      'Desktop Application',
-      'Mobile App',
-      'Web Application',
-      'API/Service',
-      'Plugin/Extension',
-      'Other'
-    ])
-    .withMessage('Invalid software category'),
-
-  body('solutions')
-    .optional()
-    .isArray()
-    .withMessage('Solutions must be an array'),
-
-  body('solutions.*')
-    .optional()
-    .isIn([
-      'Analytics',
-      'CRM',
-      'E-commerce',
-      'Marketing',
-      'Sales',
-      'HR',
-      'Finance',
-      'Project Management',
-      'Communication',
-      'Security',
-      'DevOps',
-      'Other'
-    ])
-    .withMessage('Invalid solution category'),
-
-  body('whoCanUse')
-    .optional()
-    .isArray()
-    .withMessage('Who can use must be an array'),
-
-  body('industries')
-    .optional()
-    .isArray()
-    .withMessage('Industries must be an array'),
-
-  body('integrations')
-    .optional()
-    .isArray()
-    .withMessage('Integrations must be an array'),
-
-  body('languages')
-    .optional()
-    .isArray()
-    .withMessage('Languages must be an array'),
-
-  body('marketSegment')
-    .optional()
-    .isArray()
-    .withMessage('Market segment must be an array'),
-
-  body('brandColors.primary')
-    .optional()
-    .matches(/^#([0-9A-F]{3}){1,2}$/i)
-    .withMessage('Primary color must be a valid hex color'),
-
-  body('brandColors.secondary')
-    .optional()
-    .matches(/^#([0-9A-F]{3}){1,2}$/i)
-    .withMessage('Secondary color must be a valid hex color'),
-
-  body('status')
-    .optional()
-    .isIn(['draft', 'published', 'archived', 'pending_review'])
-    .withMessage('Invalid status'),
-
-  body('isActive')
-    .optional()
-    .isBoolean()
-    .withMessage('isActive must be a boolean'),
-
-  body('isFeatured')
-    .optional()
-    .isBoolean()
-    .withMessage('isFeatured must be a boolean'),
-
-  // Features validation
-  body('features')
-    .optional()
-    .isArray()
-    .withMessage('Features must be an array'),
-
-  body('features.*.title')
-    .optional()
-    .notEmpty()
-    .withMessage('Feature title is required')
-    .isLength({ max: 100 })
-    .withMessage('Feature title must not exceed 100 characters')
-    .trim(),
-
-  body('features.*.description')
-    .optional()
-    .notEmpty()
-    .withMessage('Feature description is required')
-    .isLength({ max: 500 })
-    .withMessage('Feature description must not exceed 500 characters')
-    .trim(),
-
-  // Pricing validation
-  body('pricing')
-    .optional()
-    .isArray()
-    .withMessage('Pricing must be an array'),
-
-  body('pricing.*.name')
-    .optional()
-    .notEmpty()
-    .withMessage('Pricing plan name is required')
-    .isLength({ max: 50 })
-    .withMessage('Pricing plan name must not exceed 50 characters')
-    .trim(),
-
-  body('pricing.*.price')
-    .optional()
-    .isNumeric()
-    .withMessage('Price must be a number')
-    .isFloat({ min: 0 })
-    .withMessage('Price must be a positive number'),
-
-  body('pricing.*.seats')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Seats must be a positive integer')
-];
-
-// Product ID param validation
-const productIdValidator = [
-  param('productId')
-    .isMongoId()
-    .withMessage('Invalid product ID format')
-];
-
-// Product slug param validation  
-const productSlugValidator = [
-  param('slug')
-    .notEmpty()
-    .withMessage('Product slug is required')
-    .isLength({ min: 1, max: 100 })
-    .withMessage('Slug must be between 1 and 100 characters')
-    .matches(/^[a-z0-9-]+$/)
-    .withMessage('Slug can only contain lowercase letters, numbers, and hyphens')
-];
-
-// Query validation for product listing
-const productQueryValidator = [
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Page must be a positive integer')
-    .toInt(),
-
-  query('limit')
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage('Limit must be between 1 and 100')
-    .toInt(),
-
-  query('status')
-    .optional()
-    .isIn(['draft', 'published', 'archived', 'pending_review'])
-    .withMessage('Invalid status'),
-
-  query('software')
-    .optional()
-    .isIn([
-      'SaaS',
-      'Desktop Application',
-      'Mobile App',
-      'Web Application',
-      'API/Service',
-      'Plugin/Extension',
-      'Other'
-    ])
-    .withMessage('Invalid software category'),
-
-  query('isActive')
-    .optional()
-    .isBoolean()
-    .withMessage('isActive must be a boolean')
-    .toBoolean(),
-
-  query('isFeatured')
-    .optional()
-    .isBoolean()
-    .withMessage('isFeatured must be a boolean')
-    .toBoolean(),
-
-  query('sortBy')
-    .optional()
-    .isIn(['createdAt', 'updatedAt', 'name', 'views', 'likes'])
-    .withMessage('Invalid sort field'),
-
-  query('sortOrder')
-    .optional()
-    .isIn(['asc', 'desc'])
-    .withMessage('Sort order must be asc or desc'),
-
-  query('search')
-    .optional()
-    .isLength({ min: 1, max: 100 })
-    .withMessage('Search query must be between 1 and 100 characters')
-    .trim(),
-
-  query('industries')
-    .optional()
-    .custom((value) => {
-      if (typeof value === 'string') {
-        return true; // Single industry
-      }
-      if (Array.isArray(value)) {
-        return value.every(industry => typeof industry === 'string');
-      }
-      throw new Error('Industries must be a string or array of strings');
-    }),
-
-  query('marketSegment')
-    .optional()
-    .custom((value) => {
-      if (typeof value === 'string') {
-        return true; // Single segment
-      }
-      if (Array.isArray(value)) {
-        return value.every(segment => typeof segment === 'string');
-      }
-      throw new Error('Market segment must be a string or array of strings');
-    }),
-
-  query('solutions')
-    .optional()
-    .custom((value) => {
-      if (typeof value === 'string') {
-        return true; // Single solution
-      }
-      if (Array.isArray(value)) {
-        return value.every(solution => typeof solution === 'string');
-      }
-      throw new Error('Solutions must be a string or array of strings');
-    })
-];
-
-// Media upload validation
-const mediaUploadValidator = [
-  body('type')
-    .notEmpty()
-    .withMessage('Media type is required')
-    .isIn(['logo', 'screenshot', 'video', 'demo', 'other'])
-    .withMessage('Invalid media type'),
-
-  body('alt')
-    .optional()
-    .isLength({ max: 200 })
-    .withMessage('Alt text must not exceed 200 characters')
-    .trim()
-];
-
-module.exports = {
-  createProductValidator,
-  updateProductValidator,
-  productIdValidator,
-  productSlugValidator,
-  productQueryValidator,
-  mediaUploadValidator
-}; 
+const { ObjectId } = require('mongoose').Types;
+
+// Helper function to validate ObjectId
+const isValidObjectId = (value) => {
+  return ObjectId.isValid(value);
+};
+
+// Helper function to validate ObjectId arrays
+const isValidObjectIdArray = (value) => {
+  if (!Array.isArray(value)) return false;
+  return value.every(id => ObjectId.isValid(id));
+};
+
+const productValidator = {
+  // Create product validation
+  create: [
+    body('name')
+      .notEmpty()
+      .withMessage('Product name is required')
+      .isLength({ min: 2, max: 100 })
+      .withMessage('Product name must be between 2 and 100 characters')
+      .trim(),
+
+    body('description')
+      .notEmpty()
+      .withMessage('Product description is required')
+      .isLength({ min: 10, max: 2000 })
+      .withMessage('Product description must be between 10 and 2000 characters')
+      .trim(),
+
+    body('websiteUrl')
+      .optional()
+      .isURL()
+      .withMessage('Website URL must be a valid URL'),
+
+    body('website')
+      .optional()
+      .isURL()
+      .withMessage('Website must be a valid URL'),
+
+    body('logoUrl')
+      .optional()
+      .isURL()
+      .withMessage('Logo URL must be a valid URL'),
+
+    body('brandColors')
+      .optional()
+      .isString()
+      .trim(),
+
+    body('mediaUrls')
+      .optional()
+      .isArray()
+      .withMessage('Media URLs must be an array'),
+
+    body('mediaUrls.*')
+      .optional()
+      .isURL()
+      .withMessage('Each media URL must be a valid URL'),
+
+    body('features')
+      .optional(),
+
+    body('pricing')
+      .optional(),
+
+    body('softwareIds')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Software IDs must be valid ObjectId array'),
+
+    body('solutionIds')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Solution IDs must be valid ObjectId array'),
+
+    body('whoCanUse')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Who can use must be valid ObjectId array'),
+
+    body('industries')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Industries must be valid ObjectId array'),
+
+    body('integrations')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Integrations must be valid ObjectId array'),
+
+    body('languages')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Languages must be valid ObjectId array'),
+
+    body('marketSegment')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Market segment must be valid ObjectId array'),
+
+    body('keywords')
+      .optional()
+      .isArray()
+      .withMessage('Keywords must be an array'),
+
+    body('keywords.*')
+      .optional()
+      .isString()
+      .trim()
+      .toLowerCase(),
+
+    body('metaTitle')
+      .optional()
+      .isLength({ max: 60 })
+      .withMessage('Meta title must be less than 60 characters')
+      .trim(),
+
+    body('metaDescription')
+      .optional()
+      .isLength({ max: 160 })
+      .withMessage('Meta description must be less than 160 characters')
+      .trim(),
+
+    body('status')
+      .optional()
+      .isIn(['pending', 'approved', 'rejected', 'draft', 'published', 'archived'])
+      .withMessage('Invalid status'),
+
+    body('isActive')
+      .optional()
+      .isIn(['active', 'inactive'])
+      .withMessage('Invalid active status'),
+
+    body('isFeatured')
+      .optional()
+      .isBoolean()
+      .withMessage('Featured status must be boolean')
+  ],
+
+  // Update product validation
+  update: [
+    param('id')
+      .notEmpty()
+      .withMessage('Product ID is required'),
+
+    body('name')
+      .optional()
+      .isLength({ min: 2, max: 100 })
+      .withMessage('Product name must be between 2 and 100 characters')
+      .trim(),
+
+    body('description')
+      .optional()
+      .isLength({ min: 10, max: 2000 })
+      .withMessage('Product description must be between 10 and 2000 characters')
+      .trim(),
+
+    body('websiteUrl')
+      .optional()
+      .isURL()
+      .withMessage('Website URL must be a valid URL'),
+
+    body('website')
+      .optional()
+      .isURL()
+      .withMessage('Website must be a valid URL'),
+
+    body('logoUrl')
+      .optional()
+      .isURL()
+      .withMessage('Logo URL must be a valid URL'),
+
+    body('brandColors')
+      .optional()
+      .isString()
+      .trim(),
+
+    body('mediaUrls')
+      .optional()
+      .isArray()
+      .withMessage('Media URLs must be an array'),
+
+    body('mediaUrls.*')
+      .optional()
+      .isURL()
+      .withMessage('Each media URL must be a valid URL'),
+
+    body('features')
+      .optional(),
+
+    body('pricing')
+      .optional(),
+
+    body('softwareIds')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Software IDs must be valid ObjectId array'),
+
+    body('solutionIds')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Solution IDs must be valid ObjectId array'),
+
+    body('whoCanUse')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Who can use must be valid ObjectId array'),
+
+    body('industries')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Industries must be valid ObjectId array'),
+
+    body('integrations')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Integrations must be valid ObjectId array'),
+
+    body('languages')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Languages must be valid ObjectId array'),
+
+    body('marketSegment')
+      .optional()
+      .custom(isValidObjectIdArray)
+      .withMessage('Market segment must be valid ObjectId array'),
+
+    body('keywords')
+      .optional()
+      .isArray()
+      .withMessage('Keywords must be an array'),
+
+    body('keywords.*')
+      .optional()
+      .isString()
+      .trim()
+      .toLowerCase(),
+
+    body('metaTitle')
+      .optional()
+      .isLength({ max: 60 })
+      .withMessage('Meta title must be less than 60 characters')
+      .trim(),
+
+    body('metaDescription')
+      .optional()
+      .isLength({ max: 160 })
+      .withMessage('Meta description must be less than 160 characters')
+      .trim(),
+
+    body('status')
+      .optional()
+      .isIn(['pending', 'approved', 'rejected', 'draft', 'published', 'archived'])
+      .withMessage('Invalid status'),
+
+    body('isActive')
+      .optional()
+      .isIn(['active', 'inactive'])
+      .withMessage('Invalid active status'),
+
+    body('isFeatured')
+      .optional()
+      .isBoolean()
+      .withMessage('Featured status must be boolean')
+  ],
+
+  // Get product by ID validation
+  getById: [
+    param('id')
+      .notEmpty()
+      .withMessage('Product ID is required')
+  ],
+
+  // Get product by slug validation
+  getBySlug: [
+    param('slug')
+      .notEmpty()
+      .withMessage('Product slug is required')
+      .isSlug()
+      .withMessage('Invalid slug format')
+  ],
+
+  // Delete product validation
+  delete: [
+    param('id')
+      .notEmpty()
+      .withMessage('Product ID is required')
+  ],
+
+  // Toggle status validation
+  toggleStatus: [
+    param('id')
+      .notEmpty()
+      .withMessage('Product ID is required')
+  ],
+
+  // Update rating validation
+  updateRating: [
+    param('productId')
+      .notEmpty()
+      .withMessage('Product ID is required'),
+
+    body('rating')
+      .isFloat({ min: 1, max: 5 })
+      .withMessage('Rating must be between 1 and 5')
+  ],
+
+  // Query validation for listing products
+  query: [
+    query('page')
+      .optional()
+      .isInt({ min: 1 })
+      .withMessage('Page must be a positive integer'),
+
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage('Limit must be between 1 and 100'),
+
+    query('search')
+      .optional()
+      .isString()
+      .trim(),
+
+    query('status')
+      .optional()
+      .isIn(['pending', 'approved', 'rejected', 'draft', 'published', 'archived'])
+      .withMessage('Invalid status'),
+
+    query('isActive')
+      .optional()
+      .isIn(['active', 'inactive'])
+      .withMessage('Invalid active status'),
+
+    query('isFeatured')
+      .optional()
+      .isBoolean()
+      .withMessage('Featured status must be boolean'),
+
+    query('sort')
+      .optional()
+      .isIn(['name', 'createdAt', 'avgRating', 'totalReviews', 'views', 'likes'])
+      .withMessage('Invalid sort field'),
+
+    query('order')
+      .optional()
+      .isIn(['asc', 'desc'])
+      .withMessage('Order must be asc or desc'),
+
+    query('industries')
+      .optional()
+      .custom((value) => {
+        const ids = Array.isArray(value) ? value : [value];
+        return isValidObjectIdArray(ids);
+      })
+      .withMessage('Industries must be valid ObjectId array'),
+
+    query('languages')
+      .optional()
+      .custom((value) => {
+        const ids = Array.isArray(value) ? value : [value];
+        return isValidObjectIdArray(ids);
+      })
+      .withMessage('Languages must be valid ObjectId array'),
+
+    query('integrations')
+      .optional()
+      .custom((value) => {
+        const ids = Array.isArray(value) ? value : [value];
+        return isValidObjectIdArray(ids);
+      })
+      .withMessage('Integrations must be valid ObjectId array'),
+
+    query('marketSegment')
+      .optional()
+      .custom((value) => {
+        const ids = Array.isArray(value) ? value : [value];
+        return isValidObjectIdArray(ids);
+      })
+      .withMessage('Market segment must be valid ObjectId array'),
+
+    query('whoCanUse')
+      .optional()
+      .custom((value) => {
+        const ids = Array.isArray(value) ? value : [value];
+        return isValidObjectIdArray(ids);
+      })
+      .withMessage('Who can use must be valid ObjectId array'),
+
+    query('minRating')
+      .optional()
+      .isFloat({ min: 0, max: 5 })
+      .withMessage('Minimum rating must be between 0 and 5'),
+
+    query('maxRating')
+      .optional()
+      .isFloat({ min: 0, max: 5 })
+      .withMessage('Maximum rating must be between 0 and 5')
+  ]
+};
+
+module.exports = productValidator; 

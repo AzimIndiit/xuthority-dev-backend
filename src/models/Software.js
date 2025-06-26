@@ -59,7 +59,7 @@ softwareSchema.pre('save', function(next) {
 
 // Virtual for formatted creation date
 softwareSchema.virtual('formattedCreatedAt').get(function() {
-  return this.createdAt.toLocaleDateString();
+  return this.createdAt ? this.createdAt.toLocaleDateString() : '';
 });
 
 // Static method to find active software

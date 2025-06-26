@@ -1,4 +1,4 @@
-const { languageService } = require('../services');
+const languageService = require('../services/languageService');
 const ApiResponse = require('../utils/apiResponse');
 
 /**

@@ -36,127 +36,6 @@
       }
     },
     "schemas": {
-      "Product": {
-        "type": "object",
-        "required": [
-          "name",
-          "description",
-          "software",
-          "vendor"
-        ],
-        "properties": {
-          "_id": {
-            "type": "string",
-            "description": "Product ID"
-          },
-          "name": {
-            "type": "string",
-            "description": "Product name"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Product URL slug"
-          },
-          "description": {
-            "type": "string",
-            "description": "Product description"
-          },
-          "website": {
-            "type": "string",
-            "description": "Product website URL"
-          },
-          "software": {
-            "type": "string",
-            "enum": [
-              "SaaS",
-              "Desktop Application",
-              "Mobile App",
-              "Web Application",
-              "API/Service",
-              "Plugin/Extension",
-              "Other"
-            ]
-          },
-          "solutions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "industries": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "marketSegment": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "features": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "title": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "pricing": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "price": {
-                  "type": "number"
-                },
-                "seats": {
-                  "type": "number"
-                },
-                "currency": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "vendor": {
-            "$ref": "#/components/schemas/User"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "draft",
-              "published",
-              "archived",
-              "pending_review"
-            ]
-          },
-          "views": {
-            "type": "number"
-          },
-          "likes": {
-            "type": "number"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
       "Software": {
         "type": "object",
         "required": [
@@ -2615,8 +2494,7 @@
                 "type": "object",
                 "required": [
                   "name",
-                  "description",
-                  "software"
+                  "description"
                 ],
                 "properties": {
                   "name": {
@@ -2633,6 +2511,10 @@
                     "type": "string",
                     "format": "uri"
                   },
+                  "websiteUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
                   "software": {
                     "type": "string",
                     "enum": [
@@ -2645,6 +2527,20 @@
                       "Other"
                     ]
                   },
+                  "softwareIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "solutionIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
                   "solutions": {
                     "type": "array",
                     "items": {
@@ -2654,39 +2550,69 @@
                   "industries": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "objectId"
                     }
                   },
-                  "features": {
+                  "whoCanUse": {
                     "type": "array",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "title": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "type": "string"
-                        }
-                      }
+                      "type": "string",
+                      "format": "objectId"
                     }
                   },
-                  "pricing": {
+                  "languages": {
                     "type": "array",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string"
-                        },
-                        "price": {
-                          "type": "number"
-                        },
-                        "seats": {
-                          "type": "number"
-                        }
-                      }
+                      "type": "string",
+                      "format": "objectId"
                     }
+                  },
+                  "integrations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "marketSegment": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "brandColors": {
+                    "type": "string"
+                  },
+                  "logoUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "mediaUrls": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "approved",
+                      "rejected",
+                      "draft",
+                      "published",
+                      "archived"
+                    ]
+                  },
+                  "isActive": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "inactive"
+                    ]
                   }
                 }
               }
@@ -2736,10 +2662,12 @@
             "schema": {
               "type": "string",
               "enum": [
+                "pending",
+                "approved",
+                "rejected",
                 "draft",
                 "published",
-                "archived",
-                "pending_review"
+                "archived"
               ]
             }
           },
@@ -2767,7 +2695,9 @@
                 "updatedAt",
                 "name",
                 "views",
-                "likes"
+                "likes",
+                "avgRating",
+                "totalReviews"
               ],
               "default": "createdAt"
             }
@@ -2782,6 +2712,35 @@
                 "desc"
               ],
               "default": "desc"
+            }
+          },
+          {
+            "in": "query",
+            "name": "isActive",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "inactive"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "minRating",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 5
+            }
+          },
+          {
+            "in": "query",
+            "name": "maxRating",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 5
             }
           }
         ],
@@ -2864,17 +2823,35 @@
                   "website": {
                     "type": "string"
                   },
+                  "websiteUrl": {
+                    "type": "string"
+                  },
                   "software": {
                     "type": "string"
                   },
                   "status": {
                     "type": "string",
                     "enum": [
+                      "pending",
+                      "approved",
+                      "rejected",
                       "draft",
                       "published",
-                      "archived",
-                      "pending_review"
+                      "archived"
                     ]
+                  },
+                  "isActive": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "inactive"
+                    ]
+                  },
+                  "totalReviews": {
+                    "type": "number"
+                  },
+                  "avgRating": {
+                    "type": "number"
                   }
                 }
               }
@@ -3114,6 +3091,24 @@
           },
           {
             "in": "query",
+            "name": "minRating",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 5
+            }
+          },
+          {
+            "in": "query",
+            "name": "maxRating",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 5
+            }
+          },
+          {
+            "in": "query",
             "name": "page",
             "schema": {
               "type": "integer",
@@ -3136,7 +3131,7 @@
         }
       }
     },
-    "/products/stats": {
+    "/products/stats/overview": {
       "get": {
         "summary": "Get product statistics",
         "tags": [
@@ -3150,6 +3145,249 @@
         "responses": {
           "200": {
             "description": "Statistics retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/{productId}/rating": {
+      "post": {
+        "summary": "Update product rating (when review is added)",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "rating"
+                ],
+                "properties": {
+                  "rating": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 5
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product rating updated successfully"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/products/{productId}/favorites": {
+      "post": {
+        "summary": "Add product to favorites",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product added to favorites successfully"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/products/active": {
+      "get": {
+        "summary": "Get all active products (published/approved and active)",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Active products retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/top-rated": {
+      "get": {
+        "summary": "Get top rated products",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Top rated products retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/featured": {
+      "get": {
+        "summary": "Get featured products",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Featured products retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/user/{userId}": {
+      "get": {
+        "summary": "Get products by user/vendor",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User/Vendor ID"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User products retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/{id}/toggle-status": {
+      "patch": {
+        "summary": "Toggle product status (active/inactive)",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product status toggled successfully"
+          },
+          "404": {
+            "description": "Product not found"
           }
         }
       }

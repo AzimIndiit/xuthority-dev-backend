@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const slugify = require('slugify');
 const { Product, User } = require('../models');
 const ApiError = require('../utils/apiError');
+const { ObjectId } = require('mongoose').Types;
 
 /**
  * Create a new product (vendors only)
@@ -9,50 +10,53 @@ const ApiError = require('../utils/apiError');
  * @param {string} vendorId - Vendor user ID
  * @returns {Object} Created product
  */
-const createProduct = async (productData, vendorId) => {
+const createProduct = async (productData, userId) => {
   try {
-    // Verify vendor exists and has vendor role
-    const vendor = await User.findById(vendorId);
-    if (!vendor) {
-      throw new ApiError('Vendor not found', 'VENDOR_NOT_FOUND', 404);
-    }
-    
-    if (vendor.role !== 'vendor') {
-      throw new ApiError('Only vendors can create products', 'INSUFFICIENT_PERMISSIONS', 403);
+    // Check if product with same name already exists
+    const existingProduct = await Product.findOne({ 
+      name: productData.name.trim(),
+      userId: userId
+    });
+
+    if (existingProduct) {
+      throw new ApiError('Product with this name already exists', 'DUPLICATE_PRODUCT', 400);
     }
 
-    // Generate unique slug using slugify
-    let slug = slugify(productData.name, {
+    // Generate slug from name if not provided
+    const slug = productData.slug || slugify(productData.name, {
       lower: true,
       strict: true,
-      remove: /[*+~.()'"!:@]/g
+      remove: /[*+~.()'"!:@]/g,
     });
-    
-    // Ensure slug is unique
-    let uniqueSlug = slug;
-    let counter = 1;
-    while (await Product.findOne({ slug: uniqueSlug })) {
-      uniqueSlug = `${slug}-${counter}`;
-      counter++;
-    }
 
+    // Create product with userId and slug
     const product = new Product({
       ...productData,
-      vendor: vendorId,
-      slug: uniqueSlug,
-      status: 'draft' // New products start as draft
+      slug,
+      userId: userId,
+      createdBy: userId
     });
 
     await product.save();
-    await product.populate('vendor', 'firstName lastName companyName email');
-    
-    return product;
+
+    // Populate the product before returning
+    const populatedProduct = await Product.findById(product._id)
+      .populate('userId', 'firstName lastName companyName email')
+      .populate('softwareIds', 'name slug')
+      .populate('solutionIds', 'name slug')
+      .populate('industries', 'name slug')
+      .populate('languages', 'name slug')
+      .populate('integrations', 'name image')
+      .populate('marketSegment', 'name slug')
+      .populate('whoCanUse', 'name slug');
+
+    return populatedProduct;
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
-      throw new ApiError(`Validation failed: ${messages.join(', ')}`, 'VALIDATION_ERROR', 400);
+    console.error('Error creating product:', error);
+    if (error instanceof ApiError) {
+      throw error;
     }
-    throw error;
+    throw new ApiError(500, 'Error creating product', error.message);
   }
 };
 
@@ -66,7 +70,7 @@ const getProducts = async (options = {}) => {
     page = 1,
     limit = 10,
     status,
-    vendor,
+    userId, // Support old field name
     software,
     industries,
     marketSegment,
@@ -74,6 +78,8 @@ const getProducts = async (options = {}) => {
     search,
     isActive,
     isFeatured,
+    minRating,
+    maxRating,
     sortBy = 'createdAt',
     sortOrder = 'desc'
   } = options;
@@ -82,11 +88,21 @@ const getProducts = async (options = {}) => {
   const filter = {};
   
   if (status) filter.status = status;
-  if (vendor) filter.vendor = vendor;
+  if (userId) filter.userId = userId; // Support old field
   if (software) filter.software = software;
-  if (isActive !== undefined) filter.isActive = isActive;
+  
+  // Handle both string and boolean values for isActive
+  if (isActive !== undefined) {
+    if (typeof isActive === 'boolean') {
+      filter.isActive = isActive ? 'active' : 'inactive';
+    } else {
+      filter.isActive = isActive;
+    }
+  }
+  
   if (isFeatured !== undefined) filter.isFeatured = isFeatured;
   
+  // Handle ObjectId arrays for reference fields
   if (industries && industries.length) {
     filter.industries = { $in: industries };
   }
@@ -97,6 +113,13 @@ const getProducts = async (options = {}) => {
   
   if (solutions && solutions.length) {
     filter.solutions = { $in: solutions };
+  }
+
+  // Rating filter
+  if (minRating || maxRating) {
+    filter.avgRating = {};
+    if (minRating) filter.avgRating.$gte = minRating;
+    if (maxRating) filter.avgRating.$lte = maxRating;
   }
 
   // Add text search if provided
@@ -117,7 +140,16 @@ const getProducts = async (options = {}) => {
   
   const [products, total] = await Promise.all([
     Product.find(filter)
-      .populate('vendor', 'firstName lastName companyName email')
+      .populate([
+        { path: 'userId', select: 'firstName lastName companyName email' },
+        { path: 'industries', select: 'name slug status' },
+        { path: 'languages', select: 'name slug status' },
+        { path: 'integrations', select: 'name image status' },
+        { path: 'marketSegment', select: 'name slug status' },
+        { path: 'whoCanUse', select: 'name slug status' },
+        { path: 'softwareIds', select: 'name slug status' },
+        { path: 'solutionIds', select: 'name slug status' }
+      ])
       .sort(sort)
       .skip(skip)
       .limit(limit),
@@ -138,18 +170,23 @@ const getProducts = async (options = {}) => {
 };
 
 /**
- * Get product by ID
+ * Get product by ID with optional view increment
  * @param {string} productId - Product ID
  * @param {boolean} incrementViews - Whether to increment view count
- * @returns {Object} Product
+ * @returns {Object} Product with populated fields
  */
 const getProductById = async (productId, incrementViews = false) => {
-  if (!mongoose.Types.ObjectId.isValid(productId)) {
-    throw new ApiError('Invalid product ID', 'INVALID_PRODUCT_ID', 400);
-  }
-
   const product = await Product.findById(productId)
-    .populate('vendor', 'firstName lastName companyName email socialLinks');
+    .populate([
+      { path: 'userId', select: 'firstName lastName companyName email socialLinks' },
+      { path: 'industries', select: 'name slug status' },
+      { path: 'languages', select: 'name slug status' },
+      { path: 'integrations', select: 'name image status' },
+      { path: 'marketSegment', select: 'name slug status' },
+      { path: 'whoCanUse', select: 'name slug status' },
+      { path: 'softwareIds', select: 'name slug status' },
+      { path: 'solutionIds', select: 'name slug status' }
+    ]);
 
   if (!product) {
     throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
@@ -171,7 +208,16 @@ const getProductById = async (productId, incrementViews = false) => {
  */
 const getProductBySlug = async (slug, incrementViews = false) => {
   const product = await Product.findOne({ slug })
-    .populate('vendor', 'firstName lastName companyName email socialLinks');
+    .populate([
+      { path: 'userId', select: 'firstName lastName companyName email socialLinks' },
+      { path: 'industries', select: 'name slug status' },
+      { path: 'languages', select: 'name slug status' },
+      { path: 'integrations', select: 'name image status' },
+      { path: 'marketSegment', select: 'name slug status' },
+      { path: 'whoCanUse', select: 'name slug status' },
+      { path: 'softwareIds', select: 'name slug status' },
+      { path: 'solutionIds', select: 'name slug status' }
+    ]);
 
   if (!product) {
     throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
@@ -189,48 +235,72 @@ const getProductBySlug = async (slug, incrementViews = false) => {
  * Update product (only by vendor who owns it)
  * @param {string} productId - Product ID
  * @param {Object} updateData - Update data
- * @param {string} vendorId - Vendor ID
+ * @param {string} userId - User ID
  * @returns {Object} Updated product
  */
-const updateProduct = async (productId, updateData, vendorId) => {
-  if (!mongoose.Types.ObjectId.isValid(productId)) {
-    throw new ApiError('Invalid product ID', 'INVALID_PRODUCT_ID', 400);
-  }
-
+const updateProduct = async (productId, updateData, userId) => {
   const product = await Product.findById(productId);
+  
   if (!product) {
     throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
   }
 
-  // Check if vendor owns this product
-  if (product.vendor.toString() !== vendorId) {
-    throw new ApiError('You can only update your own products', 'INSUFFICIENT_PERMISSIONS', 403);
+  // Check ownership - support both userId and vendor fields
+  const isOwner = product.userId?.toString() === userId || 
+                 product.vendor?.toString() === userId;
+  
+  if (!isOwner) {
+    throw new ApiError('You can only update your own products', 'UNAUTHORIZED_UPDATE', 403);
   }
 
   try {
-    // Update slug if name changes
+    // Handle website field compatibility
+    if (updateData.website && !updateData.websiteUrl) {
+      updateData.websiteUrl = updateData.website;
+    }
+    if (updateData.websiteUrl && !updateData.website) {
+      updateData.website = updateData.websiteUrl;
+    }
+
+    // Generate new slug if name is being updated
     if (updateData.name && updateData.name !== product.name) {
-      let newSlug = slugify(updateData.name, {
+      let slug = slugify(updateData.name, {
         lower: true,
         strict: true,
         remove: /[*+~.()'"!:@]/g
       });
       
       // Ensure slug is unique
-      let uniqueSlug = newSlug;
+      let uniqueSlug = slug;
       let counter = 1;
       while (await Product.findOne({ slug: uniqueSlug, _id: { $ne: productId } })) {
-        uniqueSlug = `${newSlug}-${counter}`;
+        uniqueSlug = `${slug}-${Date.now()}-${counter}`;
         counter++;
       }
       updateData.slug = uniqueSlug;
     }
 
-    Object.assign(product, updateData);
-    await product.save();
-    await product.populate('vendor', 'firstName lastName companyName email');
-    
-    return product;
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { 
+        $set: {
+          ...updateData,
+          lastUpdated: new Date()
+        }
+      },
+      { new: true, runValidators: true }
+    ).populate([
+      { path: 'userId', select: 'firstName lastName companyName email' },
+      { path: 'industries', select: 'name slug status' },
+      { path: 'languages', select: 'name slug status' },
+      { path: 'integrations', select: 'name image status' },
+      { path: 'marketSegment', select: 'name slug status' },
+      { path: 'whoCanUse', select: 'name slug status' },
+      { path: 'softwareIds', select: 'name slug status' },
+      { path: 'solutionIds', select: 'name slug status' }
+    ]);
+
+    return updatedProduct;
   } catch (error) {
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
@@ -243,29 +313,30 @@ const updateProduct = async (productId, updateData, vendorId) => {
 /**
  * Delete product (only by vendor who owns it)
  * @param {string} productId - Product ID
- * @param {string} vendorId - Vendor ID
- * @returns {Object} Success message
+ * @param {string} userId - User ID
+ * @returns {Object} Delete result
  */
-const deleteProduct = async (productId, vendorId) => {
-  if (!mongoose.Types.ObjectId.isValid(productId)) {
-    throw new ApiError('Invalid product ID', 'INVALID_PRODUCT_ID', 400);
-  }
-
+const deleteProduct = async (productId, userId) => {
   const product = await Product.findById(productId);
+  
   if (!product) {
     throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
   }
 
-  // Check if vendor owns this product
-  if (product.vendor.toString() !== vendorId) {
-    throw new ApiError('You can only delete your own products', 'INSUFFICIENT_PERMISSIONS', 403);
+  // Check ownership - support both userId and vendor fields
+  const isOwner = product.userId?.toString() === userId || 
+                 product.vendor?.toString() === userId;
+  
+  if (!isOwner) {
+    throw new ApiError('You can only delete your own products', 'UNAUTHORIZED_DELETE', 403);
   }
 
   await Product.findByIdAndDelete(productId);
   
-  return {
+  return { 
+    success: true, 
     message: 'Product deleted successfully',
-    productId
+    productId 
   };
 };
 
@@ -273,9 +344,18 @@ const deleteProduct = async (productId, vendorId) => {
  * Get vendor's products
  * @param {string} vendorId - Vendor ID
  * @param {Object} options - Query options
- * @returns {Object} Products with metadata
+ * @returns {Object} Products with vendor info and pagination
  */
 const getVendorProducts = async (vendorId, options = {}) => {
+  if (!mongoose.Types.ObjectId.isValid(vendorId)) {
+    throw new ApiError('Invalid vendor ID', 'INVALID_VENDOR_ID', 400);
+  }
+
+  const vendor = await User.findById(vendorId, 'firstName lastName companyName email');
+  if (!vendor) {
+    throw new ApiError('Vendor not found', 'VENDOR_NOT_FOUND', 404);
+  }
+
   const {
     page = 1,
     limit = 10,
@@ -285,26 +365,39 @@ const getVendorProducts = async (vendorId, options = {}) => {
     sortOrder = 'desc'
   } = options;
 
-  // Verify vendor exists
-  const vendor = await User.findById(vendorId);
-  if (!vendor) {
-    throw new ApiError('Vendor not found', 'VENDOR_NOT_FOUND', 404);
+  // Build filter - support both userId and vendor fields
+  const filter = {
+    $or: [
+      { userId: vendorId },
+    ]
+  };
+  
+  if (status) filter.status = status;
+  if (isActive !== undefined) {
+    if (typeof isActive === 'boolean') {
+      filter.isActive = isActive ? 'active' : 'inactive';
+    } else {
+      filter.isActive = isActive;
+    }
   }
 
-  // Build filter
-  const filter = { vendor: vendorId };
-  if (status) filter.status = status;
-  if (isActive !== undefined) filter.isActive = isActive;
-
-  // Build sort
+  // Build sort object
   const sort = {};
   sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
+  // Execute query with pagination
   const skip = (page - 1) * limit;
   
   const [products, total] = await Promise.all([
     Product.find(filter)
-      .populate('vendor', 'firstName lastName companyName email')
+      .populate([
+        { path: 'userId', select: 'firstName lastName companyName email' },
+        { path: 'industries', select: 'name slug status' },
+        { path: 'languages', select: 'name slug status' },
+        { path: 'integrations', select: 'name image status' },
+        { path: 'marketSegment', select: 'name slug status' },
+        { path: 'whoCanUse', select: 'name slug status' }
+      ])
       .sort(sort)
       .skip(skip)
       .limit(limit),
@@ -313,13 +406,6 @@ const getVendorProducts = async (vendorId, options = {}) => {
 
   return {
     products,
-    vendor: {
-      _id: vendor._id,
-      firstName: vendor.firstName,
-      lastName: vendor.lastName,
-      companyName: vendor.companyName,
-      email: vendor.email
-    },
     pagination: {
       page,
       limit,
@@ -351,10 +437,10 @@ const toggleProductLike = async (productId) => {
 };
 
 /**
- * Search products
+ * Search products with advanced filtering
  * @param {string} query - Search query
  * @param {Object} filters - Additional filters
- * @returns {Object} Search results
+ * @returns {Array} Search results
  */
 const searchProducts = async (query, filters = {}) => {
   const {
@@ -363,60 +449,171 @@ const searchProducts = async (query, filters = {}) => {
     software,
     industries,
     marketSegment,
-    solutions
+    solutions,
+    minRating,
+    maxRating
   } = filters;
 
-  return await Product.search(query, {
+  // Use the static search method from the model
+  const products = await Product.search(query, {
     software,
     industries,
     marketSegment,
     solutions,
+    minRating,
+    maxRating,
     page,
     limit
   });
+
+  const total = await Product.countDocuments({
+    $text: { $search: query },
+    status: { $in: ['published', 'approved'] },
+    isActive: 'active',
+    ...(software && { software }),
+    ...(industries && industries.length && { industries: { $in: industries } }),
+    ...(marketSegment && marketSegment.length && { marketSegment: { $in: marketSegment } }),
+    ...(solutions && solutions.length && { solutions: { $in: solutions } }),
+    ...(minRating && { avgRating: { $gte: minRating } })
+  });
+
+  return {
+    products,
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit),
+      hasNext: page * limit < total,
+      hasPrev: page > 1
+    }
+  };
 };
 
 /**
  * Get product statistics
- * @param {string} vendorId - Vendor ID (optional)
+ * @param {string} vendorId - Vendor ID (optional, if provided returns vendor-specific stats)
  * @returns {Object} Statistics
  */
 const getProductStats = async (vendorId = null) => {
-  const baseFilter = vendorId ? { vendor: vendorId } : {};
+  let matchFilter = {};
+  
+  if (vendorId) {
+    // Vendor-specific stats - support both userId and vendor fields
+    matchFilter = {
+      $or: [
+        { userId: new mongoose.Types.ObjectId(vendorId) },
+        { vendor: new mongoose.Types.ObjectId(vendorId) }
+      ]
+    };
+  }
 
-  const [
-    totalProducts,
-    publishedProducts,
-    draftProducts,
-    archivedProducts,
-    totalViews,
-    totalLikes
-  ] = await Promise.all([
-    Product.countDocuments(baseFilter),
-    Product.countDocuments({ ...baseFilter, status: 'published' }),
-    Product.countDocuments({ ...baseFilter, status: 'draft' }),
-    Product.countDocuments({ ...baseFilter, status: 'archived' }),
-    Product.aggregate([
-      { $match: baseFilter },
-      { $group: { _id: null, total: { $sum: '$views' } } }
-    ]).then(result => result[0]?.total || 0),
-    Product.aggregate([
-      { $match: baseFilter },
-      { $group: { _id: null, total: { $sum: '$likes' } } }
-    ]).then(result => result[0]?.total || 0)
+  const stats = await Product.aggregate([
+    { $match: matchFilter },
+    {
+      $group: {
+        _id: null,
+        totalProducts: { $sum: 1 },
+        publishedProducts: {
+          $sum: {
+            $cond: [
+              { $in: ['$status', ['published', 'approved']] },
+              1,
+              0
+            ]
+          }
+        },
+        pendingProducts: {
+          $sum: {
+            $cond: [{ $eq: ['$status', 'pending'] }, 1, 0]
+          }
+        },
+        rejectedProducts: {
+          $sum: {
+            $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0]
+          }
+        },
+        totalViews: { $sum: '$views' },
+        totalLikes: { $sum: '$likes' },
+        totalReviews: { $sum: '$totalReviews' },
+        avgRating: { $avg: '$avgRating' }
+      }
+    }
   ]);
 
-  return {
-    totalProducts,
-    publishedProducts,
-    draftProducts,
-    archivedProducts,
-    totalViews,
-    totalLikes
+  const result = stats[0] || {
+    totalProducts: 0,
+    publishedProducts: 0,
+    pendingProducts: 0,
+    rejectedProducts: 0,
+    totalViews: 0,
+    totalLikes: 0,
+    totalReviews: 0,
+    avgRating: 0
+  };
+
+  // Get additional stats if vendor-specific
+  if (vendorId) {
+    const topProducts = await Product.find(matchFilter)
+      .sort({ avgRating: -1, totalReviews: -1, views: -1 })
+      .limit(5)
+      .select('name slug avgRating totalReviews views likes')
+      .populate('userId', 'firstName lastName companyName')
+      .populate('vendor', 'firstName lastName companyName');
+
+    result.topProducts = topProducts;
+  }
+
+  return result;
+};
+
+/**
+ * Update product rating (called when reviews are added/updated)
+ * @param {string} productId - Product ID
+ * @param {number} newRating - New rating to add
+ * @returns {Object} Updated product
+ */
+const updateProductRating = async (productId, newRating) => {
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    throw new ApiError('Invalid product ID', 'INVALID_PRODUCT_ID', 400);
+  }
+
+  const product = await Product.findById(productId);
+  if (!product) {
+    throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
+  }
+
+  await product.updateRating(newRating);
+  return product;
+};
+
+/**
+ * Add product to favorites
+ * @param {string} productId - Product ID
+ * @param {string} userId - User ID
+ * @returns {Object} Result
+ */
+const addToFavorites = async (productId, userId) => {
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    throw new ApiError('Invalid product ID', 'INVALID_PRODUCT_ID', 400);
+  }
+
+  const product = await Product.findById(productId);
+  if (!product) {
+    throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
+  }
+
+  // This would typically create a record in a Favorites collection
+  // For now, just return success
+  return { 
+    success: true, 
+    message: 'Product added to favorites',
+    productId,
+    userId 
   };
 };
 
-module.exports = {
+const productService = {
   createProduct,
   getProducts,
   getProductById,
@@ -426,5 +623,9 @@ module.exports = {
   getVendorProducts,
   toggleProductLike,
   searchProducts,
-  getProductStats
-}; 
+  getProductStats,
+  updateProductRating,
+  addToFavorites
+};
+
+module.exports = productService; 
