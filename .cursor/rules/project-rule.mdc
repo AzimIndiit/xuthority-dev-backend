@@ -1,0 +1,422 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Node.js Backend Development Rules for Cursor
+
+## Project Architecture
+- Follow strict MVC (Model-View-Controller) pattern
+- Implement clean architecture with separation of concerns
+- Use service layer for business logic
+- Controllers should only handle HTTP requests/responses
+- Models should only define data structure and validation
+- Services contain all business logic and data processing
+
+## Code Style & Standards
+- Use async/await instead of callbacks or .then()
+- Use camelCase for variables and functions
+- Use PascalCase for classes and constructors
+- Use UPPER_SNAKE_CASE for constants
+- Maximum line length: 100 characters
+- Use 2 spaces for indentation
+- Always use semicolons
+- Use template literals instead of string concatenation
+- Use TypeScript-style JSDoc comments for better IntelliSense
+
+## Error Handling Rules
+- Always wrap async operations in try-catch blocks
+- Use custom error classes for different error types
+- Implement global error handling middleware
+- Never expose sensitive information in error messages
+- Use proper HTTP status codes (200, 201, 400, 401, 403, 404, 500)
+- Log all errors with appropriate context
+- Return consistent error response format
+
+## Security Best Practices
+- Never commit sensitive data (API keys, passwords, tokens)
+- Always validate and sanitize user input
+- Use helmet for security headers
+- Implement rate limiting on all routes
+- Use CORS properly with specific origins
+- Hash passwords with bcrypt (minimum 12 rounds)
+- Use JWT tokens with proper expiration
+- Implement proper authentication middleware
+- Validate file uploads thoroughly
+- Use express-validator for input validation
+
+## Database Best Practices
+- Use Mongoose for MongoDB operations
+- Always validate data with Mongoose schemas
+- Use proper indexing for query performance
+- Implement soft deletes where appropriate
+- Use transactions for related operations
+- Avoid N+1 query problems
+- Use aggregation pipelines for complex queries
+- Implement proper error handling for DB operations
+
+## File Structure Rules
+- Keep controllers thin - move logic to services
+- One model per file with proper naming
+- Group related routes in separate files
+- Use middleware directory for all middleware
+- Keep utility functions in utils directory
+- Separate validation logic into validators directory
+- Use services directory for business logic
+- Create separate config files for different services
+
+## API Development Standards
+- Follow RESTful API conventions strictly
+- Use proper HTTP verbs (GET, POST, PUT, DELETE, PATCH)
+- Implement consistent response format
+- Use query parameters for filtering and pagination
+- Implement proper API versioning (/api/v1/)
+- Use swagger for API documentation
+- Generate Postman collections automatically
+- Implement proper request validation
+
+## File Upload Standards
+- Support both small and large file uploads
+- Use multer with multer-s3 for AWS S3 integration
+- Implement file type validation
+- Set proper file size limits
+- Use streaming for large files
+- Implement progress tracking for uploads
+- Generate thumbnails for images using Sharp
+- Clean up temporary files after processing
+
+## Environment & Configuration
+- Use .env files for all configuration
+- Never hardcode configuration values
+- Use different configs for dev/staging/production
+- Validate required environment variables on startup
+- Use config files for complex configurations
+- Implement proper logging configuration
+- Use PM2 for production process management
+
+## Middleware Implementation
+- Create reusable middleware functions
+- Implement authentication middleware
+- Create authorization middleware for protected routes
+- Use validation middleware for input validation
+- Implement logging middleware for request tracking
+- Create file upload middleware
+- Use compression middleware for responses
+- Implement CORS middleware with proper configuration
+
+## Testing Requirements
+- Write unit tests for all services
+- Write integration tests for API endpoints
+- Use Jest as testing framework
+- Use Supertest for API testing
+- Mock external services in tests
+- Use test fixtures for consistent data
+- Aim for minimum 80% code coverage
+- Test error scenarios and edge cases
+
+## Performance Optimization
+- Use connection pooling for database
+- Implement Redis caching where appropriate
+- Use compression middleware
+- Optimize database queries with proper indexing
+- Implement pagination for large datasets
+- Use async operations for I/O operations
+- Monitor and log performance metrics
+- Use clustering for CPU-intensive operations
+
+## Documentation Standards
+- Document all API endpoints with Swagger/OpenAPI
+- Keep README.md updated with setup instructions
+- Comment complex business logic
+- Use meaningful variable and function names
+- Document environment variables in .env.example
+- Create API documentation with examples
+- Update CHANGELOG.md for version releases
+## Deployment & Production
+- Use Docker for containerization
+- Implement proper logging with Winston
+- Use PM2 for process management
+- Implement health check endpoints
+- Use environment-specific configurations
+- Implement proper backup strategies
+- Monitor application performance
+- Set up proper CI/CD pipelines
+
+## Code Organization Principles
+- Group related functionality together
+- Use barrel exports (index.js) for clean imports
+- Implement dependency injection where appropriate
+- Keep functions small and focused
+- Use consistent naming conventions
+- Avoid deep nesting (max 3 levels)
+- Extract magic numbers into constants
+- Use meaningful commit messages
+
+## Error Response Format
+Always return errors in this format:
+```json
+{
+  "success": false,
+  "error": {
+    "message": "Error description",
+    "code": "ERROR_CODE",
+    "statusCode": 400,
+    "details": {}
+  }
+}
+```
+
+## Success Response Format
+Always return success responses in this format:
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Success message",
+  "meta": {
+    "pagination": {},
+    "total": 0
+  }
+}
+```
+
+## Route Protection Levels
+- Public routes: No authentication required
+- Protected routes: JWT authentication required
+- Admin routes: Admin role required
+- Owner routes: Resource ownership required
+- Rate limited routes: Apply rate limiting
+
+## File Upload Configuration
+- Small files: Direct upload to S3
+- Large files: Multipart upload with progress tracking
+- Image files: Generate thumbnails and optimize
+- Document files: Virus scanning and validation
+- Video files: Streaming upload with chunking
+
+## Logging Standards
+- Use structured logging with JSON format
+- Log levels: error, warn, info, debug
+- Include request ID for tracing
+- Log all API requests and responses
+- Log all database operations
+- Log all file operations
+- Never log sensitive information
+
+## API Versioning Strategy
+- Use URL versioning (/api/v1/, /api/v2/)
+- Maintain backward compatibility
+- Document breaking changes
+- Implement proper deprecation notices
+- Use semantic versioning for releases
+
+
+
+# Complete Node.js Backend Project Structure
+
+```
+backend-project/
+├── .cursorrules                    # Cursor IDE project rules (copy the rules above)
+├── .env.example                   # Environment variables template
+├── .env                          # Environment variables (add to .gitignore)
+├── .gitignore                    # Git ignore file
+├── package.json                  # Project dependencies and scripts
+├── server.js                     # Main server entry point
+├── app.js                       # Express app configuration
+├── ecosystem.config.js          # PM2 configuration for production
+├── docker-compose.yml           # Docker setup for development
+├── Dockerfile                   # Docker configuration
+├── README.md                    # Project documentation
+├── CHANGELOG.md                 # Version changelog
+├── swagger.json                 # Swagger API documentation config
+├── jest.config.js              # Jest testing configuration
+├── .eslintrc.js                # ESLint configuration
+├── .prettierrc                 # Prettier configuration
+├── nodemon.json                # Nodemon configuration
+├── postman/                    # Postman collections
+│   ├── collection.json         # Auto-generated API collection
+│   └── environment.json        # Postman environment variables
+├── docs/                       # Additional documentation
+│   ├── api.md                  # API documentation
+│   ├── deployment.md           # Deployment guide
+│   └── architecture.md         # Architecture overview
+├── scripts/                    # Utility scripts
+│   ├── seed.js                 # Database seeding
+│   ├── backup.js               # Database backup
+│   └── migrate.js              # Database migrations
+├── src/
+│   ├── config/                 # Configuration files
+│   │   ├── index.js           # Main config aggregator
+│   │   ├── database.js        # MongoDB connection configuration
+│   │   ├── aws.js             # AWS S3 configuration
+│   │   ├── redis.js           # Redis configuration
+│   │   ├── swagger.js         # Swagger/OpenAPI configuration
+│   │   ├── email.js           # Email service configuration
+│   │   ├── constants.js       # Application constants
+│   │   └── logger.js          # Winston logger configuration
+│   ├── controllers/           # Route controllers (MVC Layer)
+│   │   ├── index.js          # Controllers barrel export
+│   │   ├── authController.js  # Authentication controller
+│   │   ├── userController.js  # User management controller
+│   │   ├── fileController.js  # File upload/management controller
+│   │   ├── adminController.js # Admin operations controller
+│   │   └── healthController.js # Health check controller
+│   ├── models/                # MongoDB models (Data Layer)
+│   │   ├── index.js          # Models barrel export
+│   │   ├── User.js           # User model with validation
+│   │   ├── File.js           # File metadata model
+│   │   ├── Role.js           # User roles model
+│   │   ├── Session.js        # User sessions model
+│   │   └── AuditLog.js       # Audit logging model
+│   ├── routes/                # API routes (Route Layer)
+│   │   ├── index.js          # Main routes aggregator
+│   │   ├── auth.js           # Authentication routes
+│   │   ├── users.js          # User management routes
+│   │   ├── files.js          # File operations routes
+│   │   ├── admin.js          # Admin routes
+│   │   └── health.js         # Health check routes
+│   ├── middleware/            # Custom middleware
+│   │   ├── index.js          # Middleware barrel export
+│   │   ├── auth.js           # JWT authentication middleware
+│   │   ├── authorize.js      # Role-based authorization
+│   │   ├── upload.js         # File upload middleware (multer + S3)
+│   │   ├── validation.js     # Request validation middleware
+│   │   ├── rateLimiter.js    # Rate limiting middleware
+│   │   ├── errorHandler.js   # Global error handling middleware
+│   │   ├── logger.js         # Request logging middleware
+│   │   ├── security.js       # Security headers middleware
+│   │   ├── cors.js           # CORS configuration middleware
+│   │   ├── compression.js    # Response compression
+│   │   ├── sanitize.js       # Input sanitization
+│   │   └── cache.js          # Redis caching middleware
+│   ├── services/             # Business logic layer
+│   │   ├── index.js          # Services barrel export
+│   │   ├── authService.js    # Authentication business logic
+│   │   ├── userService.js    # User management business logic
+│   │   ├── fileService.js    # File processing business logic
+│   │   ├── emailService.js   # Email sending service
+│   │   ├── cacheService.js   # Redis caching service
+│   │   ├── auditService.js   # Audit logging service
+│   │   └── notificationService.js # Push notifications
+│   ├── utils/                # Utility functions
+│   │   ├── index.js          # Utils barrel export
+│   │   ├── apiResponse.js    # Standardized API responses
+│   │   ├── apiError.js       # Custom error classes
+│   │   ├── validators.js     # Custom validation functions
+│   │   ├── helpers.js        # General helper functions
+│   │   ├── constants.js      # Application constants
+│   │   ├── encryption.js     # Encryption/decryption utilities
+│   │   ├── fileHelpers.js    # File processing utilities
+│   │   └── dateHelpers.js    # Date manipulation utilities
+│   ├── validators/           # Request validation schemas
+│   │   ├── index.js          # Validators barrel export
+│   │   ├── authValidator.js  # Authentication validation rules
+│   │   ├── userValidator.js  # User data validation rules
+│   │   ├── fileValidator.js  # File upload validation rules
+│   │   └── commonValidator.js # Common validation rules
+│   ├── jobs/                 # Background jobs and queues
+│   │   ├── index.js          # Jobs barrel export
+│   │   ├── emailQueue.js     # Email sending queue
+│   │   ├── fileProcessingQueue.js # File processing queue
+│   │   ├── cleanupJob.js     # Cleanup tasks
+│   │   └── reportJob.js      # Report generation jobs
+│   ├── database/             # Database related files
+│   │   ├── seeds/            # Database seeders
+│   │   │   ├── userSeeder.js
+│   │   │   └── roleSeeder.js
+│   │   ├── migrations/       # Database migrations
+│   │   └── indexes.js        # Database indexes
+│   └── events/              # Event handlers
+│       ├── index.js         # Events barrel export
+│       ├── userEvents.js    # User-related events
+│       └── fileEvents.js    # File-related events
+├── tests/                   # Test files
+│   ├── setup.js            # Test setup configuration
+│   ├── teardown.js         # Test cleanup
+│   ├── fixtures/           # Test data fixtures
+│   │   ├── users.json      # User test data
+│   │   └── files.json      # File test data
+│   ├── unit/               # Unit tests
+│   │   ├── controllers/    # Controller unit tests
+│   │   ├── services/       # Service unit tests
+│   │   ├── models/         # Model unit tests
+│   │   └── utils/          # Utility unit tests
+│   ├── integration/        # Integration tests
+│   │   ├── auth.test.js    # Authentication API tests
+│   │   ├── users.test.js   # User API tests
+│   │   └── files.test.js   # File API tests
+│   └── e2e/               # End-to-end tests
+│       └── api.test.js     # Full API flow tests
+├── logs/                   # Application logs (add to .gitignore)
+│   ├── error.log          # Error logs
+│   ├── combined.log       # All logs combined
+│   ├── access.log         # HTTP access logs
+│   └── audit.log          # Audit trail logs
+├── uploads/               # Temporary file storage (add to .gitignore)
+│   ├── temp/              # Temporary upload folder
+│   ├── images/            # Processed images
+│   └── documents/         # Processed documents
+├── storage/               # Local storage (development only)
+│   ├── cache/             # File cache
+│   └── backups/           # Local backups
+└── monitoring/            # Monitoring and metrics
+    ├── metrics.js         # Application metrics
+    └── health.js          # Health check implementation
+```
+
+## Key Files to Create First
+
+1. **package.json** - Dependencies and scripts
+2. **.env.example** - Environment variable template
+3. **server.js** - Main entry point
+4. **app.js** - Express app configuration
+5. **src/config/database.js** - MongoDB connection
+6. **src/middleware/errorHandler.js** - Global error handling
+7. **src/utils/apiResponse.js** - Standardized responses
+8. **src/routes/index.js** - Route aggregator
+
+## Essential npm packages to install:
+
+```bash
+# Core dependencies
+npm install express mongoose bcryptjs jsonwebtoken joi helmet cors express-rate-limit express-mongo-sanitize xss-clean hpp compression morgan winston multer multer-s3 aws-sdk sharp swagger-jsdoc swagger-ui-express nodemailer redis bull dotenv express-validator express-async-errors
+
+# Development dependencies
+npm install -D nodemon jest supertest eslint prettier @types/node
+```
+
+## Quick Setup Commands:
+
+```bash
+# 1. Create project directory
+mkdir backend-project && cd backend-project
+
+# 2. Initialize npm
+npm init -y
+
+# 3. Install dependencies
+npm install express mongoose bcryptjs jsonwebtoken joi helmet cors express-rate-limit express-mongo-sanitize xss-clean hpp compression morgan winston multer multer-s3 aws-sdk sharp swagger-jsdoc swagger-ui-express nodemailer redis bull dotenv express-validator express-async-errors
+
+# 4. Install dev dependencies
+npm install -D nodemon jest supertest eslint prettier @types/node
+
+# 5. Create folder structure
+mkdir -p src/{config,controllers,models,routes,middleware,services,utils,validators,jobs,database/{seeds,migrations},events} tests/{unit/{controllers,services,models,utils},integration,e2e,fixtures} logs uploads/{temp,images,documents} storage/{cache,backups} monitoring postman docs scripts
+
+# 6. Create essential files
+touch server.js app.js .env.example .gitignore README.md CHANGELOG.md swagger.json jest.config.js .eslintrc.js .prettierrc nodemon.json ecosystem.config.js Dockerfile docker-compose.yml
+
+# 7. Copy the .cursorrules content to .cursorrules file
+```
+This structure provides:
+- ✅ Proper MVC architecture
+- ✅ MongoDB Atlas integration
+- ✅ AWS S3 file uploads (small & large files)
+- ✅ Comprehensive security middleware
+- ✅ Automated Swagger documentation
+- ✅ Postman collection generation
+- ✅ Environment variable management
+- ✅ Error handling and logging
+- ✅ Background job processing
+- ✅ Testing setup
+- ✅ Production deployment ready
