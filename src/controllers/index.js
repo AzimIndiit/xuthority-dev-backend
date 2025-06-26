@@ -13,6 +13,13 @@ const integrationController = require('./integrationController');
 const industryController = require('./industryController');
 const userRoleController = require('./userRoleController');
 
+const resourceCategoryController = require('./resourceCategoryController');
+const blogController = require('./blogController');
+const productReviewController = require('./productReviewController');
+const reviewReplyController = require('./reviewReplyController');
+const communityController = require('./communityController');
+const disputeController = require('./disputeController');
+
 module.exports = {
   authController,
   userController,
@@ -27,5 +34,11 @@ module.exports = {
   marketSegmentController,
   integrationController,
   industryController,
-  userRoleController
+  userRoleController,
+  resourceCategoryController,
+  blogController,
+  productReviewController,
+  reviewReplyController,
+  communityController,
+  disputeController
 };

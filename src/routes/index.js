@@ -16,6 +16,12 @@ const marketSegmentRoutes = require('./marketSegments');
 const integrationRoutes = require('./integrations');
 const industryRoutes = require('./industries');
 const userRoleRoutes = require('./userRoles');
+const blogRoutes = require('./blogs');
+const resourceCategoryRoutes = require('./resourceCategories');
+const productReviewRoutes = require('./productReviews');
+const reviewReplyRoutes = require('./reviewReplies');
+const communityRoutes = require('./community');
+const disputeRoutes = require('./disputes');
 
 const { API_PREFIX } = require('../config/constants');
 
@@ -34,6 +40,12 @@ router.use(`${API_PREFIX}/market-segments`, marketSegmentRoutes);
 router.use(`${API_PREFIX}/integrations`, integrationRoutes);
 router.use(`${API_PREFIX}/industries`, industryRoutes);
 router.use(`${API_PREFIX}/user-roles`, userRoleRoutes);
+router.use(`${API_PREFIX}/blogs`, blogRoutes);
+router.use(`${API_PREFIX}/resource-categories`, resourceCategoryRoutes);
+router.use(`${API_PREFIX}/product-reviews`, productReviewRoutes);
+router.use(`${API_PREFIX}`, reviewReplyRoutes);
+router.use(`${API_PREFIX}/community`, communityRoutes);
+router.use(`${API_PREFIX}/disputes`, disputeRoutes);
 
 // API documentation route
 router.get('/', (req, res) => {
@@ -53,6 +65,8 @@ router.get('/', (req, res) => {
       follow: `${API_PREFIX}/follow`,
       followers: `${API_PREFIX}/followers`,
       following: `${API_PREFIX}/following`,
+      community: `${API_PREFIX}/community`,
+      disputes: `${API_PREFIX}/disputes`,
     },
   });
 });

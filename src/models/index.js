@@ -10,6 +10,13 @@ const MarketSegment = require('./MarketSegment');
 const Integration = require('./Integration');
 const Industry = require('./Industry');
 const UserRole = require('./UserRole');
+const ResourceCategory = require('./ResourceCategory');
+const Blog = require('./Blog');
+const ProductReview = require('./ProductReview');
+const ReviewReply = require('./ReviewReply');
+const CommunityQuestion = require('./CommunityQuestion');
+const CommunityAnswer = require('./CommunityAnswer');
+const Dispute = require('./Dispute');
 
 module.exports = {
   User,
@@ -23,5 +30,12 @@ module.exports = {
   MarketSegment,
   Integration,
   Industry,
-  UserRole
+  UserRole,
+  ResourceCategory,
+  Blog,
+  ProductReview,
+  ReviewReply,
+  CommunityQuestion,
+  CommunityAnswer,
+  Dispute
 };

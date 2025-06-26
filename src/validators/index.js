@@ -11,6 +11,13 @@ const integrationValidator = require('./integrationValidator');
 const industryValidator = require('./industryValidator');
 const userRoleValidator = require('./userRoleValidator');
 
+const resourceCategoryValidator = require('./resourceCategoryValidator');
+const blogValidator = require('./blogValidator');
+const productReviewValidator = require('./productReviewValidator');
+const reviewReplyValidator = require('./reviewReplyValidator');
+const communityValidator = require('./communityValidator');
+const disputeValidator = require('./disputeValidator');
+
 module.exports = {
   authValidator,
   userValidator,
@@ -23,5 +30,11 @@ module.exports = {
   marketSegmentValidator,
   integrationValidator,
   industryValidator,
-  userRoleValidator
+  userRoleValidator,
+  resourceCategoryValidator,
+  blogValidator,
+  productReviewValidator,
+  reviewReplyValidator,
+  communityValidator,
+  disputeValidator
 };

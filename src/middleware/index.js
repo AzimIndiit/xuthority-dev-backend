@@ -1,4 +1,5 @@
 const auth = require('./auth');
+const { optionalAuth } = require('./auth');
 const authorize = require('./authorize');
 const cache = require('./cache');
 const compression = require('./compression');
@@ -12,6 +13,7 @@ const { validate } = require('./validation');
 
 module.exports = {
   auth,
+  optionalAuth,
   authorize,
   cache,
   compression,

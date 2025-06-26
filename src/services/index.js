@@ -15,6 +15,12 @@ const integrationService = require('./integrationService');
 const industryService = require('./industryService');
 const userRoleService = require('./userRoleService');
 
+const resourceCategoryService = require('./resourceCategoryService');
+const blogService = require('./blogService');
+const productReviewService = require('./productReviewService');
+const reviewReplyService = require('./reviewReplyService');
+const disputeService = require('./disputeService');
+
 module.exports = {
   authService,
   userService,
@@ -31,5 +37,10 @@ module.exports = {
   marketSegmentService,
   integrationService,
   industryService,
-  userRoleService
+  userRoleService,
+  resourceCategoryService,
+  blogService,
+  productReviewService,
+  reviewReplyService,
+  disputeService
 };

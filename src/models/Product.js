@@ -176,6 +176,15 @@ const productSchema = new mongoose.Schema(
       max: 5,
     },
 
+    // Rating distribution for review filtering
+    ratingDistribution: {
+      5: { type: Number, default: 0 },
+      4: { type: Number, default: 0 },
+      3: { type: Number, default: 0 },
+      2: { type: Number, default: 0 },
+      1: { type: Number, default: 0 }
+    },
+
     // Product metrics
     views: {
       type: Number,
