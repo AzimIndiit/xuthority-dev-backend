@@ -84,7 +84,7 @@ exports.getActiveUserRoles = async (req, res, next) => {
  */
 exports.getUserRoleById = async (req, res, next) => {
   try {
-    const userRole = await userRoleService.getUserRoleById(req.params.userRoleId);
+    const userRole = await userRoleService.getUserRoleById(req.params.id);
 
     res.status(200).json(
       ApiResponse.success(userRole, 'User role retrieved successfully')
@@ -119,7 +119,7 @@ exports.getUserRoleBySlug = async (req, res, next) => {
 exports.updateUserRole = async (req, res, next) => {
   try {
     const userRole = await userRoleService.updateUserRole(
-      req.params.userRoleId,
+      req.params.id,
       req.body,
       req.user.id
     );
@@ -139,7 +139,7 @@ exports.updateUserRole = async (req, res, next) => {
  */
 exports.deleteUserRole = async (req, res, next) => {
   try {
-    const result = await userRoleService.deleteUserRole(req.params.userRoleId, req.user.id);
+    const result = await userRoleService.deleteUserRole(req.params.id, req.user.id);
 
     res.status(200).json(
       ApiResponse.success(null, result.message)
@@ -156,7 +156,7 @@ exports.deleteUserRole = async (req, res, next) => {
  */
 exports.toggleUserRoleStatus = async (req, res, next) => {
   try {
-    const userRole = await userRoleService.toggleUserRoleStatus(req.params.userRoleId, req.user.id);
+    const userRole = await userRoleService.toggleUserRoleStatus(req.params.id, req.user.id);
 
     res.status(200).json(
       ApiResponse.success(userRole, `User role status changed to ${userRole.status}`)

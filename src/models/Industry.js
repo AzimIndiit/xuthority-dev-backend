@@ -56,17 +56,13 @@ industrySchema.pre('save', function(next) {
       remove: /[*+~.()'\"!:@]/g
     });
     
-    // Add timestamp if needed for uniqueness
-    // if (this.isNew) {
-    //   this.slug += '-' + Date.now();
-    // }
+
   }
   next();
 });
 
 // Index for better query performance
-industrySchema.index({ name: 1 });
-industrySchema.index({ slug: 1 });
+// Removed duplicate indexes for name and slug (already indexed by unique: true)
 industrySchema.index({ status: 1 });
 industrySchema.index({ category: 1 });
 industrySchema.index({ createdAt: -1 });

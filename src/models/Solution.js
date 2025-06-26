@@ -13,8 +13,7 @@ const solutionSchema = new mongoose.Schema({
     type: String,
     unique: true,
     lowercase: true,
-    trim: true,
-    index: true
+    trim: true
   },
   status: {
     type: String,
@@ -49,10 +48,7 @@ solutionSchema.pre('save', function(next) {
       remove: /[*+~.()'"!:@]/g
     });
     
-    // Add timestamp if needed for uniqueness
-    // if (this.isNew) {
-    //   this.slug += '-' + Date.now();
-    // }
+
   }
   next();
 });

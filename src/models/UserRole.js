@@ -51,17 +51,12 @@ userRoleSchema.pre('save', function(next) {
       remove: /[*+~.()'\"!:@]/g
     });
     
-    // Add timestamp if needed for uniqueness
-    // if (this.isNew) {
-    //   this.slug += '-' + Date.now();
-    // }
+
   }
   next();
 });
 
 // Index for better query performance
-userRoleSchema.index({ name: 1 });
-userRoleSchema.index({ slug: 1 });
 userRoleSchema.index({ status: 1 });
 userRoleSchema.index({ createdAt: -1 });
 

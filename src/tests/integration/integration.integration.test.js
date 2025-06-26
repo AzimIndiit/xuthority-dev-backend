@@ -22,6 +22,7 @@ describe('Integration Integration Tests', () => {
       email: 'integration.test@example.com',
       password: hashedPassword,
       role: 'admin',
+      acceptedTerms: true,
       isVerified: true
     });
 
@@ -59,7 +60,7 @@ describe('Integration Integration Tests', () => {
       expect(response.body.data.name).toBe(integrationData.name);
       expect(response.body.data.image).toBe(integrationData.image);
       expect(response.body.data.status).toBe(integrationData.status);
-      expect(response.body.data.slug).toMatch(/slack-\d+/);
+      expect(response.body.data.slug).toBe('slack');
       expect(response.body.data.createdBy).toBeDefined();
     });
 

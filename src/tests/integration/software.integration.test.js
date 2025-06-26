@@ -68,7 +68,7 @@ describe('Software Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.name).toBe(softwareData.name);
       expect(response.body.data.status).toBe('active');
-      expect(response.body.data.slug).toMatch(/^test-software-\d+$/);
+      expect(response.body.data.slug).toBe('test-software');
       expect(response.body.data.createdBy._id).toBe(testUser._id.toString());
       expect(response.body.message).toBe('Software created successfully');
     });

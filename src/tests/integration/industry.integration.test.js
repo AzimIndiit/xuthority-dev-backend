@@ -19,6 +19,7 @@ describe('Industry Integration Tests', () => {
       email: 'industry.test@example.com',
       password: hashedPassword,
       role: 'admin',
+      acceptedTerms: true,
       isVerified: true
     });
 

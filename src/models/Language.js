@@ -51,17 +51,13 @@ languageSchema.pre('save', function(next) {
       remove: /[*+~.()'\"!:@]/g
     });
     
-    // Add timestamp if needed for uniqueness
-    // if (this.isNew) {
-    //   this.slug += '-' + Date.now();
-    // }
+
   }
   next();
 });
 
 // Index for better query performance
-languageSchema.index({ name: 1 });
-languageSchema.index({ slug: 1 });
+// Removed duplicate indexes for name and slug (already indexed by unique: true)
 languageSchema.index({ status: 1 });
 languageSchema.index({ createdAt: -1 });
 

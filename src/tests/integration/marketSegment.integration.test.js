@@ -22,6 +22,7 @@ describe('Market Segment Integration Tests', () => {
       email: 'marketsegment.test@example.com',
       password: hashedPassword,
       role: 'admin',
+      acceptedTerms: true,
       isVerified: true
     });
 
@@ -57,7 +58,7 @@ describe('Market Segment Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.name).toBe(marketSegmentData.name);
       expect(response.body.data.status).toBe(marketSegmentData.status);
-      expect(response.body.data.slug).toMatch(/small-business-\d+/);
+      expect(response.body.data.slug).toBe('small-business');
       expect(response.body.data.createdBy).toBeDefined();
     });
 

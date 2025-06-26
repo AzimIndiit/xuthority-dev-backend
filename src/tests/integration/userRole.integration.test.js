@@ -21,7 +21,8 @@ describe('User Role Integration Tests', () => {
       lastName: 'User',
       email: 'userrole.test@example.com',
       password: hashedPassword,
-      role: 'admin',
+      role: 'vendor',
+      acceptedTerms: true,
       isVerified: true
     });
 
@@ -57,7 +58,7 @@ describe('User Role Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.name).toBe(userRoleData.name);
       expect(response.body.data.status).toBe(userRoleData.status);
-      expect(response.body.data.slug).toMatch(/project-manager-\d+/);
+      expect(response.body.data.slug).toBe('project-manager');
       expect(response.body.data.createdBy).toBeDefined();
     });
 

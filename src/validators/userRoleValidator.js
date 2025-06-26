@@ -18,7 +18,7 @@ const userRoleValidator = {
 
   // Update user role validation
   update: [
-    param('userRoleId').isMongoId().withMessage('Invalid user role ID'),
+    param('id').isMongoId().withMessage('Invalid user role ID'),
     body('name')
       .optional()
       .isLength({ min: 2, max: 100 })
@@ -33,7 +33,7 @@ const userRoleValidator = {
 
   // Get user role by ID validation
   getById: [
-    param('userRoleId').isMongoId().withMessage('Invalid user role ID')
+    param('id').isMongoId().withMessage('Invalid user role ID')
   ],
 
   // Get user role by slug validation
@@ -43,12 +43,12 @@ const userRoleValidator = {
 
   // Delete user role validation
   delete: [
-    param('userRoleId').isMongoId().withMessage('Invalid user role ID')
+    param('id').isMongoId().withMessage('Invalid user role ID')
   ],
 
   // Toggle status validation
   toggleStatus: [
-    param('userRoleId').isMongoId().withMessage('Invalid user role ID')
+    param('id').isMongoId().withMessage('Invalid user role ID')
   ],
 
   // Query validation for listing user roles

@@ -61,17 +61,12 @@ integrationSchema.pre('save', function(next) {
       remove: /[*+~.()'\"!:@]/g
     });
     
-    // // Add timestamp if needed for uniqueness
-    // if (this.isNew) {
-    //   this.slug += '-' + Date.now();
-    // }
+
   }
   next();
 });
 
 // Index for better query performance
-integrationSchema.index({ name: 1 });
-integrationSchema.index({ slug: 1 });
 integrationSchema.index({ status: 1 });
 integrationSchema.index({ createdAt: -1 });
 

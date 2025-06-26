@@ -21,7 +21,8 @@ describe('Language Integration Tests', () => {
       lastName: 'User',
       email: 'language.test@example.com',
       password: hashedPassword,
-      role: 'admin',
+      role: 'vendor',
+      acceptedTerms: true,
       isVerified: true
     });
 
@@ -57,7 +58,7 @@ describe('Language Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.name).toBe(languageData.name);
       expect(response.body.data.status).toBe(languageData.status);
-      expect(response.body.data.slug).toMatch(/javascript-\d+/);
+      expect(response.body.data.slug).toBe('javascript');
       expect(response.body.data.createdBy).toBeDefined();
     });
 
@@ -280,7 +281,7 @@ describe('Language Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.name).toBe(updateData.name);
       expect(response.body.data.status).toBe(updateData.status);
-      expect(response.body.data.slug).toMatch(/updated-language-\d+/);
+      expect(response.body.data.slug).toBe('updated-language');
     });
 
     it('should return 404 for non-existent language', async () => {

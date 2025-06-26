@@ -1,5 +1,9 @@
 module.exports = (...allowedRoles) => (req, res, next) => {
-  if (!req.user || !allowedRoles.includes(req.user.role)) {
+  // Flatten the allowedRoles array to handle both calling patterns:
+  // authorize('admin', 'vendor') and authorize(['admin', 'vendor'])
+  const roles = allowedRoles.flat();
+  
+  if (!req.user || !roles.includes(req.user.role)) {
     return res.status(403).json({
       success: false,
       error: {

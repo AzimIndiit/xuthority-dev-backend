@@ -51,17 +51,12 @@ marketSegmentSchema.pre('save', function(next) {
       remove: /[*+~.()'\"!:@]/g
     });
     
-    // Add timestamp if needed for uniqueness
-    // if (this.isNew) {
-    //   this.slug += '-' + Date.now();
-    // }
+
   }
   next();
 });
 
 // Index for better query performance
-marketSegmentSchema.index({ name: 1 });
-marketSegmentSchema.index({ slug: 1 });
 marketSegmentSchema.index({ status: 1 });
 marketSegmentSchema.index({ createdAt: -1 });
 

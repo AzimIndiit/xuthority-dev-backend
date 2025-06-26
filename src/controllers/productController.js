@@ -301,14 +301,14 @@ exports.getProductById = async (req, res, next) => {
       );
     }
 
-    const productId = req.params.productId;
+    const productId = req.params.id;
     const incrementViews = req.query.incrementViews === 'true';
     
     const product = await productService.getProductById(productId, incrementViews);
 
     return res.json(
       ApiResponse.success(
-        { product }, 
+        product, 
         'Product retrieved successfully'
       )
     );
@@ -355,7 +355,7 @@ exports.getProductBySlug = async (req, res, next) => {
 
     return res.json(
       ApiResponse.success(
-        { product }, 
+        product, 
         'Product retrieved successfully'
       )
     );
@@ -426,7 +426,7 @@ exports.updateProduct = async (req, res, next) => {
       );
     }
 
-    const productId = req.params.productId;
+    const productId = req.params.id;
     const vendorId = req.user._id.toString();
     
     const product = await productService.updateProduct(productId, req.body, vendorId);
@@ -490,7 +490,7 @@ exports.deleteProduct = async (req, res, next) => {
       );
     }
 
-    const productId = req.params.productId;
+    const productId = req.params.id;
     const vendorId = req.user._id.toString();
     
     const result = await productService.deleteProduct(productId, vendorId);
