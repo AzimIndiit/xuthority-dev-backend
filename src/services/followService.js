@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const { Follow } = require('../models');
 const { User } = require('../models');
 const ApiError = require('../utils/apiError');
+const { createNotification } = require('../services/notificationService');
+const Notification = require('../models/Notification');
 
 /**
  * Toggle follow/unfollow user with count updates
@@ -65,6 +67,13 @@ const toggleFollowWithTransaction = async (currentUserId, targetUserId) => {
 
       action = 'unfollowed';
       isFollowing = false;
+      // Mark follow notification as read if it exists
+      await Notification.findOneAndUpdate({
+        userId: targetUserId,
+        type: 'FOLLOW',
+        'meta.followerId': currentUserId,
+        isRead: false
+      }, { isRead: true });
     } else {
       // Follow - create follow relationship
       await Follow.create([{
@@ -87,6 +96,24 @@ const toggleFollowWithTransaction = async (currentUserId, targetUserId) => {
 
       action = 'followed';
       isFollowing = true;
+      // Only create notification if one does not already exist
+      const existingNotif = await Notification.findOne({
+        userId: targetUserId,
+        type: 'FOLLOW',
+        'meta.followerId': currentUserId,
+        isRead: false
+      });
+      if (!existingNotif) {
+        const follower = await User.findById(currentUserId);
+        await createNotification({
+          userId: targetUserId,
+          type: 'FOLLOW',
+          title: 'New Follower',
+          message: `${follower.firstName} ${follower.lastName} has started following your profile. Keep them engaged by sharing updates.`,
+          meta: { followerId: currentUserId },
+          actionUrl: `/users/${currentUserId}`
+        });
+      }
     }
 
     // Get updated target user data
@@ -150,6 +177,13 @@ const toggleFollowWithoutTransaction = async (currentUserId, targetUserId) => {
 
       action = 'unfollowed';
       isFollowing = false;
+      // Mark follow notification as read if it exists
+      await Notification.findOneAndUpdate({
+        userId: targetUserId,
+        type: 'FOLLOW',
+        'meta.followerId': currentUserId,
+        isRead: false
+      }, { isRead: true });
     } else {
       // Follow - create follow relationship
       await Follow.create({
@@ -170,6 +204,24 @@ const toggleFollowWithoutTransaction = async (currentUserId, targetUserId) => {
 
       action = 'followed';
       isFollowing = true;
+      // Only create notification if one does not already exist
+      const existingNotif = await Notification.findOne({
+        userId: targetUserId,
+        type: 'FOLLOW',
+        'meta.followerId': currentUserId,
+        isRead: false
+      });
+      if (!existingNotif) {
+        const follower = await User.findById(currentUserId);
+        await createNotification({
+          userId: targetUserId,
+          type: 'FOLLOW',
+          title: 'New Follower',
+          message: `${follower.firstName} ${follower.lastName} has started following your profile. Keep them engaged by sharing updates.`,
+          meta: { followerId: currentUserId },
+          actionUrl: `/users/${currentUserId}`
+        });
+      }
     }
 
     // Get updated target user data

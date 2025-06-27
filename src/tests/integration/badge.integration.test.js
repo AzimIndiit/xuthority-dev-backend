@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const User = require('../../models/User');
 const Badge = require('../../models/Badge');
 const UserBadge = require('../../models/UserBadge');
+const Notification = require('../../models/Notification');
 
 describe('Badge & UserBadge API Integration Tests', () => {
   let vendorToken, adminToken, vendorUser, adminUser, badge1, badge2;
@@ -73,6 +74,15 @@ describe('Badge & UserBadge API Integration Tests', () => {
       .set('Authorization', `Bearer ${vendorToken}`)
       .send({ badgeId: badge1._id, reason: 'I want this badge' })
       .expect(201);
+    // Verify badge request notification
+    const badgeRequestNotif = await Notification.findOne({
+      userId: vendorUser._id,
+      type: 'BADGE_REQUEST',
+      isRead: false
+    });
+    expect(badgeRequestNotif).toBeTruthy();
+    expect(badgeRequestNotif.title).toBe('Badge Request Submitted');
+    expect(badgeRequestNotif.message).toContain('has been submitted');
     
     // List badges as vendor
     const res = await request(app)
@@ -92,16 +102,23 @@ describe('Badge & UserBadge API Integration Tests', () => {
       .set('Authorization', `Bearer ${vendorToken}`)
       .send({ badgeId: badge1._id, reason: 'I want this badge' })
       .expect(201);
-    
     // Find the user badge request
     const userBadge = await UserBadge.findOne({ userId: vendorUser._id, badgeId: badge1._id });
     expect(userBadge).toBeTruthy();
-    
     // Admin approves
     await request(app)
       .patch(`/api/v1/user-badges/${userBadge._id}/approve`)
       .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
+    // Verify badge approved notification
+    const badgeApprovedNotif = await Notification.findOne({
+      userId: vendorUser._id,
+      type: 'BADGE_STATUS',
+      isRead: false
+    });
+    expect(badgeApprovedNotif).toBeTruthy();
+    expect(badgeApprovedNotif.title).toBe('New Badge Approved!');
+    expect(badgeApprovedNotif.message).toContain('Congratulations');
     
     // List badges as vendor again
     const res = await request(app)

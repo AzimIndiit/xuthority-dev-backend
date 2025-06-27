@@ -4,6 +4,7 @@ const User = require("../models/User");
 const ApiError = require("../utils/apiError");
 const apiResponse = require("../utils/apiResponse");
 const { logEvent } = require("../services/auditService");
+const { createNotification } = require('../services/notificationService');
 
 const SALT_ROUNDS = process.env.BCRYPT_SALT_ROUNDS ? parseInt(process.env.BCRYPT_SALT_ROUNDS) : 12;
 const TOKEN_EXPIRY = "7d";
@@ -141,6 +142,14 @@ exports.register = async (req, res, next) => {
       targetId: user._id,
       details: { method: "email" },
       req,
+    });
+    // Send welcome notification
+    await createNotification({
+      userId: user._id,
+      type: 'WELCOME',
+      title: 'Welcome to XUTHORITY!',
+      message: 'Welcome to XUTHORITY! Start exploring and add your products today.',
+      actionUrl: '/dashboard'
     });
     const newUser = {
       ...user.toObject(),

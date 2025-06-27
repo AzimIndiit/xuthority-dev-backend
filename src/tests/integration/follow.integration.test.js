@@ -2,6 +2,7 @@ const request = require('supertest');
 const app = require('../../../app');
 const { User, Follow } = require('../../models');
 const bcrypt = require('bcrypt');
+const Notification = require('../../models/Notification');
 
 let userToken;
 let targetUser;
@@ -73,6 +74,16 @@ describe('Follow Toggle Integration Tests', () => {
       
       expect(updatedCurrentUser.followingCount).toBe(1);
       expect(updatedTargetUser.followersCount).toBe(1);
+
+      // Verify notification was created
+      const notification = await Notification.findOne({
+        userId: targetUser._id,
+        type: 'FOLLOW',
+        isRead: false
+      });
+      expect(notification).toBeTruthy();
+      expect(notification.title).toBe('New Follower');
+      expect(notification.message).toContain('has started following your profile');
     });
 
     it('should unfollow a user when already following', async () => {

@@ -3,6 +3,7 @@ const ApiError = require('../utils/apiError');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const emailService = require('./emailService');
+const { createNotification } = require('../services/notificationService');
 
 /**
  * Get user's own profile (full profile with sensitive data)
@@ -182,6 +183,14 @@ exports.resetPassword = async (resetToken, newPassword) => {
   // Send password change confirmation email
   try {
     await emailService.sendPasswordChangeConfirmation(user);
+    // Send password change notification
+    await createNotification({
+      userId: user._id,
+      type: 'PASSWORD_CHANGE',
+      title: 'Password Changed',
+      message: 'Your password has been changed successfully.',
+      actionUrl: '/profile'
+    });
   } catch (error) {
     console.error('Failed to send password change confirmation email:', error);
     // Don't throw error here as password was successfully changed
@@ -242,5 +251,31 @@ exports.updateUserProfile = async (userId, updateData) => {
   if (!user) {
     throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
   }
+  return user;
+};
+
+/**
+ * Admin verifies a vendor profile
+ * @param {string} userId - Vendor's MongoDB _id
+ * @returns {Promise<User>}
+ */
+exports.verifyVendorProfile = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+  }
+  if (user.isVerified) {
+    return user;
+  }
+  user.isVerified = true;
+  await user.save();
+  // Send profile verification notification
+  await createNotification({
+    userId: user._id,
+    type: 'PROFILE_VERIFIED',
+    title: 'Profile Verification Approved',
+    message: 'You are now fully verified! Start engaging with customers and managing your product listings.',
+    actionUrl: '/profile'
+  });
   return user;
 };

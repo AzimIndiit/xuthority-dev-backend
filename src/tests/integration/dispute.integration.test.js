@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const app = require('../../../app');
 const { Dispute, ProductReview, Product, User } = require('../../models');
+const Notification = require('../../models/Notification');
 
 describe('Dispute API Integration Tests', () => {
   let vendorToken, adminToken;
@@ -107,6 +108,26 @@ describe('Dispute API Integration Tests', () => {
       expect(response.body.data.reason).toBe(disputeData.reason);
       expect(response.body.data.description).toBe(disputeData.description);
       expect(response.body.message).toBe('Dispute created successfully');
+
+      // Verify notification for vendor
+      const vendorNotif = await Notification.findOne({
+        userId: vendorUser._id,
+        type: 'REVIEW_DISPUTE',
+        isRead: false
+      });
+      expect(vendorNotif).toBeTruthy();
+      expect(vendorNotif.title).toBe('Review Dispute Status Update');
+      expect(vendorNotif.message).toContain('dispute has been created');
+
+      // Verify notification for review author (user)
+      const userNotif = await Notification.findOne({
+        userId: testUser._id,
+        type: 'REVIEW_DISPUTE',
+        isRead: false
+      });
+      expect(userNotif).toBeTruthy();
+      expect(userNotif.title).toBe('Your Review is Under Dispute');
+      expect(userNotif.message).toContain('disputed your review');
     });
 
     it('should require authentication', async () => {
@@ -228,6 +249,26 @@ describe('Dispute API Integration Tests', () => {
       expect(response.body.data.description).toBe(updateData.description);
       expect(response.body.data.status).toBe(updateData.status);
       expect(response.body.message).toBe('Dispute updated successfully');
+
+      // Verify notification for vendor on status update
+      const vendorNotif = await Notification.findOne({
+        userId: vendorUser._id,
+        type: 'DISPUTE_STATUS_UPDATE',
+        isRead: false
+      });
+      expect(vendorNotif).toBeTruthy();
+      expect(vendorNotif.title).toBe('Review Dispute Status Update');
+      expect(vendorNotif.message).toContain('dispute status has been updated');
+
+      // Verify notification for review author (user) on status update
+      const userNotif = await Notification.findOne({
+        userId: testUser._id,
+        type: 'DISPUTE_STATUS_UPDATE',
+        isRead: false
+      });
+      expect(userNotif).toBeTruthy();
+      expect(userNotif.title).toBe('Dispute Status Update on Your Review');
+      expect(userNotif.message).toContain('dispute involving your review has been updated');
     });
 
     it('should require authentication', async () => {

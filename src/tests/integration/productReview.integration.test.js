@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../../../app');
 const { User, Product, ProductReview } = require('../../models');
+const Notification = require('../../models/Notification');
 
 describe('Product Review API', () => {
   let adminToken, userToken, user2Token;
@@ -126,6 +127,16 @@ describe('Product Review API', () => {
       expect(response.body.data.overallRating).toBe(reviewData.overallRating);
       expect(response.body.data.reviewer._id).toBe(regularUser._id.toString());
       expect(response.body.data.product._id).toBe(testProduct._id.toString());
+
+      // Verify notification for vendor
+      const vendorNotif = await Notification.findOne({
+        userId: adminUser._id,
+        type: 'PRODUCT_REVIEW',
+        isRead: false
+      });
+      expect(vendorNotif).toBeTruthy();
+      expect(vendorNotif.title).toBe("You've Got a New Review!");
+      expect(vendorNotif.message).toContain('A user has left a review on your product');
     });
 
     it('should fail to create review without authentication', async () => {

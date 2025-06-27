@@ -353,6 +353,861 @@
     }
   ],
   "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Register a new user",
+        "description": "Create a new user account with email and password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "firstName",
+                  "lastName",
+                  "email",
+                  "password",
+                  "acceptedTerms"
+                ],
+                "properties": {
+                  "firstName": {
+                    "type": "string",
+                    "description": "User's first name",
+                    "example": "John"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "description": "User's last name",
+                    "example": "Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email address",
+                    "example": "john.doe@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "description": "User's password (min 8 characters)",
+                    "example": "Password123!",
+                    "format": "password"
+                  },
+                  "acceptedTerms": {
+                    "type": "boolean",
+                    "description": "User must accept terms and conditions",
+                    "example": true
+                  },
+                  "acceptedMarketing": {
+                    "type": "boolean",
+                    "description": "User's marketing preferences",
+                    "example": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registration successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "507f1f77bcf86cd799439011"
+                            },
+                            "firstName": {
+                              "type": "string",
+                              "example": "John"
+                            },
+                            "lastName": {
+                              "type": "string",
+                              "example": "Doe"
+                            },
+                            "email": {
+                              "type": "string",
+                              "example": "john.doe@example.com"
+                            },
+                            "role": {
+                              "type": "string",
+                              "example": "user"
+                            }
+                          }
+                        },
+                        "accessToken": {
+                          "type": "string",
+                          "description": "JWT access token"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Registration successful"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or user already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "User already exists"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "USER_ALREADY_EXISTS"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 400
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Login with email and password",
+        "description": "Authenticate user with email and password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email address",
+                    "example": "john.doe@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "User's password",
+                    "example": "Password123!",
+                    "format": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": {
+                          "type": "string",
+                          "description": "JWT access token"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "507f1f77bcf86cd799439011"
+                            },
+                            "firstName": {
+                              "type": "string",
+                              "example": "John"
+                            },
+                            "lastName": {
+                              "type": "string",
+                              "example": "Doe"
+                            },
+                            "email": {
+                              "type": "string",
+                              "example": "john.doe@example.com"
+                            },
+                            "role": {
+                              "type": "string",
+                              "example": "user"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Login successful"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "statusCode": {
+                          "type": "integer"
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid credentials"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "INVALID_CREDENTIALS"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 401
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register-vendor": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Register a new vendor",
+        "description": "Register a new vendor account with company information",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "firstName",
+                  "lastName",
+                  "email",
+                  "password",
+                  "companyName",
+                  "companyEmail",
+                  "industry",
+                  "companySize",
+                  "acceptedTerms"
+                ],
+                "properties": {
+                  "firstName": {
+                    "type": "string",
+                    "description": "Vendor's first name",
+                    "example": "John"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "description": "Vendor's last name",
+                    "example": "Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Vendor's email address",
+                    "example": "john.doe@company.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "description": "Vendor's password (minimum 8 characters)",
+                    "example": "securePassword123"
+                  },
+                  "companyName": {
+                    "type": "string",
+                    "description": "Company name",
+                    "example": "Tech Solutions Inc"
+                  },
+                  "companyEmail": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Company email address",
+                    "example": "contact@techsolutions.com"
+                  },
+                  "industry": {
+                    "type": "string",
+                    "description": "Industry sector",
+                    "example": "Technology"
+                  },
+                  "companySize": {
+                    "type": "string",
+                    "description": "Company size range",
+                    "example": "51-200",
+                    "enum": [
+                      "1-10",
+                      "11-50",
+                      "51-200",
+                      "201-500",
+                      "500+"
+                    ]
+                  },
+                  "acceptedTerms": {
+                    "type": "string",
+                    "description": "Whether terms and conditions were accepted",
+                    "example": "true",
+                    "enum": [
+                      "true",
+                      "false"
+                    ]
+                  },
+                  "acceptedMarketing": {
+                    "type": "string",
+                    "description": "Whether marketing communications were accepted",
+                    "example": "false",
+                    "enum": [
+                      "true",
+                      "false"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Vendor registration successful (existing user with valid token)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        },
+                        "token": {
+                          "type": "string",
+                          "description": "JWT access token",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Vendor registration successful"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Vendor registration successful (new user created)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "507f1f77bcf86cd799439011"
+                            },
+                            "firstName": {
+                              "type": "string",
+                              "example": "Jane"
+                            },
+                            "lastName": {
+                              "type": "string",
+                              "example": "Smith"
+                            },
+                            "email": {
+                              "type": "string",
+                              "example": "jane.smith@company.com"
+                            },
+                            "role": {
+                              "type": "string",
+                              "example": "vendor"
+                            },
+                            "companyName": {
+                              "type": "string",
+                              "example": "Tech Solutions Inc"
+                            }
+                          },
+                          "$ref": "#/components/schemas/User"
+                        },
+                        "accessToken": {
+                          "type": "string",
+                          "description": "JWT access token"
+                        },
+                        "token": {
+                          "type": "string",
+                          "description": "JWT access token",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Vendor registration successful"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Request password reset",
+        "description": "Send password reset email to user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address to send reset link to",
+                    "example": "user@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reset email sent (or would be sent)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password reset email sent"
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Reset password with token",
+        "description": "Reset user password using the token from email",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "newPassword",
+                  "confirmNewPassword"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "Password reset token from email",
+                    "example": "abc123def456..."
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 8,
+                    "description": "New password (8+ chars, uppercase, lowercase, number)",
+                    "example": "NewPassword123!"
+                  },
+                  "confirmNewPassword": {
+                    "type": "string",
+                    "description": "Confirmation of new password",
+                    "example": "NewPassword123!"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password has been reset successfully"
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid token or validation error"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/auth/verify-reset-token": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Verify password reset token",
+        "description": "Check if password reset token is valid and not expired",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "Password reset token to verify",
+                    "example": "abc123def456..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token is valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Reset token is valid"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "userId": {
+                          "type": "string"
+                        },
+                        "firstName": {
+                          "type": "string"
+                        },
+                        "lastName": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired token"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/auth/google": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Google OAuth login",
+        "description": "Initiate Google OAuth authentication",
+        "responses": {
+          "302": {
+            "description": "Redirect to Google OAuth"
+          }
+        }
+      }
+    },
+    "/auth/google/callback": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Google OAuth callback",
+        "description": "Handle Google OAuth callback",
+        "responses": {
+          "200": {
+            "description": "OAuth login successful"
+          },
+          "401": {
+            "description": "OAuth login failed"
+          }
+        }
+      }
+    },
+    "/auth/google/failure": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Google OAuth failure",
+        "description": "Handle Google OAuth failure",
+        "responses": {
+          "401": {
+            "description": "OAuth login failed"
+          }
+        }
+      }
+    },
+    "/auth/linkedin": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "LinkedIn OAuth login",
+        "description": "Initiate LinkedIn OAuth authentication",
+        "responses": {
+          "302": {
+            "description": "Redirect to LinkedIn OAuth"
+          }
+        }
+      }
+    },
+    "/auth/linkedin/callback": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "LinkedIn OAuth callback",
+        "description": "Handle LinkedIn OAuth callback",
+        "responses": {
+          "200": {
+            "description": "OAuth login successful"
+          },
+          "401": {
+            "description": "OAuth login failed"
+          }
+        }
+      }
+    },
+    "/auth/linkedin/failure": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "LinkedIn OAuth failure",
+        "description": "Handle LinkedIn OAuth failure",
+        "responses": {
+          "401": {
+            "description": "OAuth login failed"
+          }
+        }
+      }
+    },
     "/api/v1/blogs": {
       "post": {
         "summary": "Create a new blog",
@@ -5051,11 +5906,350 @@
         }
       }
     },
-    "/auth/register": {
-      "post": {
-        "summary": "Register a new user",
+    "/users/search": {
+      "get": {
         "tags": [
-          "Auth"
+          "Users"
+        ],
+        "summary": "Search users",
+        "description": "Search for users by name, email, or other criteria",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Search query",
+            "example": "john",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                "user",
+                "vendor",
+                "admin"
+              ],
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number for pagination",
+            "example": "vendor"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 10,
+              "maximum": 50
+            },
+            "description": "Number of users per page",
+            "example": 1
+          },
+          {
+            "in": "query",
+            "name": "userType",
+            "schema": {
+              "type": "string",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "enum": [
+                "user",
+                "vendor"
+              ]
+            },
+            "description": "Filter by user type",
+            "example": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users found successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "example": "507f1f77bcf86cd799439011"
+                          },
+                          "firstName": {
+                            "type": "string",
+                            "example": "John"
+                          },
+                          "lastName": {
+                            "type": "string",
+                            "example": "Doe"
+                          },
+                          "email": {
+                            "type": "string",
+                            "example": "john.doe@example.com"
+                          },
+                          "role": {
+                            "type": "string",
+                            "example": "user"
+                          }
+                        }
+                      },
+                      "properties": {
+                        "users": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string"
+                              },
+                              "firstName": {
+                                "type": "string"
+                              },
+                              "lastName": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "userType": {
+                                "type": "string"
+                              },
+                              "followers": {
+                                "type": "number"
+                              },
+                              "following": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        },
+                        "pagination": {
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "example": 10
+                            },
+                            "total": {
+                              "type": "integer",
+                              "example": 25
+                            },
+                            "pages": {
+                              "type": "integer",
+                              "example": 3
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Users retrieved successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - missing or invalid search query"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/users/profile": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get current user's profile",
+        "description": "Retrieve the authenticated user's complete profile information",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "507f1f77bcf86cd799439011"
+                            },
+                            "firstName": {
+                              "type": "string",
+                              "example": "John"
+                            },
+                            "lastName": {
+                              "type": "string",
+                              "example": "Doe"
+                            },
+                            "email": {
+                              "type": "string",
+                              "example": "john.doe@example.com"
+                            },
+                            "role": {
+                              "type": "string",
+                              "example": "user"
+                            },
+                            "companyName": {
+                              "type": "string",
+                              "example": "Tech Solutions Inc"
+                            },
+                            "isVerified": {
+                              "type": "boolean",
+                              "example": true
+                            }
+                          },
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Profile retrieved successfully"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Authentication required"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "UNAUTHORIZED"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 401
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "User not found"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "USER_NOT_FOUND"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 404
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update user profile",
+        "description": "Update the authenticated user's profile fields",
+        "security": [
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
@@ -5063,35 +6257,70 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "firstName",
-                  "lastName",
-                  "email",
-                  "password",
-                  "acceptedTerms"
-                ],
                 "properties": {
                   "firstName": {
                     "type": "string",
-                    "example": "John"
+                    "minLength": 2,
+                    "maxLength": 50,
+                    "description": "User's first name",
+                    "example": "Jane"
                   },
                   "lastName": {
                     "type": "string",
+                    "minLength": 2,
+                    "maxLength": 50,
+                    "description": "User's last name",
                     "example": "Doe"
                   },
-                  "email": {
+                  "companyName": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "Company name (for vendors)",
+                    "example": "Acme Corp"
+                  },
+                  "companyEmail": {
                     "type": "string",
                     "format": "email",
-                    "example": "john.doe@example.com"
+                    "description": "Company email (for vendors)",
+                    "example": "contact@acme.com"
                   },
-                  "password": {
+                  "industry": {
                     "type": "string",
-                    "format": "password",
-                    "example": "Password123!"
+                    "description": "Industry sector (for vendors)",
+                    "example": "Tech"
                   },
-                  "acceptedTerms": {
-                    "type": "boolean",
-                    "example": true
+                  "companySize": {
+                    "type": "string",
+                    "description": "Company size (for vendors)",
+                    "example": "51-100 Employees"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "User description",
+                    "example": "Bio..."
+                  },
+                  "region": {
+                    "type": "string",
+                    "description": "User's region",
+                    "example": "US"
+                  },
+                  "title": {
+                    "type": "string",
+                    "example": "CTO"
+                  },
+                  "socialLinks": {
+                    "type": "object",
+                    "properties": {
+                      "linkedin": {
+                        "type": "string",
+                        "example": "https://linkedin.com/in/janedoe"
+                      },
+                      "twitter": {
+                        "type": "string",
+                        "example": "https://twitter.com/janedoe"
+                      }
+                    }
                   },
                   "acceptedMarketing": {
                     "type": "boolean",
@@ -5103,8 +6332,8 @@
           }
         },
         "responses": {
-          "201": {
-            "description": "Registration successful",
+          "200": {
+            "description": "Profile updated successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -5115,106 +6344,43 @@
                       "example": true
                     },
                     "data": {
-                      "type": "object"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Registration successful"
-                    },
-                    "meta": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error or user already exists",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
                       "type": "object",
                       "properties": {
-                        "message": {
-                          "type": "string"
-                        },
-                        "code": {
-                          "type": "string"
-                        },
-                        "statusCode": {
-                          "type": "integer"
-                        },
-                        "details": {
-                          "type": "object"
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "507f1f77bcf86cd799439011"
+                            },
+                            "firstName": {
+                              "type": "string",
+                              "example": "John"
+                            },
+                            "lastName": {
+                              "type": "string",
+                              "example": "Doe"
+                            },
+                            "email": {
+                              "type": "string",
+                              "example": "john.doe@example.com"
+                            },
+                            "role": {
+                              "type": "string",
+                              "example": "user"
+                            },
+                            "companyName": {
+                              "type": "string",
+                              "example": "Tech Solutions Inc"
+                            }
+                          },
+                          "$ref": "#/components/schemas/User"
                         }
                       }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/auth/login": {
-      "post": {
-        "summary": "Login with email and password",
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "email",
-                  "password"
-                ],
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "example": "john.doe@example.com"
-                  },
-                  "password": {
-                    "type": "string",
-                    "format": "password",
-                    "example": "Password123!"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Login successful",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "object"
                     },
                     "message": {
                       "type": "string",
-                      "example": "Login successful"
+                      "example": "Profile updated successfully"
                     },
                     "meta": {
                       "type": "object"
@@ -5226,6 +6392,13 @@
           },
           "400": {
             "description": "Validation error",
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "User not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -5239,13 +6412,52 @@
                       "type": "object",
                       "properties": {
                         "message": {
-                          "type": "string"
+                          "type": "string",
+                          "example": "User not found"
                         },
                         "code": {
-                          "type": "string"
+                          "type": "string",
+                          "example": "USER_NOT_FOUND"
                         },
                         "statusCode": {
-                          "type": "integer"
+                          "type": "integer",
+                          "example": 404
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Internal server error"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "INTERNAL_ERROR"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 500
                         },
                         "details": {
                           "type": "object"
@@ -5260,107 +6472,29 @@
         }
       }
     },
-    "/auth/register-vendor": {
-      "post": {
+    "/users/public-profile/{userId}": {
+      "get": {
         "tags": [
-          "Auth"
+          "Users"
         ],
-        "summary": "Register a new vendor",
-        "description": "Register a new vendor account with company information",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "firstName",
-                  "lastName",
-                  "email",
-                  "password",
-                  "companyName",
-                  "companyEmail",
-                  "industry",
-                  "companySize",
-                  "acceptedTerms"
-                ],
-                "properties": {
-                  "firstName": {
-                    "type": "string",
-                    "description": "Vendor's first name",
-                    "example": "John"
-                  },
-                  "lastName": {
-                    "type": "string",
-                    "description": "Vendor's last name",
-                    "example": "Doe"
-                  },
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "description": "Vendor's email address",
-                    "example": "john.doe@company.com"
-                  },
-                  "password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "description": "Vendor's password (minimum 8 characters)",
-                    "example": "securePassword123"
-                  },
-                  "companyName": {
-                    "type": "string",
-                    "description": "Company name",
-                    "example": "Tech Solutions Inc"
-                  },
-                  "companyEmail": {
-                    "type": "string",
-                    "format": "email",
-                    "description": "Company email address",
-                    "example": "contact@techsolutions.com"
-                  },
-                  "industry": {
-                    "type": "string",
-                    "description": "Industry sector",
-                    "example": "Technology"
-                  },
-                  "companySize": {
-                    "type": "string",
-                    "enum": [
-                      "1-10",
-                      "11-50",
-                      "51-200",
-                      "201-500",
-                      "500+"
-                    ],
-                    "description": "Company size range",
-                    "example": "51-200"
-                  },
-                  "acceptedTerms": {
-                    "type": "string",
-                    "enum": [
-                      "true",
-                      "false"
-                    ],
-                    "description": "Whether terms and conditions were accepted",
-                    "example": "true"
-                  },
-                  "acceptedMarketing": {
-                    "type": "string",
-                    "enum": [
-                      "true",
-                      "false"
-                    ],
-                    "description": "Whether marketing communications were accepted",
-                    "example": "false"
-                  }
-                }
-              }
-            }
+        "summary": "Get user's public profile",
+        "description": "Retrieve any user's public profile information (limited data)",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "ID of the user whose profile to retrieve",
+            "example": "507f1f77bcf86cd799439011"
           }
-        },
+        ],
         "responses": {
           "200": {
-            "description": "Vendor registration successful (existing user with valid token)",
+            "description": "Public profile retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -5374,18 +6508,79 @@
                       "type": "object",
                       "properties": {
                         "user": {
-                          "$ref": "#/components/schemas/User"
-                        },
-                        "token": {
-                          "type": "string",
-                          "description": "JWT access token",
-                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "507f1f77bcf86cd799439011"
+                            },
+                            "firstName": {
+                              "type": "string",
+                              "example": "John"
+                            },
+                            "lastName": {
+                              "type": "string",
+                              "example": "Doe"
+                            },
+                            "role": {
+                              "type": "string",
+                              "example": "user"
+                            },
+                            "companyName": {
+                              "type": "string",
+                              "example": "Tech Solutions Inc"
+                            },
+                            "isVerified": {
+                              "type": "boolean",
+                              "example": true
+                            },
+                            "followersCount": {
+                              "type": "number",
+                              "example": 42
+                            },
+                            "followingCount": {
+                              "type": "number",
+                              "example": 15
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "region": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "industry": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "companySize": {
+                              "type": "string"
+                            },
+                            "socialLinks": {
+                              "type": "object"
+                            },
+                            "userType": {
+                              "type": "string",
+                              "enum": [
+                                "user",
+                                "vendor"
+                              ]
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
                         }
                       }
                     },
                     "message": {
                       "type": "string",
-                      "example": "Vendor registration successful"
+                      "example": "Public profile retrieved successfully"
                     },
                     "meta": {
                       "type": "object"
@@ -5395,8 +6590,8 @@
               }
             }
           },
-          "201": {
-            "description": "Vendor registration successful (new user created)",
+          "400": {
+            "description": "Invalid user ID format",
             "content": {
               "application/json": {
                 "schema": {
@@ -5404,97 +6599,35 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "example": true
+                      "example": false
                     },
-                    "data": {
+                    "error": {
                       "type": "object",
                       "properties": {
-                        "user": {
-                          "$ref": "#/components/schemas/User"
-                        },
-                        "token": {
+                        "message": {
                           "type": "string",
-                          "description": "JWT access token",
-                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                          "example": "Invalid user ID format"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "INVALID_ID"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 400
+                        },
+                        "details": {
+                          "type": "object"
                         }
                       }
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Vendor registration successful"
-                    },
-                    "meta": {
-                      "type": "object"
                     }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Bad request - validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict - email already exists",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/auth/forgot-password": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "Request password reset",
-        "description": "Send password reset email to user",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "email"
-                ],
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "example": "user@example.com",
-                    "description": "Email address to send reset link to"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Reset email sent (or would be sent)",
+          "404": {
+            "description": "User not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -5502,21 +6635,32 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "example": true
+                      "example": false
                     },
-                    "data": {
-                      "type": "object"
-                    },
-                    "message": {
-                      "type": "string"
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "User not found"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "USER_NOT_FOUND"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 404
+                        },
+                        "details": {
+                          "type": "object"
+                        }
+                      }
                     }
                   }
                 }
               }
             }
-          },
-          "400": {
-            "description": "Validation error"
           },
           "500": {
             "description": "Internal server error"
@@ -5524,13 +6668,169 @@
         }
       }
     },
-    "/auth/reset-password": {
-      "post": {
+    "/users": {
+      "get": {
         "tags": [
-          "Auth"
+          "Users"
         ],
-        "summary": "Reset password with token",
-        "description": "Reset user password using the token from email",
+        "summary": "Get all users with pagination",
+        "description": "Retrieve a paginated list of all users in the system",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number for pagination",
+            "example": 1
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Number of users per page",
+            "example": 10
+          },
+          {
+            "in": "query",
+            "name": "role",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user",
+                "vendor",
+                "admin"
+              ]
+            },
+            "description": "Filter by user role",
+            "example": "vendor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "example": "507f1f77bcf86cd799439011"
+                          },
+                          "firstName": {
+                            "type": "string",
+                            "example": "John"
+                          },
+                          "lastName": {
+                            "type": "string",
+                            "example": "Doe"
+                          },
+                          "email": {
+                            "type": "string",
+                            "example": "john.doe@example.com"
+                          },
+                          "role": {
+                            "type": "string",
+                            "example": "user"
+                          },
+                          "isVerified": {
+                            "type": "boolean",
+                            "example": true
+                          }
+                        },
+                        "$ref": "#/components/schemas/User"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "example": 10
+                            },
+                            "total": {
+                              "type": "integer",
+                              "example": 50
+                            },
+                            "pages": {
+                              "type": "integer",
+                              "example": 15
+                            },
+                            "totalPages": {
+                              "type": "integer",
+                              "example": 5
+                            }
+                          }
+                        },
+                        "total": {
+                          "type": "integer",
+                          "example": 50
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Users fetched successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/users/change-password": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Change user password",
+        "description": "Change the authenticated user's password by providing current password and new password",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -5538,25 +6838,27 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "token",
+                  "currentPassword",
                   "newPassword",
                   "confirmNewPassword"
                 ],
                 "properties": {
-                  "token": {
+                  "currentPassword": {
                     "type": "string",
-                    "example": "abc123def456...",
-                    "description": "Password reset token from email"
+                    "description": "Current password for verification",
+                    "example": "OldPassword123!"
                   },
                   "newPassword": {
                     "type": "string",
-                    "example": "NewPassword123!",
-                    "description": "New password (8+ chars, uppercase, lowercase, number)"
+                    "minLength": 8,
+                    "maxLength": 128,
+                    "description": "New password (must contain uppercase, lowercase, and number)",
+                    "example": "NewPassword123!"
                   },
                   "confirmNewPassword": {
                     "type": "string",
-                    "example": "NewPassword123!",
-                    "description": "Confirmation of new password"
+                    "description": "Confirmation of new password",
+                    "example": "NewPassword123!"
                   }
                 }
               }
@@ -5565,7 +6867,7 @@
         },
         "responses": {
           "200": {
-            "description": "Password reset successful",
+            "description": "Password changed successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -5574,12 +6876,16 @@
                     "success": {
                       "type": "boolean",
                       "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password changed successfully"
                     },
                     "data": {
                       "type": "object"
                     },
-                    "message": {
-                      "type": "string"
+                    "meta": {
+                      "type": "object"
                     }
                   }
                 }
@@ -5587,44 +6893,7 @@
             }
           },
           "400": {
-            "description": "Invalid token or validation error"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/auth/verify-reset-token": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "Verify password reset token",
-        "description": "Check if password reset token is valid and not expired",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "token"
-                ],
-                "properties": {
-                  "token": {
-                    "type": "string",
-                    "example": "abc123def456...",
-                    "description": "Password reset token to verify"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Token is valid",
+            "description": "Validation error or invalid current password",
             "content": {
               "application/json": {
                 "schema": {
@@ -5632,39 +6901,38 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "example": true
+                      "example": false
                     },
-                    "data": {
+                    "error": {
                       "type": "object",
                       "properties": {
-                        "userId": {
-                          "type": "string"
-                        },
-                        "firstName": {
-                          "type": "string"
-                        },
-                        "lastName": {
-                          "type": "string"
-                        },
-                        "email": {
-                          "type": "string"
-                        },
-                        "expiresAt": {
+                        "message": {
                           "type": "string",
-                          "format": "date-time"
+                          "example": "Current password is incorrect"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "INVALID_CURRENT_PASSWORD"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 400
+                        },
+                        "details": {
+                          "type": "object"
                         }
                       }
-                    },
-                    "message": {
-                      "type": "string"
                     }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Invalid or expired token"
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          },
+          "404": {
+            "description": "User not found"
           },
           "500": {
             "description": "Internal server error"
@@ -8071,833 +9339,6 @@
           },
           "403": {
             "description": "Admin access required"
-          }
-        }
-      }
-    },
-    "/users": {
-      "get": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "Get all users with pagination",
-        "description": "Retrieve a paginated list of all users in the system",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number for pagination"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10
-            },
-            "description": "Number of users per page"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Users retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/User"
-                      }
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Users fetched successfully"
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "pagination": {
-                          "type": "object",
-                          "properties": {
-                            "page": {
-                              "type": "integer",
-                              "example": 1
-                            },
-                            "limit": {
-                              "type": "integer",
-                              "example": 10
-                            },
-                            "totalPages": {
-                              "type": "integer",
-                              "example": 5
-                            },
-                            "total": {
-                              "type": "integer",
-                              "example": 50
-                            }
-                          }
-                        },
-                        "total": {
-                          "type": "integer",
-                          "example": 50
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          },
-          "403": {
-            "description": "Forbidden - Insufficient permissions"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/users/profile": {
-      "patch": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "Update user profile",
-        "description": "Update the authenticated user's profile fields",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "firstName": {
-                    "type": "string",
-                    "example": "Jane"
-                  },
-                  "lastName": {
-                    "type": "string",
-                    "example": "Doe"
-                  },
-                  "region": {
-                    "type": "string",
-                    "example": "US"
-                  },
-                  "description": {
-                    "type": "string",
-                    "example": "Bio..."
-                  },
-                  "industry": {
-                    "type": "string",
-                    "example": "Tech"
-                  },
-                  "title": {
-                    "type": "string",
-                    "example": "CTO"
-                  },
-                  "companyName": {
-                    "type": "string",
-                    "example": "Acme Corp"
-                  },
-                  "companySize": {
-                    "type": "string",
-                    "example": "51-100 Employees"
-                  },
-                  "companyEmail": {
-                    "type": "string",
-                    "example": "contact@acme.com"
-                  },
-                  "socialLinks": {
-                    "type": "object",
-                    "properties": {
-                      "linkedin": {
-                        "type": "string",
-                        "example": "https://linkedin.com/in/janedoe"
-                      },
-                      "twitter": {
-                        "type": "string",
-                        "example": "https://twitter.com/janedoe"
-                      }
-                    }
-                  },
-                  "acceptedMarketing": {
-                    "type": "boolean",
-                    "example": false
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Profile updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "user": {
-                          "$ref": "#/components/schemas/User"
-                        }
-                      }
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Profile updated successfully"
-                    },
-                    "meta": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
-          },
-          "404": {
-            "description": "User not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "example": "User not found"
-                        },
-                        "code": {
-                          "type": "string",
-                          "example": "USER_NOT_FOUND"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "example": 404
-                        },
-                        "details": {
-                          "type": "object"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "example": "Internal server error"
-                        },
-                        "code": {
-                          "type": "string",
-                          "example": "INTERNAL_ERROR"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "example": 500
-                        },
-                        "details": {
-                          "type": "object"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "Get current user's profile",
-        "description": "Retrieve the authenticated user's complete profile information",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Profile retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "user": {
-                          "$ref": "#/components/schemas/User"
-                        }
-                      }
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Profile retrieved successfully"
-                    },
-                    "meta": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "example": "Authentication required"
-                        },
-                        "code": {
-                          "type": "string",
-                          "example": "UNAUTHORIZED"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "example": 401
-                        },
-                        "details": {
-                          "type": "object"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "User not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "example": "User not found"
-                        },
-                        "code": {
-                          "type": "string",
-                          "example": "USER_NOT_FOUND"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "example": 404
-                        },
-                        "details": {
-                          "type": "object"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/users/public-profile/{userId}": {
-      "get": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "Get user's public profile",
-        "description": "Retrieve any user's public profile information (limited data)",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "userId",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-fA-F]{24}$"
-            },
-            "description": "ID of the user whose profile to retrieve"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Public profile retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "user": {
-                          "type": "object",
-                          "properties": {
-                            "_id": {
-                              "type": "string"
-                            },
-                            "firstName": {
-                              "type": "string"
-                            },
-                            "lastName": {
-                              "type": "string"
-                            },
-                            "email": {
-                              "type": "string"
-                            },
-                            "region": {
-                              "type": "string"
-                            },
-                            "description": {
-                              "type": "string"
-                            },
-                            "industry": {
-                              "type": "string"
-                            },
-                            "title": {
-                              "type": "string"
-                            },
-                            "companyName": {
-                              "type": "string"
-                            },
-                            "companySize": {
-                              "type": "string"
-                            },
-                            "socialLinks": {
-                              "type": "object"
-                            },
-                            "followersCount": {
-                              "type": "number"
-                            },
-                            "followingCount": {
-                              "type": "number"
-                            },
-                            "userType": {
-                              "type": "string",
-                              "enum": [
-                                "user",
-                                "vendor"
-                              ]
-                            },
-                            "createdAt": {
-                              "type": "string",
-                              "format": "date-time"
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Public profile retrieved successfully"
-                    },
-                    "meta": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid user ID format",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "example": "Invalid user ID format"
-                        },
-                        "code": {
-                          "type": "string",
-                          "example": "INVALID_ID"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "example": 400
-                        },
-                        "details": {
-                          "type": "object"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "User not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "example": "User not found"
-                        },
-                        "code": {
-                          "type": "string",
-                          "example": "USER_NOT_FOUND"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "example": 404
-                        },
-                        "details": {
-                          "type": "object"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/users/change-password": {
-      "patch": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "Change user password",
-        "description": "Change the authenticated user's password by providing current password and new password",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "currentPassword",
-                  "newPassword",
-                  "confirmNewPassword"
-                ],
-                "properties": {
-                  "currentPassword": {
-                    "type": "string",
-                    "example": "OldPassword123!",
-                    "description": "Current password for verification"
-                  },
-                  "newPassword": {
-                    "type": "string",
-                    "example": "NewPassword123!",
-                    "description": "New password (must contain uppercase, lowercase, and number)"
-                  },
-                  "confirmNewPassword": {
-                    "type": "string",
-                    "example": "NewPassword123!",
-                    "description": "Confirmation of new password"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Password changed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "object"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Password changed successfully"
-                    },
-                    "meta": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error or invalid current password",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string"
-                        },
-                        "code": {
-                          "type": "string"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "example": 400
-                        },
-                        "details": {
-                          "type": "object"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          },
-          "404": {
-            "description": "User not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/users/search": {
-      "get": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "Search users",
-        "description": "Search for users by name, email, or other criteria",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "q",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1
-            },
-            "description": "Search query"
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number for pagination"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50,
-              "default": 10
-            },
-            "description": "Number of users per page"
-          },
-          {
-            "in": "query",
-            "name": "userType",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "user",
-                "vendor"
-              ]
-            },
-            "description": "Filter by user type"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Users found successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "users": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "_id": {
-                                "type": "string"
-                              },
-                              "firstName": {
-                                "type": "string"
-                              },
-                              "lastName": {
-                                "type": "string"
-                              },
-                              "email": {
-                                "type": "string"
-                              },
-                              "userType": {
-                                "type": "string"
-                              },
-                              "followers": {
-                                "type": "number"
-                              },
-                              "following": {
-                                "type": "number"
-                              }
-                            }
-                          }
-                        },
-                        "pagination": {
-                          "type": "object"
-                        }
-                      }
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - missing or invalid search query"
-          },
-          "500": {
-            "description": "Internal server error"
           }
         }
       }

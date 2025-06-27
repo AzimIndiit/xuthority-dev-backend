@@ -2,6 +2,7 @@ const UserBadge = require('../models/UserBadge');
 const Badge = require('../models/Badge');
 const ApiResponse = require('../utils/apiResponse');
 const ApiError = require('../utils/apiError');
+const { createNotification } = require('../services/notificationService');
 
 // Vendor requests a badge
 exports.requestBadge = async (req, res, next) => {
@@ -25,6 +26,16 @@ exports.requestBadge = async (req, res, next) => {
     
     const userBadge = await UserBadge.create({ userId: req.user._id, badgeId, reason });
     console.log('Created new badge request:', userBadge);
+    // Send badge request notification
+    const badge = await Badge.findById(badgeId);
+    await createNotification({
+      userId: req.user._id,
+      type: 'BADGE_REQUEST',
+      title: 'Badge Request Submitted',
+      message: `Your request for the badge "${badge.title}" has been submitted. We will notify you once it is reviewed.`,
+      meta: { badgeId },
+      actionUrl: '/badges'
+    });
     return res.status(201).json(ApiResponse.success(userBadge, 'Badge request submitted'));
   } catch (err) {
     console.error('Error in requestBadge:', err);
@@ -61,6 +72,15 @@ exports.approveBadgeRequest = async (req, res, next) => {
       { new: true }
     ).populate('badgeId');
     if (!userBadge) return next(new ApiError('Badge request not found', 'NOT_FOUND', 404));
+    // Send badge approved notification
+    await createNotification({
+      userId: userBadge.userId,
+      type: 'BADGE_STATUS',
+      title: 'New Badge Approved!',
+      message: `Congratulations! You've earned the "${userBadge.badgeId.title}" badge for your contributions.`,
+      meta: { badgeId: userBadge.badgeId._id },
+      actionUrl: '/badges'
+    });
     return res.json(ApiResponse.success(userBadge, 'Badge request approved'));
   } catch (err) {
     next(err);

@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../../../app');
 const User = require('../../models/User');
+const Notification = require('../../models/Notification');
 
 describe('Auth Integration', () => {
   // Generate unique emails for each test run to avoid conflicts
@@ -45,6 +46,15 @@ describe('Auth Integration', () => {
       expect(res.body.data.user.password).toBeUndefined();
       expect(res.body.data.user.accessToken).toBeDefined();
       testUserId = res.body.data.user._id;
+      // Verify welcome notification
+      const notif = await Notification.findOne({
+        userId: testUserId,
+        type: 'WELCOME',
+        isRead: false
+      });
+      expect(notif).toBeTruthy();
+      expect(notif.title).toBe('Welcome to XUTHORITY!');
+      expect(notif.message).toContain('Welcome to XUTHORITY!');
     });
 
          it('should login as user', async () => {
@@ -929,6 +939,16 @@ describe('Auth Integration', () => {
          .expect(200);
        
        expect(newPasswordLoginRes.body.success).toBe(true);
+
+       // Verify notification for password change
+       const notif = await Notification.findOne({
+         userId: testUser._id,
+         type: 'PASSWORD_CHANGE',
+         isRead: false
+       });
+       expect(notif).toBeTruthy();
+       expect(notif.title).toBe('Password Changed');
+       expect(notif.message).toBe('Your password has been changed successfully.');
      });
 
            it('should reject invalid reset token', async () => {

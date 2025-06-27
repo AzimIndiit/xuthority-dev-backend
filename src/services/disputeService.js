@@ -2,6 +2,7 @@ const Dispute = require('../models/Dispute');
 const ProductReview = require('../models/ProductReview');
 const Product = require('../models/Product');
 const ApiError = require('../utils/apiError');
+const { createNotification } = require('../services/notificationService');
 
 /**
  * Create a new dispute on a product review
@@ -38,6 +39,27 @@ const createDispute = async (reviewId, vendorId, disputeData) => {
     });
 
     await dispute.save();
+
+    // Send notification to vendor
+    await createNotification({
+      userId: vendorId,
+      type: 'REVIEW_DISPUTE',
+      title: 'Review Dispute Status Update',
+      message: 'Your review dispute has been created. Click here to see the outcome and any necessary actions.',
+      meta: { disputeId: dispute._id, reviewId },
+      actionUrl: `/disputes/${dispute._id}`
+    });
+    // Also notify the review author (user)
+    if (review.reviewer) {
+      await createNotification({
+        userId: review.reviewer,
+        type: 'REVIEW_DISPUTE',
+        title: 'Your Review is Under Dispute',
+        message: 'A vendor has disputed your review. You may be contacted for more information.',
+        meta: { disputeId: dispute._id, reviewId },
+        actionUrl: `/disputes/${dispute._id}`
+      });
+    }
 
     // Populate the created dispute
     return await Dispute.findById(dispute._id)
@@ -121,6 +143,32 @@ const updateDispute = async (disputeId, vendorId, updateData) => {
       { path: 'product', select: 'name slug' },
       { path: 'vendor', select: 'firstName lastName email' }
     ]);
+
+    // Send notification to vendor on status update
+    if (updates.status) {
+      await createNotification({
+        userId: vendorId,
+        type: 'DISPUTE_STATUS_UPDATE',
+        title: 'Review Dispute Status Update',
+        message: 'Your review dispute status has been updated. Click here for details.',
+        meta: { disputeId, status: updates.status },
+        actionUrl: `/disputes/${disputeId}`
+      });
+      // Also notify the review author (user)
+      if (dispute.review) {
+        const review = await ProductReview.findById(dispute.review);
+        if (review && review.reviewer) {
+          await createNotification({
+            userId: review.reviewer,
+            type: 'DISPUTE_STATUS_UPDATE',
+            title: 'Dispute Status Update on Your Review',
+            message: 'A dispute involving your review has been updated. Click here for details.',
+            meta: { disputeId, status: updates.status },
+            actionUrl: `/disputes/${disputeId}`
+          });
+        }
+      }
+    }
 
     return updatedDispute;
   } catch (error) {

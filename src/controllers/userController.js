@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const apiResponse = require('../utils/apiResponse');
 const ApiError = require('../utils/apiError');
+const { createNotification } = require('../services/notificationService');
 
 /**
  * Get all users with pagination
@@ -182,6 +183,14 @@ exports.updateProfile = async (req, res, next) => {
       targetId: userId,
       details: updateData,
       req,
+    });
+    // Send profile update notification
+    await createNotification({
+      userId,
+      type: 'PROFILE_UPDATE',
+      title: 'Profile Updated',
+      message: 'Your profile has been updated successfully.',
+      actionUrl: '/profile'
     });
     return res.json(require('../utils/apiResponse').success({ user }, 'Profile updated successfully'));
   } catch (err) {
@@ -434,9 +443,7 @@ exports.changePassword = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { currentPassword, newPassword } = req.body;
-    
     await require('../services/userService').changePassword(userId, currentPassword, newPassword);
-    
     // Log the password change event
     await require('../services/auditService').logEvent({
       user: req.user,
@@ -446,7 +453,14 @@ exports.changePassword = async (req, res, next) => {
       details: { action: 'password_changed' },
       req,
     });
-    
+    // Send password change notification
+    await createNotification({
+      userId,
+      type: 'PASSWORD_CHANGE',
+      title: 'Password Changed',
+      message: 'Your password has been changed successfully.',
+      actionUrl: '/profile'
+    });
     return res.json(require('../utils/apiResponse').success({}, 'Password changed successfully'));
   } catch (err) {
     next(err);

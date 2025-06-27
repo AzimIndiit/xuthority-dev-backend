@@ -3,6 +3,7 @@ const Product = require('../models/Product');
 const User = require('../models/User');
 const ApiResponse = require('../utils/apiResponse');
 const ApiError = require('../utils/apiError');
+const { createNotification } = require('../services/notificationService');
 
 /**
  * Create a new product review
@@ -33,6 +34,16 @@ const createProductReview = async (reviewData, userId) => {
     });
 
     await review.save();
+
+    // Send notification to vendor
+    await createNotification({
+      userId: product.userId,
+      type: 'PRODUCT_REVIEW',
+      title: "You've Got a New Review!",
+      message: 'A user has left a review on your product. Check it out and respond to engage with your customers.',
+      meta: { productId: product._id, reviewId: review._id },
+      actionUrl: `/products/${product._id}/reviews`
+    });
 
     // Populate the review before returning
     await review.populate([
