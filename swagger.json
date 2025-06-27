@@ -356,7 +356,7 @@
     "/auth/register": {
       "post": {
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "summary": "Register a new user",
         "description": "Create a new user account with email and password",
@@ -394,8 +394,7 @@
                     "type": "string",
                     "minLength": 8,
                     "description": "User's password (min 8 characters)",
-                    "example": "Password123!",
-                    "format": "password"
+                    "example": "Password123!"
                   },
                   "acceptedTerms": {
                     "type": "boolean",
@@ -414,7 +413,7 @@
         },
         "responses": {
           "201": {
-            "description": "Registration successful",
+            "description": "User registered successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -460,10 +459,7 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "Registration successful"
-                    },
-                    "meta": {
-                      "type": "object"
+                      "example": "User registered successfully"
                     }
                   }
                 }
@@ -495,9 +491,6 @@
                         "statusCode": {
                           "type": "integer",
                           "example": 400
-                        },
-                        "details": {
-                          "type": "object"
                         }
                       }
                     }
@@ -512,9 +505,9 @@
     "/auth/login": {
       "post": {
         "tags": [
-          "Auth"
+          "Authentication"
         ],
-        "summary": "Login with email and password",
+        "summary": "Login user",
         "description": "Authenticate user with email and password",
         "requestBody": {
           "required": true,
@@ -536,8 +529,7 @@
                   "password": {
                     "type": "string",
                     "description": "User's password",
-                    "example": "Password123!",
-                    "format": "password"
+                    "example": "Password123!"
                   }
                 }
               }
@@ -593,42 +585,6 @@
                     "message": {
                       "type": "string",
                       "example": "Login successful"
-                    },
-                    "meta": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string"
-                        },
-                        "code": {
-                          "type": "string"
-                        },
-                        "statusCode": {
-                          "type": "integer"
-                        },
-                        "details": {
-                          "type": "object"
-                        }
-                      }
                     }
                   }
                 }
@@ -674,10 +630,10 @@
     "/auth/register-vendor": {
       "post": {
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "summary": "Register a new vendor",
-        "description": "Register a new vendor account with company information",
+        "description": "Create a new vendor account with company information",
         "requestBody": {
           "required": true,
           "content": {
@@ -699,24 +655,24 @@
                   "firstName": {
                     "type": "string",
                     "description": "Vendor's first name",
-                    "example": "John"
+                    "example": "Jane"
                   },
                   "lastName": {
                     "type": "string",
                     "description": "Vendor's last name",
-                    "example": "Doe"
+                    "example": "Smith"
                   },
                   "email": {
                     "type": "string",
                     "format": "email",
                     "description": "Vendor's email address",
-                    "example": "john.doe@company.com"
+                    "example": "jane.smith@company.com"
                   },
                   "password": {
                     "type": "string",
                     "minLength": 8,
-                    "description": "Vendor's password (minimum 8 characters)",
-                    "example": "securePassword123"
+                    "description": "Vendor's password",
+                    "example": "Password123!"
                   },
                   "companyName": {
                     "type": "string",
@@ -736,33 +692,18 @@
                   },
                   "companySize": {
                     "type": "string",
-                    "description": "Company size range",
-                    "example": "51-200",
-                    "enum": [
-                      "1-10",
-                      "11-50",
-                      "51-200",
-                      "201-500",
-                      "500+"
-                    ]
+                    "description": "Company size category",
+                    "example": "51-100 Employees"
                   },
                   "acceptedTerms": {
-                    "type": "string",
-                    "description": "Whether terms and conditions were accepted",
-                    "example": "true",
-                    "enum": [
-                      "true",
-                      "false"
-                    ]
+                    "type": "boolean",
+                    "description": "Vendor must accept terms",
+                    "example": true
                   },
                   "acceptedMarketing": {
-                    "type": "string",
-                    "description": "Whether marketing communications were accepted",
-                    "example": "false",
-                    "enum": [
-                      "true",
-                      "false"
-                    ]
+                    "type": "boolean",
+                    "description": "Marketing preferences",
+                    "example": false
                   }
                 }
               }
@@ -770,44 +711,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Vendor registration successful (existing user with valid token)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "user": {
-                          "$ref": "#/components/schemas/User"
-                        },
-                        "token": {
-                          "type": "string",
-                          "description": "JWT access token",
-                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                        }
-                      }
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Vendor registration successful"
-                    },
-                    "meta": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
           "201": {
-            "description": "Vendor registration successful (new user created)",
+            "description": "Vendor registered successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -847,26 +752,17 @@
                               "type": "string",
                               "example": "Tech Solutions Inc"
                             }
-                          },
-                          "$ref": "#/components/schemas/User"
+                          }
                         },
                         "accessToken": {
                           "type": "string",
                           "description": "JWT access token"
-                        },
-                        "token": {
-                          "type": "string",
-                          "description": "JWT access token",
-                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
                         }
                       }
                     },
                     "message": {
                       "type": "string",
-                      "example": "Vendor registration successful"
-                    },
-                    "meta": {
-                      "type": "object"
+                      "example": "Vendor registered successfully"
                     }
                   }
                 }
@@ -874,34 +770,7 @@
             }
           },
           "400": {
-            "description": "Bad request - validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict - email already exists",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
+            "description": "Validation error or user already exists"
           }
         }
       }
@@ -909,7 +778,7 @@
     "/auth/forgot-password": {
       "post": {
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "summary": "Request password reset",
         "description": "Send password reset email to user",
@@ -926,8 +795,8 @@
                   "email": {
                     "type": "string",
                     "format": "email",
-                    "description": "Email address to send reset link to",
-                    "example": "user@example.com"
+                    "description": "User's email address",
+                    "example": "john.doe@example.com"
                   }
                 }
               }
@@ -936,7 +805,7 @@
         },
         "responses": {
           "200": {
-            "description": "Reset email sent (or would be sent)",
+            "description": "Password reset email sent",
             "content": {
               "application/json": {
                 "schema": {
@@ -949,9 +818,6 @@
                     "message": {
                       "type": "string",
                       "example": "Password reset email sent"
-                    },
-                    "data": {
-                      "type": "object"
                     }
                   }
                 }
@@ -959,10 +825,7 @@
             }
           },
           "400": {
-            "description": "Validation error"
-          },
-          "500": {
-            "description": "Internal server error"
+            "description": "Invalid email or OAuth user"
           }
         }
       }
@@ -970,10 +833,10 @@
     "/auth/reset-password": {
       "post": {
         "tags": [
-          "Auth"
+          "Authentication"
         ],
         "summary": "Reset password with token",
-        "description": "Reset user password using the token from email",
+        "description": "Reset user password using reset token",
         "requestBody": {
           "required": true,
           "content": {
@@ -988,18 +851,18 @@
                 "properties": {
                   "token": {
                     "type": "string",
-                    "description": "Password reset token from email",
+                    "description": "Password reset token",
                     "example": "abc123def456..."
                   },
                   "newPassword": {
                     "type": "string",
                     "minLength": 8,
-                    "description": "New password (8+ chars, uppercase, lowercase, number)",
+                    "description": "New password",
                     "example": "NewPassword123!"
                   },
                   "confirmNewPassword": {
                     "type": "string",
-                    "description": "Confirmation of new password",
+                    "description": "Password confirmation",
                     "example": "NewPassword123!"
                   }
                 }
@@ -1022,9 +885,6 @@
                     "message": {
                       "type": "string",
                       "example": "Password has been reset successfully"
-                    },
-                    "data": {
-                      "type": "object"
                     }
                   }
                 }
@@ -1033,9 +893,6 @@
           },
           "400": {
             "description": "Invalid token or validation error"
-          },
-          "500": {
-            "description": "Internal server error"
           }
         }
       }
@@ -1043,10 +900,10 @@
     "/auth/verify-reset-token": {
       "post": {
         "tags": [
-          "Auth"
+          "Authentication"
         ],
-        "summary": "Verify password reset token",
-        "description": "Check if password reset token is valid and not expired",
+        "summary": "Verify reset token",
+        "description": "Verify if password reset token is valid",
         "requestBody": {
           "required": true,
           "content": {
@@ -1082,27 +939,6 @@
                     "message": {
                       "type": "string",
                       "example": "Reset token is valid"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "userId": {
-                          "type": "string"
-                        },
-                        "firstName": {
-                          "type": "string"
-                        },
-                        "lastName": {
-                          "type": "string"
-                        },
-                        "email": {
-                          "type": "string"
-                        },
-                        "expiresAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        }
-                      }
                     }
                   }
                 }
@@ -1111,9 +947,6 @@
           },
           "400": {
             "description": "Invalid or expired token"
-          },
-          "500": {
-            "description": "Internal server error"
           }
         }
       }
@@ -2297,10 +2130,10 @@
         }
       }
     },
-    "follow/toggle/{userId}": {
+    "/follow/toggle/{userId}": {
       "post": {
-        "summary": "Toggle follow status for a user",
-        "description": "Follow or unfollow a user. If not following, will follow. If already following, will unfollow.",
+        "summary": "Toggle follow/unfollow a user",
+        "description": "Follow or unfollow a user. If already following, it will unfollow. If not following, it will follow.",
         "tags": [
           "Follow"
         ],
@@ -2429,7 +2262,113 @@
         }
       }
     },
-    "follow/{userId}/stats": {
+    "/follow/{userId}/followers": {
+      "get": {
+        "summary": "Get a specific user's followers (public)",
+        "tags": [
+          "Follow"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the user"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            },
+            "description": "Items per page"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search term for filtering followers"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User followers retrieved successfully"
+          }
+        }
+      }
+    },
+    "/follow/{userId}/following": {
+      "get": {
+        "summary": "Get a specific user's following (public)",
+        "tags": [
+          "Follow"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the user"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            },
+            "description": "Items per page"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search term for filtering following"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User following retrieved successfully"
+          }
+        }
+      }
+    },
+    "/follow/{userId}/stats": {
       "get": {
         "summary": "Get user's follow statistics",
         "description": "Retrieve follow statistics for the specified user including follower and following counts",
@@ -2508,6 +2447,94 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/followers/{userId}/remove": {
+      "delete": {
+        "summary": "Remove a follower",
+        "tags": [
+          "Follow"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the follower to remove"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully removed follower"
+          },
+          "400": {
+            "description": "User is not a follower"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/follow/status/{userId}": {
+      "get": {
+        "summary": "Check if current user is following a specific user",
+        "tags": [
+          "Follow"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the user to check"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Follow status retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "isFollowing": {
+                          "type": "boolean"
+                        },
+                        "userId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -4959,6 +4986,1679 @@
         }
       }
     },
+    "/product-reviews": {
+      "post": {
+        "summary": "Create a new product review",
+        "tags": [
+          "Product Reviews"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "product",
+                  "overallRating",
+                  "title",
+                  "content"
+                ],
+                "properties": {
+                  "product": {
+                    "type": "string",
+                    "format": "objectId"
+                  },
+                  "overallRating": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 200
+                  },
+                  "content": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 5000
+                  },
+                  "subRatings": {
+                    "type": "object",
+                    "properties": {
+                      "easeOfUse": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 7
+                      },
+                      "customerSupport": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 7
+                      },
+                      "features": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 7
+                      },
+                      "pricing": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 7
+                      },
+                      "technicalSupport": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 7
+                      }
+                    }
+                  },
+                  "reviewSource": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Review created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "409": {
+            "description": "Review already exists for this product"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all product reviews with filtering and pagination",
+        "tags": [
+          "Product Reviews"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "Items per page"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search in title and content"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "approved",
+                "rejected",
+                "flagged"
+              ]
+            },
+            "description": "Review status"
+          },
+          {
+            "in": "query",
+            "name": "overallRating",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              }
+            },
+            "description": "Filter by rating stars"
+          },
+          {
+            "in": "query",
+            "name": "minRating",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "description": "Minimum rating"
+          },
+          {
+            "in": "query",
+            "name": "maxRating",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "description": "Maximum rating"
+          },
+          {
+            "in": "query",
+            "name": "isVerified",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Filter by verification status"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "submittedAt",
+                "publishedAt",
+                "overallRating",
+                "helpfulVotes.count"
+              ]
+            },
+            "description": "Sort field"
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "description": "Sort order"
+          },
+          {
+            "in": "query",
+            "name": "mention",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Filter by popular mentions"
+          },
+          {
+            "in": "query",
+            "name": "keywords",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Filter by keywords"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviews retrieved successfully"
+          }
+        }
+      }
+    },
+    "/product-reviews/product/{productId}": {
+      "get": {
+        "summary": "Get reviews for a specific product",
+        "tags": [
+          "Product Reviews"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          {
+            "in": "query",
+            "name": "overallRating",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "submittedAt",
+                "publishedAt",
+                "overallRating",
+                "helpfulVotes.count"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product reviews retrieved successfully"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/product-reviews/product/{productId}/stats": {
+      "get": {
+        "summary": "Get review statistics for a product",
+        "tags": [
+          "Product Reviews"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review statistics retrieved successfully"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/product-reviews/{id}": {
+      "get": {
+        "summary": "Get single review by ID",
+        "tags": [
+          "Product Reviews"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review retrieved successfully"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update review (owner only)",
+        "tags": [
+          "Product Reviews"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "overallRating": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 200
+                  },
+                  "content": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 5000
+                  },
+                  "subRatings": {
+                    "type": "object",
+                    "properties": {
+                      "easeOfUse": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 7
+                      },
+                      "customerSupport": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 7
+                      },
+                      "features": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 7
+                      },
+                      "pricing": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 7
+                      },
+                      "technicalSupport": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 7
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Review updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Can only update own reviews"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete review (owner or admin only)",
+        "tags": [
+          "Product Reviews"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Can only delete own reviews"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        }
+      }
+    },
+    "/product-reviews/{id}/helpful": {
+      "post": {
+        "summary": "Vote review as helpful",
+        "tags": [
+          "Product Reviews"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vote added successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Review not found"
+          },
+          "409": {
+            "description": "Already voted"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove helpful vote from review",
+        "tags": [
+          "Product Reviews"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vote removed successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Review or vote not found"
+          }
+        }
+      }
+    },
+    "/product-reviews/{id}/moderate": {
+      "patch": {
+        "summary": "Moderate review (admin only)",
+        "tags": [
+          "Product Reviews"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "approved",
+                      "rejected",
+                      "flagged"
+                    ]
+                  },
+                  "moderationNote": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Review moderated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Admin access required"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        }
+      }
+    },
+    "/products": {
+      "post": {
+        "summary": "Create a new product (Vendors only)",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "description"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 100
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 2000
+                  },
+                  "website": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "websiteUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "software": {
+                    "type": "string",
+                    "enum": [
+                      "SaaS",
+                      "Desktop Application",
+                      "Mobile App",
+                      "Web Application",
+                      "API/Service",
+                      "Plugin/Extension",
+                      "Other"
+                    ]
+                  },
+                  "softwareIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "solutionIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "solutions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "industries": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "whoCanUse": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "languages": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "integrations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "marketSegment": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "brandColors": {
+                    "type": "string"
+                  },
+                  "logoUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "mediaUrls": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "approved",
+                      "rejected",
+                      "draft",
+                      "published",
+                      "archived"
+                    ]
+                  },
+                  "isActive": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "inactive"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "403": {
+            "description": "Only vendors can create products"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get products with filtering and pagination",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "approved",
+                "rejected",
+                "draft",
+                "published",
+                "archived"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "software",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "name",
+                "views",
+                "likes",
+                "avgRating",
+                "totalReviews"
+              ],
+              "default": "createdAt"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
+          },
+          {
+            "in": "query",
+            "name": "isActive",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "inactive"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "minRating",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 5
+            }
+          },
+          {
+            "in": "query",
+            "name": "maxRating",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "summary": "Get product by ID",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product ID"
+          },
+          {
+            "in": "query",
+            "name": "incrementViews",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Whether to increment view count"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product retrieved successfully"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update product (Vendor only - own products)",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 100
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 2000
+                  },
+                  "website": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "websiteUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "software": {
+                    "type": "string",
+                    "enum": [
+                      "SaaS",
+                      "Desktop Application",
+                      "Mobile App",
+                      "Web Application",
+                      "API/Service",
+                      "Plugin/Extension",
+                      "Other"
+                    ]
+                  },
+                  "softwareIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "solutionIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "solutions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "industries": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "whoCanUse": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "languages": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "integrations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "marketSegment": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "objectId"
+                    }
+                  },
+                  "brandColors": {
+                    "type": "string"
+                  },
+                  "logoUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "mediaUrls": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "approved",
+                      "rejected",
+                      "draft",
+                      "published",
+                      "archived"
+                    ]
+                  },
+                  "isActive": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "inactive"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "403": {
+            "description": "Can only update own products"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete product (Vendor only - own products)",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deleted successfully"
+          },
+          "403": {
+            "description": "Can only delete own products"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/products/slug/{slug}": {
+      "get": {
+        "summary": "Get product by slug",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product retrieved successfully"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/products/{id}/toggle-status": {
+      "patch": {
+        "summary": "Toggle product status (active/inactive)",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product status toggled successfully"
+          },
+          "403": {
+            "description": "Can only toggle own products"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/products/{productId}/rating": {
+      "post": {
+        "summary": "Update product rating (when review is added)",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Product ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "rating"
+                ],
+                "properties": {
+                  "rating": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 5
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product rating updated successfully"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/products/active": {
+      "get": {
+        "summary": "Get all active products (published/approved and active)",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "name",
+                "views",
+                "likes",
+                "avgRating",
+                "totalReviews"
+              ],
+              "default": "createdAt"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Active products retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/search": {
+      "get": {
+        "summary": "Search products",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search query"
+          },
+          {
+            "in": "query",
+            "name": "software",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "industries",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "minRating",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 5
+            }
+          },
+          {
+            "in": "query",
+            "name": "maxRating",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 5
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/stats": {
+      "get": {
+        "summary": "Get product statistics",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistics retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/top-rated": {
+      "get": {
+        "summary": "Get top rated products",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Top rated products retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/featured": {
+      "get": {
+        "summary": "Get featured products",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Featured products retrieved successfully"
+          }
+        }
+      }
+    },
+    "/products/my/products": {
+      "get": {
+        "summary": "Get my products (current user's products)",
+        "tags": [
+          "Products"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "approved",
+                "rejected",
+                "draft",
+                "published",
+                "archived"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "name",
+                "views",
+                "likes",
+                "avgRating",
+                "totalReviews"
+              ],
+              "default": "createdAt"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "My products retrieved successfully"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/products/user/{userId}": {
+      "get": {
+        "summary": "Get products by user/vendor",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "approved",
+                "rejected",
+                "draft",
+                "published",
+                "archived"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "name",
+                "views",
+                "likes",
+                "avgRating",
+                "totalReviews"
+              ],
+              "default": "createdAt"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User products retrieved successfully"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
     "/api/v1/resource-categories": {
       "post": {
         "summary": "Create a new resource category",
@@ -5198,6 +6898,480 @@
           },
           "404": {
             "description": "Resource category not found"
+          }
+        }
+      }
+    },
+    "/reviews/{reviewId}/replies": {
+      "post": {
+        "summary": "Create a new reply to a review",
+        "tags": [
+          "Review Replies"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reviewId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            },
+            "description": "ID of the review to reply to"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "content"
+                ],
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 2000,
+                    "description": "Reply content"
+                  },
+                  "replyType": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "vendor",
+                      "admin"
+                    ],
+                    "default": "user",
+                    "description": "Type of reply"
+                  },
+                  "parentReply": {
+                    "type": "string",
+                    "format": "objectId",
+                    "description": "ID of parent reply (for nested replies)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reply created successfully"
+          },
+          "400": {
+            "description": "Validation error or cannot reply to non-approved review"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all replies for a specific review",
+        "tags": [
+          "Review Replies"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reviewId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            },
+            "description": "ID of the review"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            },
+            "description": "Items per page"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "helpfulVotes.count"
+              ],
+              "default": "createdAt"
+            },
+            "description": "Sort field"
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "asc"
+            },
+            "description": "Sort order"
+          },
+          {
+            "in": "query",
+            "name": "replyType",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user",
+                "vendor",
+                "admin"
+              ]
+            },
+            "description": "Filter by reply type"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "approved",
+                "rejected",
+                "flagged"
+              ],
+              "default": "approved"
+            },
+            "description": "Filter by reply status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Replies retrieved successfully"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        }
+      }
+    },
+    "/replies": {
+      "get": {
+        "summary": "Get all replies (admin only)",
+        "tags": [
+          "Review Replies"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Items per page"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "approved",
+                "rejected",
+                "flagged"
+              ]
+            },
+            "description": "Filter by reply status"
+          },
+          {
+            "in": "query",
+            "name": "replyType",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user",
+                "vendor",
+                "admin"
+              ]
+            },
+            "description": "Filter by reply type"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "helpfulVotes.count"
+              ],
+              "default": "createdAt"
+            },
+            "description": "Sort field"
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "description": "Sort order"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All replies retrieved successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Admin access required"
+          }
+        }
+      }
+    },
+    "/replies/{id}": {
+      "get": {
+        "summary": "Get a single reply by ID",
+        "tags": [
+          "Review Replies"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            },
+            "description": "Reply ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reply retrieved successfully"
+          },
+          "404": {
+            "description": "Reply not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a reply (author only)",
+        "tags": [
+          "Review Replies"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            },
+            "description": "Reply ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 2000,
+                    "description": "Updated reply content"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reply updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Can only update own replies"
+          },
+          "404": {
+            "description": "Reply not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a reply (author or admin only)",
+        "tags": [
+          "Review Replies"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            },
+            "description": "Reply ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reply deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Can only delete own replies"
+          },
+          "404": {
+            "description": "Reply not found"
+          }
+        }
+      }
+    },
+    "/replies/{id}/helpful": {
+      "post": {
+        "summary": "Vote reply as helpful",
+        "tags": [
+          "Review Replies"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            },
+            "description": "Reply ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vote added successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Reply not found"
+          },
+          "409": {
+            "description": "Already voted"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove helpful vote from reply",
+        "tags": [
+          "Review Replies"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            },
+            "description": "Reply ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vote removed successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Reply or vote not found"
           }
         }
       }
@@ -5906,40 +8080,52 @@
         }
       }
     },
-    "/users/search": {
+    "/users": {
       "get": {
         "tags": [
           "Users"
         ],
-        "summary": "Search users",
-        "description": "Search for users by name, email, or other criteria",
+        "summary": "Get all users or search users",
+        "description": "Retrieve all users or search for users by name, email, or other criteria",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "query",
             "name": "q",
             "schema": {
-              "type": "string",
-              "minLength": 1
+              "type": "string"
             },
             "description": "Search query",
-            "example": "john",
-            "required": true
+            "example": "john"
+          },
+          {
+            "in": "query",
+            "name": "role",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user",
+                "vendor",
+                "admin"
+              ]
+            },
+            "description": "Filter by user role",
+            "example": "vendor"
           },
           {
             "in": "query",
             "name": "page",
             "schema": {
               "type": "integer",
-              "enum": [
-                "user",
-                "vendor",
-                "admin"
-              ],
               "minimum": 1,
               "default": 1
             },
-            "description": "Page number for pagination",
-            "example": "vendor"
+            "description": "Page number",
+            "example": 1
           },
           {
             "in": "query",
@@ -5947,32 +8133,16 @@
             "schema": {
               "type": "integer",
               "minimum": 1,
-              "default": 10,
-              "maximum": 50
-            },
-            "description": "Number of users per page",
-            "example": 1
-          },
-          {
-            "in": "query",
-            "name": "userType",
-            "schema": {
-              "type": "string",
-              "minimum": 1,
               "maximum": 100,
-              "default": 10,
-              "enum": [
-                "user",
-                "vendor"
-              ]
+              "default": 10
             },
-            "description": "Filter by user type",
+            "description": "Number of results per page",
             "example": 10
           }
         ],
         "responses": {
           "200": {
-            "description": "Users found successfully",
+            "description": "Users retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -5983,7 +8153,7 @@
                       "example": true
                     },
                     "data": {
-                      "type": "object",
+                      "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
@@ -6007,40 +8177,6 @@
                             "type": "string",
                             "example": "user"
                           }
-                        }
-                      },
-                      "properties": {
-                        "users": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "_id": {
-                                "type": "string"
-                              },
-                              "firstName": {
-                                "type": "string"
-                              },
-                              "lastName": {
-                                "type": "string"
-                              },
-                              "email": {
-                                "type": "string"
-                              },
-                              "userType": {
-                                "type": "string"
-                              },
-                              "followers": {
-                                "type": "number"
-                              },
-                              "following": {
-                                "type": "number"
-                              }
-                            }
-                          }
-                        },
-                        "pagination": {
-                          "type": "object"
                         }
                       }
                     },
@@ -6072,18 +8208,45 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "Users retrieved successfully"
+                      "example": "Users fetched successfully"
                     }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Bad request - missing or invalid search query"
-          },
-          "500": {
-            "description": "Internal server error"
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Authentication required"
+                        },
+                        "code": {
+                          "type": "string",
+                          "example": "AUTHENTICATION_REQUIRED"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "example": 401
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -6093,8 +8256,8 @@
         "tags": [
           "Users"
         ],
-        "summary": "Get current user's profile",
-        "description": "Retrieve the authenticated user's complete profile information",
+        "summary": "Get current user profile",
+        "description": "Retrieve the authenticated user's profile information",
         "security": [
           {
             "bearerAuth": []
@@ -6102,7 +8265,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Profile retrieved successfully",
+            "description": "User profile retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -6146,17 +8309,13 @@
                               "type": "boolean",
                               "example": true
                             }
-                          },
-                          "$ref": "#/components/schemas/User"
+                          }
                         }
                       }
                     },
                     "message": {
                       "type": "string",
                       "example": "Profile retrieved successfully"
-                    },
-                    "meta": {
-                      "type": "object"
                     }
                   }
                 }
@@ -6164,7 +8323,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Authentication required",
+            "description": "Authentication required",
             "content": {
               "application/json": {
                 "schema": {
@@ -6183,14 +8342,11 @@
                         },
                         "code": {
                           "type": "string",
-                          "example": "UNAUTHORIZED"
+                          "example": "AUTHENTICATION_REQUIRED"
                         },
                         "statusCode": {
                           "type": "integer",
                           "example": 401
-                        },
-                        "details": {
-                          "type": "object"
                         }
                       }
                     }
@@ -6198,45 +8354,6 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "User not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "example": "User not found"
-                        },
-                        "code": {
-                          "type": "string",
-                          "example": "USER_NOT_FOUND"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "example": 404
-                        },
-                        "details": {
-                          "type": "object"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error"
           }
         }
       },
@@ -6245,7 +8362,7 @@
           "Users"
         ],
         "summary": "Update user profile",
-        "description": "Update the authenticated user's profile fields",
+        "description": "Update the authenticated user's profile information",
         "security": [
           {
             "bearerAuth": []
@@ -6263,7 +8380,7 @@
                     "minLength": 2,
                     "maxLength": 50,
                     "description": "User's first name",
-                    "example": "Jane"
+                    "example": "John"
                   },
                   "lastName": {
                     "type": "string",
@@ -6276,18 +8393,18 @@
                     "type": "string",
                     "maxLength": 100,
                     "description": "Company name (for vendors)",
-                    "example": "Acme Corp"
+                    "example": "Tech Solutions Inc"
                   },
                   "companyEmail": {
                     "type": "string",
                     "format": "email",
                     "description": "Company email (for vendors)",
-                    "example": "contact@acme.com"
+                    "example": "contact@techsolutions.com"
                   },
                   "industry": {
                     "type": "string",
                     "description": "Industry sector (for vendors)",
-                    "example": "Tech"
+                    "example": "Technology"
                   },
                   "companySize": {
                     "type": "string",
@@ -6298,33 +8415,12 @@
                     "type": "string",
                     "maxLength": 500,
                     "description": "User description",
-                    "example": "Bio..."
+                    "example": "Software developer with 5 years of experience"
                   },
                   "region": {
                     "type": "string",
                     "description": "User's region",
                     "example": "US"
-                  },
-                  "title": {
-                    "type": "string",
-                    "example": "CTO"
-                  },
-                  "socialLinks": {
-                    "type": "object",
-                    "properties": {
-                      "linkedin": {
-                        "type": "string",
-                        "example": "https://linkedin.com/in/janedoe"
-                      },
-                      "twitter": {
-                        "type": "string",
-                        "example": "https://twitter.com/janedoe"
-                      }
-                    }
-                  },
-                  "acceptedMarketing": {
-                    "type": "boolean",
-                    "example": false
                   }
                 }
               }
@@ -6373,17 +8469,13 @@
                               "type": "string",
                               "example": "Tech Solutions Inc"
                             }
-                          },
-                          "$ref": "#/components/schemas/User"
+                          }
                         }
                       }
                     },
                     "message": {
                       "type": "string",
                       "example": "Profile updated successfully"
-                    },
-                    "meta": {
-                      "type": "object"
                     }
                   }
                 }
@@ -6391,83 +8483,10 @@
             }
           },
           "400": {
-            "description": "Validation error",
-            "$ref": "#/components/responses/ValidationError"
+            "description": "Validation error"
           },
           "401": {
             "description": "Authentication required"
-          },
-          "404": {
-            "description": "User not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "example": "User not found"
-                        },
-                        "code": {
-                          "type": "string",
-                          "example": "USER_NOT_FOUND"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "example": 404
-                        },
-                        "details": {
-                          "type": "object"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "example": "Internal server error"
-                        },
-                        "code": {
-                          "type": "string",
-                          "example": "INTERNAL_ERROR"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "example": 500
-                        },
-                        "details": {
-                          "type": "object"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
           }
         }
       }
@@ -6477,8 +8496,8 @@
         "tags": [
           "Users"
         ],
-        "summary": "Get user's public profile",
-        "description": "Retrieve any user's public profile information (limited data)",
+        "summary": "Get user public profile",
+        "description": "Retrieve public profile information for any user",
         "parameters": [
           {
             "in": "path",
@@ -6488,7 +8507,7 @@
               "type": "string",
               "pattern": "^[0-9a-fA-F]{24}$"
             },
-            "description": "ID of the user whose profile to retrieve",
+            "description": "User ID (MongoDB ObjectId)",
             "example": "507f1f77bcf86cd799439011"
           }
         ],
@@ -6535,44 +8554,12 @@
                               "example": true
                             },
                             "followersCount": {
-                              "type": "number",
+                              "type": "integer",
                               "example": 42
                             },
                             "followingCount": {
-                              "type": "number",
+                              "type": "integer",
                               "example": 15
-                            },
-                            "email": {
-                              "type": "string"
-                            },
-                            "region": {
-                              "type": "string"
-                            },
-                            "description": {
-                              "type": "string"
-                            },
-                            "industry": {
-                              "type": "string"
-                            },
-                            "title": {
-                              "type": "string"
-                            },
-                            "companySize": {
-                              "type": "string"
-                            },
-                            "socialLinks": {
-                              "type": "object"
-                            },
-                            "userType": {
-                              "type": "string",
-                              "enum": [
-                                "user",
-                                "vendor"
-                              ]
-                            },
-                            "createdAt": {
-                              "type": "string",
-                              "format": "date-time"
                             }
                           }
                         }
@@ -6581,9 +8568,6 @@
                     "message": {
                       "type": "string",
                       "example": "Public profile retrieved successfully"
-                    },
-                    "meta": {
-                      "type": "object"
                     }
                   }
                 }
@@ -6591,40 +8575,7 @@
             }
           },
           "400": {
-            "description": "Invalid user ID format",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string",
-                          "example": "Invalid user ID format"
-                        },
-                        "code": {
-                          "type": "string",
-                          "example": "INVALID_ID"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "example": 400
-                        },
-                        "details": {
-                          "type": "object"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Invalid user ID format"
           },
           "404": {
             "description": "User not found",
@@ -6651,9 +8602,6 @@
                         "statusCode": {
                           "type": "integer",
                           "example": 404
-                        },
-                        "details": {
-                          "type": "object"
                         }
                       }
                     }
@@ -6661,160 +8609,6 @@
                 }
               }
             }
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/users": {
-      "get": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "Get all users with pagination",
-        "description": "Retrieve a paginated list of all users in the system",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number for pagination",
-            "example": 1
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10
-            },
-            "description": "Number of users per page",
-            "example": 10
-          },
-          {
-            "in": "query",
-            "name": "role",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "user",
-                "vendor",
-                "admin"
-              ]
-            },
-            "description": "Filter by user role",
-            "example": "vendor"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Users retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "_id": {
-                            "type": "string",
-                            "example": "507f1f77bcf86cd799439011"
-                          },
-                          "firstName": {
-                            "type": "string",
-                            "example": "John"
-                          },
-                          "lastName": {
-                            "type": "string",
-                            "example": "Doe"
-                          },
-                          "email": {
-                            "type": "string",
-                            "example": "john.doe@example.com"
-                          },
-                          "role": {
-                            "type": "string",
-                            "example": "user"
-                          },
-                          "isVerified": {
-                            "type": "boolean",
-                            "example": true
-                          }
-                        },
-                        "$ref": "#/components/schemas/User"
-                      }
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "pagination": {
-                          "type": "object",
-                          "properties": {
-                            "page": {
-                              "type": "integer",
-                              "example": 1
-                            },
-                            "limit": {
-                              "type": "integer",
-                              "example": 10
-                            },
-                            "total": {
-                              "type": "integer",
-                              "example": 50
-                            },
-                            "pages": {
-                              "type": "integer",
-                              "example": 15
-                            },
-                            "totalPages": {
-                              "type": "integer",
-                              "example": 5
-                            }
-                          }
-                        },
-                        "total": {
-                          "type": "integer",
-                          "example": 50
-                        }
-                      }
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Users fetched successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          },
-          "403": {
-            "description": "Forbidden - Insufficient permissions"
-          },
-          "500": {
-            "description": "Internal server error"
           }
         }
       }
@@ -6825,7 +8619,7 @@
           "Users"
         ],
         "summary": "Change user password",
-        "description": "Change the authenticated user's password by providing current password and new password",
+        "description": "Change the authenticated user's password. Sends email confirmation and in-app notification upon successful password change.",
         "security": [
           {
             "bearerAuth": []
@@ -6845,19 +8639,19 @@
                 "properties": {
                   "currentPassword": {
                     "type": "string",
-                    "description": "Current password for verification",
-                    "example": "OldPassword123!"
+                    "description": "Current password",
+                    "example": "CurrentPassword123!"
                   },
                   "newPassword": {
                     "type": "string",
                     "minLength": 8,
                     "maxLength": 128,
-                    "description": "New password (must contain uppercase, lowercase, and number)",
+                    "description": "New password (8-128 characters)",
                     "example": "NewPassword123!"
                   },
                   "confirmNewPassword": {
                     "type": "string",
-                    "description": "Confirmation of new password",
+                    "description": "Password confirmation",
                     "example": "NewPassword123!"
                   }
                 }
@@ -6867,7 +8661,7 @@
         },
         "responses": {
           "200": {
-            "description": "Password changed successfully",
+            "description": "Password changed successfully. Email confirmation sent and notification created.",
             "content": {
               "application/json": {
                 "schema": {
@@ -6880,12 +8674,6 @@
                     "message": {
                       "type": "string",
                       "example": "Password changed successfully"
-                    },
-                    "data": {
-                      "type": "object"
-                    },
-                    "meta": {
-                      "type": "object"
                     }
                   }
                 }
@@ -6917,9 +8705,6 @@
                         "statusCode": {
                           "type": "integer",
                           "example": 400
-                        },
-                        "details": {
-                          "type": "object"
                         }
                       }
                     }
@@ -6929,2416 +8714,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Authentication required"
-          },
-          "404": {
-            "description": "User not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/followers/{userId}/remove": {
-      "delete": {
-        "summary": "Remove a follower",
-        "tags": [
-          "Follow"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "userId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the follower to remove"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully removed follower"
-          },
-          "400": {
-            "description": "User is not a follower"
-          },
-          "404": {
-            "description": "User not found"
-          }
-        }
-      }
-    },
-    "/users/{userId}/followers": {
-      "get": {
-        "summary": "Get a specific user's followers (public)",
-        "tags": [
-          "Follow"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "userId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the user"
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50,
-              "default": 10
-            },
-            "description": "Items per page"
-          },
-          {
-            "in": "query",
-            "name": "search",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Search term for filtering followers"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User followers retrieved successfully"
-          }
-        }
-      }
-    },
-    "/users/{userId}/following": {
-      "get": {
-        "summary": "Get a specific user's following (public)",
-        "tags": [
-          "Follow"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "userId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the user"
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50,
-              "default": 10
-            },
-            "description": "Items per page"
-          },
-          {
-            "in": "query",
-            "name": "search",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Search term for filtering following"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User following retrieved successfully"
-          }
-        }
-      }
-    },
-    "/follow/status/{userId}": {
-      "get": {
-        "summary": "Check if current user is following a specific user",
-        "tags": [
-          "Follow"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "userId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the user to check"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Follow status retrieved",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "isFollowing": {
-                          "type": "boolean"
-                        },
-                        "userId": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users/{userId}/stats": {
-      "get": {
-        "summary": "Get follow statistics for a user",
-        "tags": [
-          "Follow"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "userId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the user"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Follow stats retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "followers": {
-                          "type": "number"
-                        },
-                        "following": {
-                          "type": "number"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/follow/toggle/{userId}": {
-      "post": {
-        "summary": "Toggle follow/unfollow a user",
-        "description": "Follows a user if not already following, unfollows if already following",
-        "tags": [
-          "Follow"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "userId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the user to follow/unfollow"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully toggled follow status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "action": {
-                          "type": "string",
-                          "enum": [
-                            "followed",
-                            "unfollowed"
-                          ],
-                          "example": "followed"
-                        },
-                        "isFollowing": {
-                          "type": "boolean",
-                          "example": true
-                        },
-                        "targetUser": {
-                          "type": "object",
-                          "properties": {
-                            "_id": {
-                              "type": "string"
-                            },
-                            "firstName": {
-                              "type": "string"
-                            },
-                            "lastName": {
-                              "type": "string"
-                            },
-                            "email": {
-                              "type": "string"
-                            },
-                            "followersCount": {
-                              "type": "number"
-                            },
-                            "followingCount": {
-                              "type": "number"
-                            },
-                            "isFollowing": {
-                              "type": "boolean"
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Successfully followed John Doe"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request (can't follow self, etc.)"
-          },
-          "404": {
-            "description": "User not found"
-          }
-        }
-      }
-    },
-    "/products": {
-      "post": {
-        "summary": "Create a new product (Vendors only)",
-        "tags": [
-          "Products"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "name",
-                  "description"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 3,
-                    "maxLength": 100
-                  },
-                  "description": {
-                    "type": "string",
-                    "minLength": 10,
-                    "maxLength": 2000
-                  },
-                  "website": {
-                    "type": "string",
-                    "format": "uri"
-                  },
-                  "websiteUrl": {
-                    "type": "string",
-                    "format": "uri"
-                  },
-                  "software": {
-                    "type": "string",
-                    "enum": [
-                      "SaaS",
-                      "Desktop Application",
-                      "Mobile App",
-                      "Web Application",
-                      "API/Service",
-                      "Plugin/Extension",
-                      "Other"
-                    ]
-                  },
-                  "softwareIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "objectId"
-                    }
-                  },
-                  "solutionIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "objectId"
-                    }
-                  },
-                  "solutions": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "industries": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "objectId"
-                    }
-                  },
-                  "whoCanUse": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "objectId"
-                    }
-                  },
-                  "languages": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "objectId"
-                    }
-                  },
-                  "integrations": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "objectId"
-                    }
-                  },
-                  "marketSegment": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "objectId"
-                    }
-                  },
-                  "brandColors": {
-                    "type": "string"
-                  },
-                  "logoUrl": {
-                    "type": "string",
-                    "format": "uri"
-                  },
-                  "mediaUrls": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "uri"
-                    }
-                  },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "pending",
-                      "approved",
-                      "rejected",
-                      "draft",
-                      "published",
-                      "archived"
-                    ]
-                  },
-                  "isActive": {
-                    "type": "string",
-                    "enum": [
-                      "active",
-                      "inactive"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Product created successfully"
-          },
-          "400": {
-            "description": "Validation error"
-          },
-          "403": {
-            "description": "Only vendors can create products"
-          }
-        }
-      },
-      "get": {
-        "summary": "Get products with filtering and pagination",
-        "tags": [
-          "Products"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "pending",
-                "approved",
-                "rejected",
-                "draft",
-                "published",
-                "archived"
-              ]
-            }
-          },
-          {
-            "in": "query",
-            "name": "software",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "search",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "sortBy",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt",
-                "updatedAt",
-                "name",
-                "views",
-                "likes",
-                "avgRating",
-                "totalReviews"
-              ],
-              "default": "createdAt"
-            }
-          },
-          {
-            "in": "query",
-            "name": "sortOrder",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            }
-          },
-          {
-            "in": "query",
-            "name": "isActive",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "active",
-                "inactive"
-              ]
-            }
-          },
-          {
-            "in": "query",
-            "name": "minRating",
-            "schema": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 5
-            }
-          },
-          {
-            "in": "query",
-            "name": "maxRating",
-            "schema": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 5
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Products retrieved successfully"
-          }
-        }
-      }
-    },
-    "/products/{productId}": {
-      "get": {
-        "summary": "Get product by ID",
-        "tags": [
-          "Products"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "productId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Product ID"
-          },
-          {
-            "in": "query",
-            "name": "incrementViews",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "description": "Whether to increment view count"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Product retrieved successfully"
-          },
-          "404": {
-            "description": "Product not found"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update product (Vendor only - own products)",
-        "tags": [
-          "Products"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "productId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Product ID"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string"
-                  },
-                  "website": {
-                    "type": "string"
-                  },
-                  "websiteUrl": {
-                    "type": "string"
-                  },
-                  "software": {
-                    "type": "string"
-                  },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "pending",
-                      "approved",
-                      "rejected",
-                      "draft",
-                      "published",
-                      "archived"
-                    ]
-                  },
-                  "isActive": {
-                    "type": "string",
-                    "enum": [
-                      "active",
-                      "inactive"
-                    ]
-                  },
-                  "totalReviews": {
-                    "type": "number"
-                  },
-                  "avgRating": {
-                    "type": "number"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Product updated successfully"
-          },
-          "403": {
-            "description": "Can only update own products"
-          },
-          "404": {
-            "description": "Product not found"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete product (Vendor only - own products)",
-        "tags": [
-          "Products"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "productId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Product ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Product deleted successfully"
-          },
-          "403": {
-            "description": "Can only delete own products"
-          },
-          "404": {
-            "description": "Product not found"
-          }
-        }
-      }
-    },
-    "/products/slug/{slug}": {
-      "get": {
-        "summary": "Get product by slug",
-        "tags": [
-          "Products"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "slug",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Product slug"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Product retrieved successfully"
-          },
-          "404": {
-            "description": "Product not found"
-          }
-        }
-      }
-    },
-    "/products/vendor/{vendorId}": {
-      "get": {
-        "summary": "Get vendor's products",
-        "tags": [
-          "Products"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "vendorId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Vendor ID"
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "default": 1
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "default": 10
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Vendor products retrieved successfully"
-          },
-          "404": {
-            "description": "Vendor not found"
-          }
-        }
-      }
-    },
-    "/products/my": {
-      "get": {
-        "summary": "Get current vendor's products",
-        "tags": [
-          "Products"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "default": 1
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "default": 10
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "My products retrieved successfully"
-          }
-        }
-      }
-    },
-    "/products/{productId}/like": {
-      "post": {
-        "summary": "Toggle product like",
-        "tags": [
-          "Products"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "productId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Product ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Product like toggled successfully"
-          },
-          "404": {
-            "description": "Product not found"
-          }
-        }
-      }
-    },
-    "/products/search": {
-      "get": {
-        "summary": "Search products",
-        "tags": [
-          "Products"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "q",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Search query"
-          },
-          {
-            "in": "query",
-            "name": "software",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "industries",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          {
-            "in": "query",
-            "name": "minRating",
-            "schema": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 5
-            }
-          },
-          {
-            "in": "query",
-            "name": "maxRating",
-            "schema": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 5
-            }
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "default": 1
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "default": 10
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Search results retrieved successfully"
-          }
-        }
-      }
-    },
-    "/products/stats/overview": {
-      "get": {
-        "summary": "Get product statistics",
-        "tags": [
-          "Products"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Statistics retrieved successfully"
-          }
-        }
-      }
-    },
-    "/products/{productId}/rating": {
-      "post": {
-        "summary": "Update product rating (when review is added)",
-        "tags": [
-          "Products"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "productId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Product ID"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "rating"
-                ],
-                "properties": {
-                  "rating": {
-                    "type": "number",
-                    "minimum": 1,
-                    "maximum": 5
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Product rating updated successfully"
-          },
-          "404": {
-            "description": "Product not found"
-          }
-        }
-      }
-    },
-    "/products/{productId}/favorites": {
-      "post": {
-        "summary": "Add product to favorites",
-        "tags": [
-          "Products"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "productId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Product ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Product added to favorites successfully"
-          },
-          "404": {
-            "description": "Product not found"
-          }
-        }
-      }
-    },
-    "/products/active": {
-      "get": {
-        "summary": "Get all active products (published/approved and active)",
-        "tags": [
-          "Products"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Active products retrieved successfully"
-          }
-        }
-      }
-    },
-    "/products/top-rated": {
-      "get": {
-        "summary": "Get top rated products",
-        "tags": [
-          "Products"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 20,
-              "default": 10
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Top rated products retrieved successfully"
-          }
-        }
-      }
-    },
-    "/products/featured": {
-      "get": {
-        "summary": "Get featured products",
-        "tags": [
-          "Products"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 20,
-              "default": 10
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Featured products retrieved successfully"
-          }
-        }
-      }
-    },
-    "/products/user/{userId}": {
-      "get": {
-        "summary": "Get products by user/vendor",
-        "tags": [
-          "Products"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "userId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "User/Vendor ID"
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User products retrieved successfully"
-          }
-        }
-      }
-    },
-    "/products/{id}/toggle-status": {
-      "patch": {
-        "summary": "Toggle product status (active/inactive)",
-        "tags": [
-          "Products"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Product ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Product status toggled successfully"
-          },
-          "404": {
-            "description": "Product not found"
-          }
-        }
-      }
-    },
-    "/api/v1/product-reviews": {
-      "post": {
-        "summary": "Create a new product review",
-        "tags": [
-          "Product Reviews"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "product",
-                  "overallRating",
-                  "title",
-                  "content"
-                ],
-                "properties": {
-                  "product": {
-                    "type": "string",
-                    "format": "objectId"
-                  },
-                  "overallRating": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 5
-                  },
-                  "title": {
-                    "type": "string",
-                    "minLength": 3,
-                    "maxLength": 200
-                  },
-                  "content": {
-                    "type": "string",
-                    "minLength": 10,
-                    "maxLength": 5000
-                  },
-                  "subRatings": {
-                    "type": "object",
-                    "properties": {
-                      "easeOfUse": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 7
-                      },
-                      "customerSupport": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 7
-                      },
-                      "features": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 7
-                      },
-                      "pricing": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 7
-                      },
-                      "technicalSupport": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 7
-                      }
-                    }
-                  },
-                  "reviewSource": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Review created successfully"
-          },
-          "400": {
-            "description": "Validation error"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "409": {
-            "description": "Review already exists for this product"
-          }
-        }
-      },
-      "get": {
-        "summary": "Get all product reviews with filtering and pagination",
-        "tags": [
-          "Product Reviews"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "description": "Page number"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100
-            },
-            "description": "Items per page"
-          },
-          {
-            "in": "query",
-            "name": "search",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Search in title and content"
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "pending",
-                "approved",
-                "rejected",
-                "flagged"
-              ]
-            },
-            "description": "Review status"
-          },
-          {
-            "in": "query",
-            "name": "overallRating",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 5
-              }
-            },
-            "description": "Filter by rating stars"
-          },
-          {
-            "in": "query",
-            "name": "minRating",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 5
-            },
-            "description": "Minimum rating"
-          },
-          {
-            "in": "query",
-            "name": "maxRating",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 5
-            },
-            "description": "Maximum rating"
-          },
-          {
-            "in": "query",
-            "name": "isVerified",
-            "schema": {
-              "type": "boolean"
-            },
-            "description": "Filter by verification status"
-          },
-          {
-            "in": "query",
-            "name": "sortBy",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "submittedAt",
-                "publishedAt",
-                "overallRating",
-                "helpfulVotes.count"
-              ]
-            },
-            "description": "Sort field"
-          },
-          {
-            "in": "query",
-            "name": "sortOrder",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
-            },
-            "description": "Sort order"
-          },
-          {
-            "in": "query",
-            "name": "mention",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "description": "Filter by popular mentions"
-          },
-          {
-            "in": "query",
-            "name": "keywords",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "description": "Filter by keywords"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Reviews retrieved successfully"
-          }
-        }
-      }
-    },
-    "/api/v1/product-reviews/product/{productId}": {
-      "get": {
-        "summary": "Get reviews for a specific product",
-        "tags": [
-          "Product Reviews"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "productId",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            }
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50
-            }
-          },
-          {
-            "in": "query",
-            "name": "overallRating",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 5
-              }
-            }
-          },
-          {
-            "in": "query",
-            "name": "isVerified",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "in": "query",
-            "name": "sortBy",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "submittedAt",
-                "publishedAt",
-                "overallRating",
-                "helpfulVotes.count"
-              ]
-            }
-          },
-          {
-            "in": "query",
-            "name": "sortOrder",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
-            }
-          },
-          {
-            "in": "query",
-            "name": "mention",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "description": "Filter by popular mentions"
-          },
-          {
-            "in": "query",
-            "name": "keywords",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "description": "Filter by keywords"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Product reviews retrieved successfully"
-          },
-          "404": {
-            "description": "Product not found"
-          }
-        }
-      }
-    },
-    "/api/v1/product-reviews/{id}": {
-      "get": {
-        "summary": "Get a single product review by ID",
-        "tags": [
-          "Product Reviews"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Review retrieved successfully"
-          },
-          "404": {
-            "description": "Review not found"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update a product review (owner only)",
-        "tags": [
-          "Product Reviews"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "overallRating": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 5
-                  },
-                  "title": {
-                    "type": "string",
-                    "minLength": 3,
-                    "maxLength": 200
-                  },
-                  "content": {
-                    "type": "string",
-                    "minLength": 10,
-                    "maxLength": 5000
-                  },
-                  "subRatings": {
-                    "type": "object",
-                    "properties": {
-                      "easeOfUse": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 7
-                      },
-                      "customerSupport": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 7
-                      },
-                      "features": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 7
-                      },
-                      "pricing": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 7
-                      },
-                      "technicalSupport": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 7
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Review updated successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Can only update own reviews"
-          },
-          "404": {
-            "description": "Review not found"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a product review (owner or admin only)",
-        "tags": [
-          "Product Reviews"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Review deleted successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Can only delete own reviews"
-          },
-          "404": {
-            "description": "Review not found"
-          }
-        }
-      }
-    },
-    "/api/v1/product-reviews/{id}/helpful": {
-      "post": {
-        "summary": "Vote a review as helpful",
-        "tags": [
-          "Product Reviews"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Vote added successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Review not found"
-          },
-          "409": {
-            "description": "Already voted"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Remove helpful vote from a review",
-        "tags": [
-          "Product Reviews"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Vote removed successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Review or vote not found"
-          }
-        }
-      }
-    },
-    "/api/v1/product-reviews/{id}/moderate": {
-      "patch": {
-        "summary": "Moderate a review (admin only)",
-        "tags": [
-          "Product Reviews"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "status"
-                ],
-                "properties": {
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "pending",
-                      "approved",
-                      "rejected",
-                      "flagged"
-                    ]
-                  },
-                  "moderationNote": {
-                    "type": "string",
-                    "maxLength": 500
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Review moderated successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Admin access required"
-          },
-          "404": {
-            "description": "Review not found"
-          }
-        }
-      }
-    },
-    "/api/v1/product-reviews/product/{productId}/stats": {
-      "get": {
-        "summary": "Get review statistics for a product",
-        "tags": [
-          "Product Reviews"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "productId",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Review statistics retrieved successfully"
-          },
-          "404": {
-            "description": "Product not found"
-          }
-        }
-      }
-    },
-    "/api/v1/reviews/{reviewId}/replies": {
-      "post": {
-        "summary": "Create a new reply to a review",
-        "tags": [
-          "Review Replies"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "reviewId",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            },
-            "description": "ID of the review to reply to"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "content"
-                ],
-                "properties": {
-                  "content": {
-                    "type": "string",
-                    "minLength": 3,
-                    "maxLength": 2000,
-                    "description": "Reply content"
-                  },
-                  "replyType": {
-                    "type": "string",
-                    "enum": [
-                      "user",
-                      "vendor",
-                      "admin"
-                    ],
-                    "default": "user",
-                    "description": "Type of reply"
-                  },
-                  "parentReply": {
-                    "type": "string",
-                    "format": "objectId",
-                    "description": "ID of parent reply (for nested replies)"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Reply created successfully"
-          },
-          "400": {
-            "description": "Validation error or cannot reply to non-approved review"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Review not found"
-          }
-        }
-      },
-      "get": {
-        "summary": "Get all replies for a specific review",
-        "tags": [
-          "Review Replies"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "reviewId",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            },
-            "description": "ID of the review"
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50,
-              "default": 10
-            },
-            "description": "Items per page"
-          },
-          {
-            "in": "query",
-            "name": "sortBy",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt",
-                "updatedAt",
-                "helpfulVotes.count"
-              ],
-              "default": "createdAt"
-            },
-            "description": "Sort field"
-          },
-          {
-            "in": "query",
-            "name": "sortOrder",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "asc"
-            },
-            "description": "Sort order"
-          },
-          {
-            "in": "query",
-            "name": "replyType",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "user",
-                "vendor",
-                "admin"
-              ]
-            },
-            "description": "Filter by reply type"
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "pending",
-                "approved",
-                "rejected",
-                "flagged"
-              ],
-              "default": "approved"
-            },
-            "description": "Filter by reply status"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Replies retrieved successfully"
-          },
-          "404": {
-            "description": "Review not found"
-          }
-        }
-      }
-    },
-    "/api/v1/replies/{id}": {
-      "get": {
-        "summary": "Get a single reply by ID",
-        "tags": [
-          "Review Replies"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            },
-            "description": "Reply ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Reply retrieved successfully"
-          },
-          "404": {
-            "description": "Reply not found"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update a reply (author only)",
-        "tags": [
-          "Review Replies"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            },
-            "description": "Reply ID"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "content": {
-                    "type": "string",
-                    "minLength": 3,
-                    "maxLength": 2000,
-                    "description": "Updated reply content"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Reply updated successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Can only update own replies"
-          },
-          "404": {
-            "description": "Reply not found"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a reply (author or admin only)",
-        "tags": [
-          "Review Replies"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            },
-            "description": "Reply ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Reply deleted successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Can only delete own replies"
-          },
-          "404": {
-            "description": "Reply not found"
-          }
-        }
-      }
-    },
-    "/api/v1/replies/{id}/helpful": {
-      "post": {
-        "summary": "Vote a reply as helpful",
-        "tags": [
-          "Review Replies"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            },
-            "description": "Reply ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Vote added successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Reply not found"
-          },
-          "409": {
-            "description": "Already voted"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Remove helpful vote from a reply",
-        "tags": [
-          "Review Replies"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "objectId"
-            },
-            "description": "Reply ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Vote removed successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Reply or vote not found"
-          }
-        }
-      }
-    },
-    "/api/v1/replies": {
-      "get": {
-        "summary": "Get all replies (admin only)",
-        "tags": [
-          "Review Replies"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
-            },
-            "description": "Items per page"
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "pending",
-                "approved",
-                "rejected",
-                "flagged"
-              ]
-            },
-            "description": "Filter by status"
-          },
-          {
-            "in": "query",
-            "name": "replyType",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "user",
-                "vendor",
-                "admin"
-              ]
-            },
-            "description": "Filter by reply type"
-          },
-          {
-            "in": "query",
-            "name": "sortBy",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt",
-                "updatedAt",
-                "helpfulVotes.count"
-              ],
-              "default": "createdAt"
-            },
-            "description": "Sort field"
-          },
-          {
-            "in": "query",
-            "name": "sortOrder",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "description": "Sort order"
-          },
-          {
-            "in": "query",
-            "name": "search",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Search in reply content"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Replies retrieved successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Admin access required"
+            "description": "Authentication required"
           }
         }
       }

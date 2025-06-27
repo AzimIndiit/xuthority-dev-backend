@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { updateProfile, searchUsers, getProfile, getPublicProfile, changePassword } = require('../controllers/userController');
+const { updateProfile, getProfile, getPublicProfile, changePassword } = require('../controllers/userController');
 const { updateProfileValidator, userIdValidator, changePasswordValidator } = require('../validators/userValidator');
 const auth = require('../middleware/auth');
 const rateLimiter = require('../middleware/rateLimiter');
@@ -13,12 +13,14 @@ router.use(rateLimiter);
 
 /**
  * @openapi
- * /users/search:
+ * /users:
  *   get:
  *     tags:
  *       - Users
- *     summary: Search users
- *     description: Search for users by name, email, or other criteria
+ *     summary: Get all users or search users
+ *     description: Retrieve all users or search for users by name, email, or other criteria
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: q
@@ -52,7 +54,7 @@ router.use(rateLimiter);
  *         example: 10
  *     responses:
  *       200:
- *         description: Search results
+ *         description: Users retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -101,10 +103,32 @@ router.use(rateLimiter);
  *                           example: 3
  *                 message:
  *                   type: string
- *                   example: "Users retrieved successfully"
+ *                   example: "Users fetched successfully"
+ *       401:
+ *         description: Authentication required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: "Authentication required"
+ *                     code:
+ *                       type: string
+ *                       example: "AUTHENTICATION_REQUIRED"
+ *                     statusCode:
+ *                       type: integer
+ *                       example: 401
  */
-// GET /api/v1/users/search - Search users (public endpoint)
-router.get('/search', searchUsers);
+// GET /api/v1/users - Get all users or search users (admin only)
+router.get('/', auth, userController.getAllUsers);
 
 /**
  * @openapi
@@ -287,104 +311,6 @@ router.get(
 
 /**
  * @openapi
- * /users:
- *   get:
- *     tags:
- *       - Users
- *     summary: Get all users
- *     description: Retrieve all users (admin only)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Page number
- *         example: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 10
- *         description: Number of results per page
- *         example: 10
- *       - in: query
- *         name: role
- *         schema:
- *           type: string
- *           enum: [user, vendor, admin]
- *         description: Filter by user role
- *         example: "vendor"
- *     responses:
- *       200:
- *         description: Users retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       _id:
- *                         type: string
- *                         example: "507f1f77bcf86cd799439011"
- *                       firstName:
- *                         type: string
- *                         example: "John"
- *                       lastName:
- *                         type: string
- *                         example: "Doe"
- *                       email:
- *                         type: string
- *                         example: "john.doe@example.com"
- *                       role:
- *                         type: string
- *                         example: "user"
- *                       isVerified:
- *                         type: boolean
- *                         example: true
- *                 meta:
- *                   type: object
- *                   properties:
- *                     pagination:
- *                       type: object
- *                       properties:
- *                         page:
- *                           type: integer
- *                           example: 1
- *                         limit:
- *                           type: integer
- *                           example: 10
- *                         total:
- *                           type: integer
- *                           example: 150
- *                         pages:
- *                           type: integer
- *                           example: 15
- *                 message:
- *                   type: string
- *                   example: "Users retrieved successfully"
- *       401:
- *         description: Authentication required
- *       403:
- *         description: Admin access required
- */
-// GET /api/v1/users - Get all users (authenticated)
-router.get('/', auth, userController.getAllUsers);
-
-/**
- * @openapi
  * /users/profile:
  *   patch:
  *     tags:
@@ -506,7 +432,7 @@ router.patch(
  *     tags:
  *       - Users
  *     summary: Change user password
- *     description: Change the authenticated user's password
+ *     description: Change the authenticated user's password. Sends email confirmation and in-app notification upon successful password change.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -536,7 +462,7 @@ router.patch(
  *                 example: "NewPassword123!"
  *     responses:
  *       200:
- *         description: Password changed successfully
+ *         description: Password changed successfully. Email confirmation sent and notification created.
  *         content:
  *           application/json:
  *             schema:

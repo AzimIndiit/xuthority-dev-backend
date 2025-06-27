@@ -5,6 +5,7 @@ const ApiError = require("../utils/apiError");
 const apiResponse = require("../utils/apiResponse");
 const { logEvent } = require("../services/auditService");
 const { createNotification } = require('../services/notificationService');
+const emailService = require('../services/emailService');
 
 const SALT_ROUNDS = process.env.BCRYPT_SALT_ROUNDS ? parseInt(process.env.BCRYPT_SALT_ROUNDS) : 12;
 const TOKEN_EXPIRY = "7d";
@@ -23,86 +24,6 @@ function getTokenExpiryMs(token) {
   return decoded.exp * 1000; // exp is in seconds, convert to ms
 }
 
-/**
- * @openapi
- * /auth/register:
- *   post:
- *     summary: Register a new user
- *     tags:
- *       - Auth
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - firstName
- *               - lastName
- *               - email
- *               - password
- *               - acceptedTerms
- *             properties:
- *               firstName:
- *                 type: string
- *                 example: John
- *               lastName:
- *                 type: string
- *                 example: Doe
- *               email:
- *                 type: string
- *                 format: email
- *                 example: john.doe@example.com
- *               password:
- *                 type: string
- *                 format: password
- *                 example: Password123!
- *               acceptedTerms:
- *                 type: boolean
- *                 example: true
- *               acceptedMarketing:
- *                 type: boolean
- *                 example: false
- *     responses:
- *       201:
- *         description: Registration successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                 message:
- *                   type: string
- *                   example: Registration successful
- *                 meta:
- *                   type: object
- *       400:
- *         description: Validation error or user already exists
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: object
- *                   properties:
- *                     message:
- *                       type: string
- *                     code:
- *                       type: string
- *                     statusCode:
- *                       type: integer
- *                     details:
- *                       type: object
- */
 exports.register = async (req, res, next) => {
   try {
     const {
@@ -143,6 +64,15 @@ exports.register = async (req, res, next) => {
       details: { method: "email" },
       req,
     });
+    
+    // Send welcome email
+    try {
+      await emailService.sendWelcomeEmail(user.email, user.firstName || user.name || 'User');
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Don't throw error here as registration was successful
+    }
+    
     // Send welcome notification
     await createNotification({
       userId: user._id,
@@ -164,71 +94,6 @@ exports.register = async (req, res, next) => {
   }
 };
 
-/**
- * @openapi
- * /auth/login:
- *   post:
- *     summary: Login with email and password
- *     tags:
- *       - Auth
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: john.doe@example.com
- *               password:
- *                 type: string
- *                 format: password
- *                 example: Password123!
- *     responses:
- *       200:
- *         description: Login successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                 message:
- *                   type: string
- *                   example: Login successful
- *                 meta:
- *                   type: object
- *       400:
- *         description: Validation error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: object
- *                   properties:
- *                     message:
- *                       type: string
- *                     code:
- *                       type: string
- *                     statusCode:
- *                       type: integer
- *                     details:
- *                       type: object
- */
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -294,146 +159,6 @@ exports.login = async (req, res, next) => {
   }
 };
 
-
-/**
- * @openapi
- * /auth/register-vendor:
- *   post:
- *     tags:
- *       - Auth
- *     summary: Register a new vendor
- *     description: Register a new vendor account with company information
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - firstName
- *               - lastName
- *               - email
- *               - password
- *               - companyName
- *               - companyEmail
- *               - industry
- *               - companySize
- *               - acceptedTerms
- *             properties:
- *               firstName:
- *                 type: string
- *                 description: Vendor's first name
- *                 example: "John"
- *               lastName:
- *                 type: string
- *                 description: Vendor's last name
- *                 example: "Doe"
- *               email:
- *                 type: string
- *                 format: email
- *                 description: Vendor's email address
- *                 example: "john.doe@company.com"
- *               password:
- *                 type: string
- *                 minLength: 8
- *                 description: Vendor's password (minimum 8 characters)
- *                 example: "securePassword123"
- *               companyName:
- *                 type: string
- *                 description: Company name
- *                 example: "Tech Solutions Inc"
- *               companyEmail:
- *                 type: string
- *                 format: email
- *                 description: Company email address
- *                 example: "contact@techsolutions.com"
- *               industry:
- *                 type: string
- *                 description: Industry sector
- *                 example: "Technology"
- *               companySize:
- *                 type: string
- *                 enum: ["1-10", "11-50", "51-200", "201-500", "500+"]
- *                 description: Company size range
- *                 example: "51-200"
- *               acceptedTerms:
- *                 type: string
- *                 enum: ["true", "false"]
- *                 description: Whether terms and conditions were accepted
- *                 example: "true"
- *               acceptedMarketing:
- *                 type: string
- *                 enum: ["true", "false"]
- *                 description: Whether marketing communications were accepted
- *                 example: "false"
- *     responses:
- *       200:
- *         description: Vendor registration successful (existing user with valid token)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                   properties:
- *                     user:
- *                       $ref: '#/components/schemas/User'
- *                     token:
- *                       type: string
- *                       description: JWT access token
- *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
- *                 message:
- *                   type: string
- *                   example: "Vendor registration successful"
- *                 meta:
- *                   type: object
- *       201:
- *         description: Vendor registration successful (new user created)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                   properties:
- *                     user:
- *                       $ref: '#/components/schemas/User'
- *                     token:
- *                       type: string
- *                       description: JWT access token
- *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
- *                 message:
- *                   type: string
- *                   example: "Vendor registration successful"
- *                 meta:
- *                   type: object
- *       400:
- *         description: Bad request - validation error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
- *       409:
- *         description: Conflict - email already exists
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
- */
 exports.registerVendor = async (req, res, next) => {
   try {
     const {
@@ -517,6 +242,24 @@ exports.registerVendor = async (req, res, next) => {
       details: { method: "email" },
       req,
     });
+    
+    // Send welcome email
+    try {
+      await emailService.sendWelcomeEmail(user.email, user.firstName || user.name || 'User');
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Don't throw error here as registration was successful
+    }
+    
+    // Send welcome notification
+    await createNotification({
+      userId: user._id,
+      type: 'WELCOME',
+      title: 'Welcome to XUTHORITY!',
+      message: 'Welcome to XUTHORITY! Start exploring and add your products today.',
+      actionUrl: '/dashboard'
+    });
+    
     const newUser = {
       ...user.toObject(),
       password: undefined
@@ -531,45 +274,6 @@ exports.registerVendor = async (req, res, next) => {
   }
 };
 
-/**
- * Forgot password - Send reset email
- * @openapi
- * /auth/forgot-password:
- *   post:
- *     tags:
- *       - Auth
- *     summary: Request password reset
- *     description: Send password reset email to user
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: "user@example.com"
- *                 description: Email address to send reset link to
- *     responses:
- *       200:
- *         description: Reset email sent (or would be sent)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success: { type: boolean, example: true }
- *                 data: { type: object }
- *                 message: { type: string }
- *       400:
- *         description: Validation error
- *       500:
- *         description: Internal server error
- */
 exports.forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -595,54 +299,6 @@ exports.forgotPassword = async (req, res, next) => {
   }
 };
 
-/**
- * Reset password using token
- * @openapi
- * /auth/reset-password:
- *   post:
- *     tags:
- *       - Auth
- *     summary: Reset password with token
- *     description: Reset user password using the token from email
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - token
- *               - newPassword
- *               - confirmNewPassword
- *             properties:
- *               token:
- *                 type: string
- *                 example: "abc123def456..."
- *                 description: Password reset token from email
- *               newPassword:
- *                 type: string
- *                 example: "NewPassword123!"
- *                 description: New password (8+ chars, uppercase, lowercase, number)
- *               confirmNewPassword:
- *                 type: string
- *                 example: "NewPassword123!"
- *                 description: Confirmation of new password
- *     responses:
- *       200:
- *         description: Password reset successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success: { type: boolean, example: true }
- *                 data: { type: object }
- *                 message: { type: string }
- *       400:
- *         description: Invalid token or validation error
- *       500:
- *         description: Internal server error
- */
 exports.resetPassword = async (req, res, next) => {
   try {
     const { token, newPassword } = req.body;
@@ -668,51 +324,6 @@ exports.resetPassword = async (req, res, next) => {
   }
 };
 
-/**
- * Verify reset token validity
- * @openapi
- * /auth/verify-reset-token:
- *   post:
- *     tags:
- *       - Auth
- *     summary: Verify password reset token
- *     description: Check if password reset token is valid and not expired
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - token
- *             properties:
- *               token:
- *                 type: string
- *                 example: "abc123def456..."
- *                 description: Password reset token to verify
- *     responses:
- *       200:
- *         description: Token is valid
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success: { type: boolean, example: true }
- *                 data:
- *                   type: object
- *                   properties:
- *                     userId: { type: string }
- *                     firstName: { type: string }
- *                     lastName: { type: string }
- *                     email: { type: string }
- *                     expiresAt: { type: string, format: date-time }
- *                 message: { type: string }
- *       400:
- *         description: Invalid or expired token
- *       500:
- *         description: Internal server error
- */
 exports.verifyResetToken = async (req, res, next) => {
   try {
     const { token } = req.body;

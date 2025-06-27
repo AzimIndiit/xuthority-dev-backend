@@ -167,8 +167,17 @@ class EmailService {
     try {
       const templateData = {
         userName: userName || 'User',
+        changeDate: new Date().toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZoneName: 'short'
+        }),
         message: 'Your password has been successfully changed. If you did not make this change, please contact our support team immediately.',
-        loginUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/login`
+        loginUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/login`,
+        currentYear: new Date().getFullYear()
       };
 
       return await this.sendTemplatedEmail({
@@ -196,7 +205,8 @@ class EmailService {
         userName: userName || 'User',
         message: 'Welcome to our platform! We\'re excited to have you on board.',
         loginUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/login`,
-        dashboardUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/dashboard`
+        dashboardUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/dashboard`,
+        currentYear: new Date().getFullYear()
       };
 
       return await this.sendTemplatedEmail({
