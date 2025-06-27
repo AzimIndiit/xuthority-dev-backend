@@ -22,6 +22,8 @@ const productReviewRoutes = require('./productReviews');
 const reviewReplyRoutes = require('./reviewReplies');
 const communityRoutes = require('./community');
 const disputeRoutes = require('./disputes');
+const badgeRoutes = require('./badges');
+const userBadgeRoutes = require('./userBadges');
 
 const { API_PREFIX } = require('../config/constants');
 
@@ -46,6 +48,8 @@ router.use(`${API_PREFIX}/product-reviews`, productReviewRoutes);
 router.use(`${API_PREFIX}`, reviewReplyRoutes);
 router.use(`${API_PREFIX}/community`, communityRoutes);
 router.use(`${API_PREFIX}/disputes`, disputeRoutes);
+router.use(`${API_PREFIX}/badges`, badgeRoutes);
+router.use(`${API_PREFIX}/user-badges`, userBadgeRoutes);
 
 // API documentation route
 router.get('/', (req, res) => {

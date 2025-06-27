@@ -2,7 +2,6 @@ const Dispute = require('../models/Dispute');
 const ProductReview = require('../models/ProductReview');
 const Product = require('../models/Product');
 const ApiError = require('../utils/apiError');
-const { DISPUTE_MESSAGES } = require('../utils/constants');
 
 /**
  * Create a new dispute on a product review
@@ -12,12 +11,12 @@ const createDispute = async (reviewId, vendorId, disputeData) => {
     // Check if review exists
     const review = await ProductReview.findById(reviewId).populate('product');
     if (!review) {
-      throw new ApiError(DISPUTE_MESSAGES.REVIEW_NOT_FOUND, 'REVIEW_NOT_FOUND', 404);
+      throw new ApiError('Product review not found', 'REVIEW_NOT_FOUND', 404);
     }
 
     // Check if vendor owns the product
     if (review.product.userId.toString() !== vendorId.toString()) {
-      throw new ApiError(DISPUTE_MESSAGES.NOT_PRODUCT_OWNER, 'NOT_PRODUCT_OWNER', 403);
+      throw new ApiError('You can only dispute reviews for your own products', 'NOT_PRODUCT_OWNER', 403);
     }
 
     // Check if dispute already exists for this review by this vendor
@@ -26,7 +25,7 @@ const createDispute = async (reviewId, vendorId, disputeData) => {
       vendor: vendorId 
     });
     if (existingDispute) {
-      throw new ApiError(DISPUTE_MESSAGES.DISPUTE_ALREADY_EXISTS, 'DISPUTE_ALREADY_EXISTS', 400);
+      throw new ApiError('You have already disputed this review', 'DISPUTE_ALREADY_EXISTS', 400);
     }
 
     // Create the dispute
@@ -52,7 +51,7 @@ const createDispute = async (reviewId, vendorId, disputeData) => {
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new ApiError(DISPUTE_MESSAGES.CREATE_FAILED, 'CREATE_FAILED', 500);
+    throw new ApiError('Failed to create dispute', 'CREATE_FAILED', 500);
   }
 };
 
@@ -63,7 +62,7 @@ const getVendorDisputes = async (vendorId, options = {}) => {
   try {
     return await Dispute.getDisputesByVendor(vendorId, options);
   } catch (error) {
-    throw new ApiError(DISPUTE_MESSAGES.FETCH_FAILED, 'FETCH_FAILED', 500);
+    throw new ApiError('Failed to fetch disputes', 'FETCH_FAILED', 500);
   }
 };
 
@@ -80,7 +79,7 @@ const getDisputeById = async (disputeId, vendorId) => {
       ]);
 
     if (!dispute) {
-      throw new ApiError(DISPUTE_MESSAGES.NOT_FOUND, 'NOT_FOUND', 404);
+      throw new ApiError('Dispute not found', 'NOT_FOUND', 404);
     }
 
     return dispute;
@@ -88,7 +87,7 @@ const getDisputeById = async (disputeId, vendorId) => {
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new ApiError(DISPUTE_MESSAGES.FETCH_FAILED, 'FETCH_FAILED', 500);
+    throw new ApiError('Failed to fetch dispute', 'FETCH_FAILED', 500);
   }
 };
 
@@ -100,7 +99,7 @@ const updateDispute = async (disputeId, vendorId, updateData) => {
     const dispute = await Dispute.findOne({ _id: disputeId, vendor: vendorId });
     
     if (!dispute) {
-      throw new ApiError(DISPUTE_MESSAGES.NOT_FOUND, 'NOT_FOUND', 404);
+      throw new ApiError('Dispute not found', 'NOT_FOUND', 404);
     }
 
     // Update allowed fields
@@ -128,7 +127,7 @@ const updateDispute = async (disputeId, vendorId, updateData) => {
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new ApiError(DISPUTE_MESSAGES.UPDATE_FAILED, 'UPDATE_FAILED', 500);
+    throw new ApiError('Failed to update dispute', 'UPDATE_FAILED', 500);
   }
 };
 
@@ -140,16 +139,16 @@ const deleteDispute = async (disputeId, vendorId) => {
     const dispute = await Dispute.findOne({ _id: disputeId, vendor: vendorId });
     
     if (!dispute) {
-      throw new ApiError(DISPUTE_MESSAGES.NOT_FOUND, 'NOT_FOUND', 404);
+      throw new ApiError('Dispute not found', 'NOT_FOUND', 404);
     }
 
     await Dispute.findByIdAndDelete(disputeId);
-    return { message: DISPUTE_MESSAGES.DELETED_SUCCESSFULLY };
+    return { message: 'Dispute deleted successfully' };
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new ApiError(DISPUTE_MESSAGES.DELETE_FAILED, 'DELETE_FAILED', 500);
+    throw new ApiError('Failed to delete dispute', 'DELETE_FAILED', 500);
   }
 };
 
@@ -200,15 +199,15 @@ const getAllDisputes = async (options = {}) => {
       }
     };
   } catch (error) {
-    throw new ApiError(DISPUTE_MESSAGES.FETCH_FAILED, 'FETCH_FAILED', 500);
+    throw new ApiError('Failed to fetch disputes', 'FETCH_FAILED', 500);
   }
 };
 
 module.exports = {
   createDispute,
   getVendorDisputes,
+  getAllDisputes,
   getDisputeById,
   updateDispute,
-  deleteDispute,
-  getAllDisputes
+  deleteDispute
 }; 

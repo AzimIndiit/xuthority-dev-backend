@@ -117,6 +117,16 @@ exports.createProduct = async (req, res, next) => {
     const vendorId = req.user._id.toString();
     const product = await productService.createProduct(req.body, vendorId);
 
+    // Update vendor's totalProducts count if user is a vendor
+    if (req.user.role === 'vendor') {
+      const { User } = require('../models');
+      await User.findByIdAndUpdate(
+        vendorId,
+        { $inc: { totalProducts: 1 } },
+        { new: true }
+      );
+    }
+
     await logEvent({
       user: req.user,
       action: 'CREATE_PRODUCT',
@@ -494,6 +504,16 @@ exports.deleteProduct = async (req, res, next) => {
     const vendorId = req.user._id.toString();
     
     const result = await productService.deleteProduct(productId, vendorId);
+
+    // Decrement vendor's totalProducts count if user is a vendor
+    if (req.user.role === 'vendor') {
+      const { User } = require('../models');
+      await User.findByIdAndUpdate(
+        vendorId,
+        { $inc: { totalProducts: -1 } },
+        { new: true }
+      );
+    }
 
     await logEvent({
       user: req.user,

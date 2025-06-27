@@ -41,6 +41,17 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  // Vendor statistics
+  totalProducts: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  totalDisputes: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   role: { type: String, enum: USER_ROLES, default: 'user' },
   authProvider: { type: String, enum: ['email', 'google', 'linkedin'], default: 'email' },
   acceptedTerms: { type: Boolean, required: true },

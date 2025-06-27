@@ -1,6 +1,5 @@
 const disputeService = require('../services/disputeService');
 const ApiResponse = require('../utils/apiResponse');
-const { HTTP_STATUS, DISPUTE_MESSAGES } = require('../utils/constants');
 
 /**
  * Create a new dispute
@@ -16,11 +15,21 @@ const createDispute = async (req, res, next) => {
       description
     });
 
-    return ApiResponse.success(
-      res,
-      dispute,
-      DISPUTE_MESSAGES.CREATED_SUCCESSFULLY,
-      HTTP_STATUS.CREATED
+    // Update vendor's totalDisputes count if user is a vendor
+    if (req.user.role === 'vendor') {
+      const { User } = require('../models');
+      await User.findByIdAndUpdate(
+        vendorId,
+        { $inc: { totalDisputes: 1 } },
+        { new: true }
+      );
+    }
+
+    return res.status(201).json(
+      ApiResponse.success(
+        dispute,
+        'Dispute created successfully'
+      )
     );
   } catch (error) {
     next(error);
@@ -52,12 +61,12 @@ const getVendorDisputes = async (req, res, next) => {
 
     const result = await disputeService.getVendorDisputes(vendorId, options);
 
-    return ApiResponse.success(
-      res,
-      result.disputes,
-      'Disputes retrieved successfully',
-      HTTP_STATUS.OK,
-      result.pagination
+    return res.json(
+      ApiResponse.success(
+        result.disputes,
+        'Disputes retrieved successfully',
+        result.pagination
+      )
     );
   } catch (error) {
     next(error);
@@ -88,12 +97,12 @@ const getAllDisputes = async (req, res, next) => {
 
     const result = await disputeService.getAllDisputes(options);
 
-    return ApiResponse.success(
-      res,
-      result.disputes,
-      'All disputes retrieved successfully',
-      HTTP_STATUS.OK,
-      result.pagination
+    return res.json(
+      ApiResponse.success(
+        result.disputes,
+        'All disputes retrieved successfully',
+        result.pagination
+      )
     );
   } catch (error) {
     next(error);
@@ -111,11 +120,11 @@ const getDisputeById = async (req, res, next) => {
 
     const dispute = await disputeService.getDisputeById(id, vendorId);
 
-    return ApiResponse.success(
-      res,
-      dispute,
-      'Dispute retrieved successfully',
-      HTTP_STATUS.OK
+    return res.json(
+      ApiResponse.success(
+        dispute,
+        'Dispute retrieved successfully'
+      )
     );
   } catch (error) {
     next(error);
@@ -134,11 +143,11 @@ const updateDispute = async (req, res, next) => {
 
     const dispute = await disputeService.updateDispute(id, vendorId, updateData);
 
-    return ApiResponse.success(
-      res,
-      dispute,
-      DISPUTE_MESSAGES.UPDATED_SUCCESSFULLY,
-      HTTP_STATUS.OK
+    return res.json(
+      ApiResponse.success(
+        dispute,
+        'Dispute updated successfully'
+      )
     );
   } catch (error) {
     next(error);
@@ -156,11 +165,21 @@ const deleteDispute = async (req, res, next) => {
 
     const result = await disputeService.deleteDispute(id, vendorId);
 
-    return ApiResponse.success(
-      res,
-      null,
-      result.message,
-      HTTP_STATUS.OK
+    // Decrement vendor's totalDisputes count if user is a vendor
+    if (req.user.role === 'vendor') {
+      const { User } = require('../models');
+      await User.findByIdAndUpdate(
+        vendorId,
+        { $inc: { totalDisputes: -1 } },
+        { new: true }
+      );
+    }
+
+    return res.json(
+      ApiResponse.success(
+        null,
+        result.message
+      )
     );
   } catch (error) {
     next(error);
