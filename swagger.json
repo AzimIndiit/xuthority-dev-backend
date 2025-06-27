@@ -958,6 +958,21 @@
         ],
         "summary": "Google OAuth login",
         "description": "Initiate Google OAuth authentication",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "role",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user",
+                "vendor"
+              ],
+              "default": "user"
+            },
+            "description": "Role for the user account (user or vendor)"
+          }
+        ],
         "responses": {
           "302": {
             "description": "Redirect to Google OAuth"
@@ -1003,6 +1018,21 @@
         ],
         "summary": "LinkedIn OAuth login",
         "description": "Initiate LinkedIn OAuth authentication",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "role",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user",
+                "vendor"
+              ],
+              "default": "user"
+            },
+            "description": "Role for the user account (user or vendor)"
+          }
+        ],
         "responses": {
           "302": {
             "description": "Redirect to LinkedIn OAuth"

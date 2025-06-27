@@ -341,30 +341,41 @@ exports.verifyResetToken = async (req, res, next) => {
 
 // Add new methods for OAuth callback token logic
 exports.handleOAuthCallback = async (req, res, provider) => {
-  let token = req.user.accessToken;
-  if (token) {
-    const expiryMs = getTokenExpiryMs(token);
-    if (expiryMs <= Date.now() + TOKEN_REFRESH_THRESHOLD_MS) {
-      token = null;
+  try {
+    let token = req.user.accessToken;
+    if (token) {
+      const expiryMs = getTokenExpiryMs(token);
+      if (expiryMs <= Date.now() + TOKEN_REFRESH_THRESHOLD_MS) {
+        token = null;
+      }
     }
+    if (!token) {
+      token = generateToken(req.user);
+      req.user.accessToken = token;
+      await req.user.save();
+    }
+    
+    await logEvent({
+      user: req.user,
+      action: "LOGIN",
+      target: "User",
+      targetId: req.user._id,
+      details: { method: provider },
+      req,
+    });
+
+    // Redirect to frontend with token
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const redirectUrl = `${frontendUrl}/auth/callback?token=${encodeURIComponent(token)}&provider=${encodeURIComponent(provider)}`;
+    
+    res.redirect(redirectUrl);
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    
+    // Redirect to frontend with error
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent('Authentication failed')}&provider=${encodeURIComponent(provider)}`;
+    
+    res.redirect(redirectUrl);
   }
-  if (!token) {
-    token = generateToken(req.user);
-    req.user.accessToken = token;
-    await req.user.save();
-  }
-  await logEvent({
-    user: req.user,
-    action: "LOGIN",
-    target: "User",
-    targetId: req.user._id,
-    details: { method: provider },
-    req,
-  });
-  res.json({
-    success: true,
-    data: { user: req.user, token },
-    message: `${provider} login successful`,
-    meta: {},
-  });
 };

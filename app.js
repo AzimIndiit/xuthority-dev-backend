@@ -1,5 +1,6 @@
 const express = require('express');
 const helmet = require('helmet');
+const session = require('express-session');
 const cors = require('./src/middleware/cors');
 const compression = require('./src/middleware/compression');
 const errorHandler = require('./src/middleware/errorHandler');
@@ -45,8 +46,21 @@ app.use(security);
 // Cache middleware
 app.use(cache);
 
+// Session middleware for OAuth role storage
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 10 * 60 * 1000, // 10 minutes
+  }
+}));
+
 // Passport middleware - MUST be before routes
 app.use(passport.initialize());
+app.use(passport.session());
 
 // Health check route
 app.get('/health', (req, res) => {

@@ -487,12 +487,28 @@ router.post('/verify-reset-token', validateVerifyResetToken, authController.veri
  *       - Authentication
  *     summary: Google OAuth login
  *     description: Initiate Google OAuth authentication
+ *     parameters:
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *           enum: [user, vendor]
+ *           default: user
+ *         description: Role for the user account (user or vendor)
  *     responses:
  *       302:
  *         description: Redirect to Google OAuth
  */
 // Google OAuth login (initiate)
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', (req, res, next) => {
+  // Store role in session for use in callback
+  if (req.query.role && ['user', 'vendor'].includes(req.query.role)) {
+    req.session.oauthRole = req.query.role;
+  } else {
+    req.session.oauthRole = 'user'; // default to user
+  }
+  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
 
 /**
  * @openapi
@@ -526,7 +542,9 @@ router.get('/google/callback', passport.authenticate('google', { session: false,
  *         description: OAuth login failed
  */
 router.get('/google/failure', (req, res) => {
-  res.status(401).json({ success: false, error: { message: 'Google login failed', code: 'GOOGLE_AUTH_FAILED', statusCode: 401, details: {} } });
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent('Google login failed')}&provider=Google`;
+  res.redirect(redirectUrl);
 });
 
 /**
@@ -537,12 +555,28 @@ router.get('/google/failure', (req, res) => {
  *       - Authentication
  *     summary: LinkedIn OAuth login
  *     description: Initiate LinkedIn OAuth authentication
+ *     parameters:
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *           enum: [user, vendor]
+ *           default: user
+ *         description: Role for the user account (user or vendor)
  *     responses:
  *       302:
  *         description: Redirect to LinkedIn OAuth
  */
 // LinkedIn OAuth login (initiate)
-router.get('/linkedin', passport.authenticate('linkedin'));
+router.get('/linkedin', (req, res, next) => {
+  // Store role in session for use in callback
+  if (req.query.role && ['user', 'vendor'].includes(req.query.role)) {
+    req.session.oauthRole = req.query.role;
+  } else {
+    req.session.oauthRole = 'user'; // default to user
+  }
+  passport.authenticate('linkedin')(req, res, next);
+});
 
 /**
  * @openapi
@@ -576,7 +610,9 @@ router.get('/linkedin/callback', passport.authenticate('linkedin', { session: fa
  *         description: OAuth login failed
  */
 router.get('/linkedin/failure', (req, res) => {
-  res.status(401).json({ success: false, error: { message: 'LinkedIn login failed', code: 'LINKEDIN_AUTH_FAILED', statusCode: 401, details: {} } });
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent('LinkedIn login failed')}&provider=LinkedIn`;
+  res.redirect(redirectUrl);
 });
 
 module.exports = router;

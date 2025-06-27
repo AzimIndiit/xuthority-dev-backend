@@ -10,18 +10,27 @@ passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL: process.env.GOOGLE_CALLBACK_URL,
-}, async (accessToken, refreshToken, profile, done) => {
+  passReqToCallback: true, // Enable access to req object
+}, async (req, accessToken, refreshToken, profile, done) => {
   try {
     let user = await User.findOne({ email: profile.emails[0].value });
     if (!user) {
+      // Get role from session, default to 'user'
+      const role = req.session?.oauthRole || 'user';
+      
       user = await User.create({
         firstName: profile.name.givenName,
         lastName: profile.name.familyName,
         email: profile.emails[0].value,
-        role: 'user',
+        role: role,
         authProvider: 'google',
         acceptedTerms: true, // You may want to handle this in the UI
       });
+      
+      // Clear the session role after user creation
+      if (req.session) {
+        req.session.oauthRole = undefined;
+      }
     }
     return done(null, user);
   } catch (err) {
@@ -35,19 +44,28 @@ passport.use(new LinkedInStrategy({
   clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
   callbackURL: process.env.LINKEDIN_CALLBACK_URL,
   scope: ["profile", "email", "openid"],
-}, async (accessToken, refreshToken, profile, done) => {
+  passReqToCallback: true, // Enable access to req object
+}, async (req, accessToken, refreshToken, profile, done) => {
   try {
     console.log(profile,"profile");
     let user = await User.findOne({ email: profile.email});
     if (!user) {
+      // Get role from session, default to 'user'
+      const role = req.session?.oauthRole || 'user';
+      
       user = await User.create({
         firstName: profile.givenName,
         lastName: profile.familyName,
         email: profile.email,
-        role: 'user',
+        role: role,
         authProvider: 'linkedin',
         acceptedTerms: true, // You may want to handle this in the UI
       });
+      
+      // Clear the session role after user creation
+      if (req.session) {
+        req.session.oauthRole = undefined;
+      }
     }
     return done(null, user);
   } catch (err) {
@@ -71,6 +89,7 @@ passport.use(new JwtStrategy({
     return done(err, false);
   }
 }));
+
 // Serialize user for the session
 passport.serializeUser((user, done) => {
   done(null, user);

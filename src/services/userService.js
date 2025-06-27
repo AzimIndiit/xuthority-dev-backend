@@ -237,7 +237,7 @@ exports.updateUserProfile = async (userId, updateData) => {
   // Only allow specific fields to be updated
   const allowedFields = [
     'firstName', 'lastName', 'region', 'description', 'industry', 'title',
-    'companyName', 'companySize', 'companyEmail', 'socialLinks', 'acceptedMarketing'
+    'companyName', 'companySize', 'companyEmail', 'socialLinks', 'acceptedMarketing', 'avatar',
   ];
   const update = {};
   for (const key of allowedFields) {
