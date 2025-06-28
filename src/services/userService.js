@@ -238,6 +238,8 @@ exports.updateUserProfile = async (userId, updateData) => {
   const allowedFields = [
     'firstName', 'lastName', 'region', 'description', 'industry', 'title',
     'companyName', 'companySize', 'companyEmail', 'socialLinks', 'acceptedMarketing', 'avatar',
+    // Vendor-specific fields
+    'companyAvatar', 'yearFounded', 'hqLocation', 'companyDescription', 'companyWebsiteUrl',
   ];
   const update = {};
   for (const key of allowedFields) {

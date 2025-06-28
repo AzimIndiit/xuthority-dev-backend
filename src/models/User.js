@@ -28,6 +28,12 @@ const userSchema = new mongoose.Schema({
   companyName: { type: String, trim: false },
   companySize: { type: String, enum: COMPANY_SIZES, required: false },
   companyEmail: { type: String, trim: true, default: '' },
+  // Additional vendor-specific fields
+  companyAvatar: { type: String, trim: true, default: '' },
+  yearFounded: { type: String, trim: true, default: '' },
+  hqLocation: { type: String, trim: true, default: '' },
+  companyDescription: { type: String, trim: false, default: '' },
+  companyWebsiteUrl: { type: String, trim: true, default: '' },
   socialLinks: {
     linkedin: { type: String, trim: true, default: '' },
     twitter: { type: String, trim: true, default: '' },

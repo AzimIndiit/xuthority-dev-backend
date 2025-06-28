@@ -13,9 +13,64 @@ exports.updateProfileValidator = [
     '201-500 Employees', '500+ Employees'
   ]),
   body('companyEmail').optional().isEmail().normalizeEmail(),
+  // Vendor-specific field validations
+  body('companyAvatar').optional().custom((value) => {
+    if (!value || value === '') return true; // Allow empty string or undefined
+    if (typeof value === 'string' && value.length > 0) {
+      // Only validate URL if it's not empty
+      const urlPattern = /^https?:\/\/.+/;
+      if (!urlPattern.test(value)) {
+        throw new Error('Company avatar must be a valid URL');
+      }
+      if (value.length > 500) {
+        throw new Error('Company avatar URL is too long');
+      }
+    }
+    return true;
+  }),
+  body('yearFounded').optional().isString().isLength({ min: 4, max: 4 }).matches(/^\d{4}$/),
+  body('hqLocation').optional().isString().trim().isLength({ max: 200 }),
+  body('companyDescription').optional().isString().isLength({ max: 2000 }),
+  body('companyWebsiteUrl').optional().custom((value) => {
+    if (!value || value === '') return true; // Allow empty string or undefined
+    if (typeof value === 'string' && value.length > 0) {
+      const urlPattern = /^https?:\/\/.+/;
+      if (!urlPattern.test(value)) {
+        throw new Error('Company website must be a valid URL');
+      }
+      if (value.length > 200) {
+        throw new Error('Company website URL is too long');
+      }
+    }
+    return true;
+  }),
   body('socialLinks').optional().isObject(),
-  body('socialLinks.linkedin').optional().isString().isURL().isLength({ max: 200 }),
-  body('socialLinks.twitter').optional().isString().isURL().isLength({ max: 200 }),
+  body('socialLinks.linkedin').optional().custom((value) => {
+    if (!value || value === '') return true; // Allow empty string or undefined
+    if (typeof value === 'string' && value.length > 0) {
+      const urlPattern = /^https?:\/\/.+/;
+      if (!urlPattern.test(value)) {
+        throw new Error('LinkedIn URL must be a valid URL');
+      }
+      if (value.length > 200) {
+        throw new Error('LinkedIn URL is too long');
+      }
+    }
+    return true;
+  }),
+  body('socialLinks.twitter').optional().custom((value) => {
+    if (!value || value === '') return true; // Allow empty string or undefined
+    if (typeof value === 'string' && value.length > 0) {
+      const urlPattern = /^https?:\/\/.+/;
+      if (!urlPattern.test(value)) {
+        throw new Error('Twitter URL must be a valid URL');
+      }
+      if (value.length > 200) {
+        throw new Error('Twitter URL is too long');
+      }
+    }
+    return true;
+  }),
   body('acceptedMarketing').optional().isBoolean(),
 ];
 
