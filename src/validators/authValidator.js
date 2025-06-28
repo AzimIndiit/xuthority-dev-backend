@@ -20,7 +20,8 @@ const validateRegister = [
   body('password')
     .trim()
     .notEmpty().withMessage('Password is required')
-    .isLength({ min: 8, max: 100 }).withMessage('Password must be 8-100 characters'),
+    .isLength({ min: 8, max: 128 }).withMessage('Password must be 8-128 characters')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -85,7 +86,8 @@ const validateVendorRegister = [
   body('password')
     .trim()
     .notEmpty().withMessage('Password is required')
-    .isLength({ min: 8, max: 100 }).withMessage('Password must be 8-100 characters'),
+    .isLength({ min: 8, max: 128 }).withMessage('Password must be 8-128 characters')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
   body('companyName')
     .trim()
     .escape()
@@ -158,8 +160,8 @@ const validateResetPassword = [
   body('newPassword')
     .trim()
     .notEmpty().withMessage('New password is required')
-    .isLength({ min: 8, max: 128 }).withMessage('New password must be between 8 and 128 characters'),
-    // .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('New password must contain at least one lowercase letter, one uppercase letter, and one number'),
+    .isLength({ min: 8, max: 128 }).withMessage('New password must be between 8 and 128 characters')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('New password must contain at least one lowercase letter, one uppercase letter, and one number'),
   body('confirmNewPassword')
     .trim()
     .notEmpty().withMessage('Password confirmation is required')

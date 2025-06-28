@@ -131,7 +131,7 @@ class EmailService {
   async sendPasswordResetEmail(email, resetToken, userName) {
     try {
       const frontendUrl = config?.app?.frontendUrl || 'http://localhost:3001';
-      const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+      const resetUrl = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
 
       const templateData = {
         userName: userName || 'User',
