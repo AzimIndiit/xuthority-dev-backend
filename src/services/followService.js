@@ -439,11 +439,176 @@ const getFollowing = async (userId, page, limit, search) => {
   });
 };
 
+/**
+ * Remove a follower (force unfollow from the target user's side)
+ * @param {string} userId - ID of the user removing the follower
+ * @param {string} followerId - ID of the follower to remove
+ * @returns {Object} Result with success message
+ */
+const removeFollower = async (userId, followerId) => {
+  // Use transactions only if not in test environment or if replica set is available
+  const useTransactions = process.env.NODE_ENV !== 'test';
+  
+  if (useTransactions) {
+    return await removeFollowerWithTransaction(userId, followerId);
+  } else {
+    return await removeFollowerWithoutTransaction(userId, followerId);
+  }
+};
+
+/**
+ * Remove follower with transaction support
+ */
+const removeFollowerWithTransaction = async (userId, followerId) => {
+  const session = await mongoose.startSession();
+  
+  try {
+    await session.startTransaction();
+
+    // Check if users exist
+    const [user, follower] = await Promise.all([
+      User.findById(userId),
+      User.findById(followerId)
+    ]);
+
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+
+    if (!follower) {
+      throw new ApiError('Follower not found', 'FOLLOWER_NOT_FOUND', 404);
+    }
+
+    // Check if the follower relationship exists
+    const existingFollow = await Follow.findOne({
+      follower: followerId,
+      following: userId
+    });
+
+    if (!existingFollow) {
+      throw new ApiError('User is not a follower', 'NOT_A_FOLLOWER', 400);
+    }
+
+    // Remove follow relationship
+    await Follow.deleteOne({
+      follower: followerId,
+      following: userId
+    }, { session });
+
+    // Update counts
+    await User.findByIdAndUpdate(
+      followerId,
+      { $inc: { followingCount: -1 } },
+      { session }
+    );
+
+    await User.findByIdAndUpdate(
+      userId,
+      { $inc: { followersCount: -1 } },
+      { session }
+    );
+
+    // Mark follow notification as read if it exists
+    await Notification.findOneAndUpdate({
+      userId: userId,
+      type: 'FOLLOW',
+      'meta.followerId': followerId,
+      isRead: false
+    }, { isRead: true });
+
+    await session.commitTransaction();
+
+    return {
+      message: 'Follower removed successfully',
+      removedFollower: {
+        _id: follower._id,
+        firstName: follower.firstName,
+        lastName: follower.lastName,
+        email: follower.email
+      }
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
+/**
+ * Remove follower without transaction (for test environments)
+ */
+const removeFollowerWithoutTransaction = async (userId, followerId) => {
+  try {
+    // Check if users exist
+    const [user, follower] = await Promise.all([
+      User.findById(userId),
+      User.findById(followerId)
+    ]);
+
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+
+    if (!follower) {
+      throw new ApiError('Follower not found', 'FOLLOWER_NOT_FOUND', 404);
+    }
+
+    // Check if the follower relationship exists
+    const existingFollow = await Follow.findOne({
+      follower: followerId,
+      following: userId
+    });
+
+    if (!existingFollow) {
+      throw new ApiError('User is not a follower', 'NOT_A_FOLLOWER', 400);
+    }
+
+    // Remove follow relationship
+    await Follow.deleteOne({
+      follower: followerId,
+      following: userId
+    });
+
+    // Update counts
+    await User.findByIdAndUpdate(
+      followerId,
+      { $inc: { followingCount: -1 } }
+    );
+
+    await User.findByIdAndUpdate(
+      userId,
+      { $inc: { followersCount: -1 } }
+    );
+
+    // Mark follow notification as read if it exists
+    await Notification.findOneAndUpdate({
+      userId: userId,
+      type: 'FOLLOW',
+      'meta.followerId': followerId,
+      isRead: false
+    }, { isRead: true });
+
+    return {
+      message: 'Follower removed successfully',
+      removedFollower: {
+        _id: follower._id,
+        firstName: follower.firstName,
+        lastName: follower.lastName,
+        email: follower.email
+      }
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   toggleFollow,
   getFollowList,
   getFollowStats,
   getFollowStatus,
   getFollowers,
-  getFollowing
+  getFollowing,
+  removeFollower
 }; 
