@@ -177,7 +177,7 @@ exports.updateProduct = async (req, res, next) => {
     const vendorId = req.user._id.toString();
     const updateData = req.body;
 
-    const product = await productService.updateProduct(productId, vendorId, updateData);
+    const product = await productService.updateProduct(productId,updateData,vendorId);
 
     await logEvent({
       user: req.user,

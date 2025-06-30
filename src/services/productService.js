@@ -209,7 +209,7 @@ const getProductById = async (productId, incrementViews = false) => {
 const getProductBySlug = async (slug, incrementViews = false) => {
   const product = await Product.findOne({ slug })
     .populate([
-      { path: 'userId', select: 'firstName lastName companyName email socialLinks' },
+      { path: 'userId', select: 'firstName lastName companyName email socialLinks companyDescription companyWebsiteUrl hqLocation yearFounded companyAvatar socialLinks' },
       { path: 'industries', select: 'name slug status' },
       { path: 'languages', select: 'name slug status' },
       { path: 'integrations', select: 'name image status' },
@@ -246,8 +246,8 @@ const updateProduct = async (productId, updateData, userId) => {
   }
 
   // Check ownership - support both userId and vendor fields
-  const isOwner = product.userId?.toString() === userId || 
-                 product.vendor?.toString() === userId;
+  const isOwner = product.userId?.toString() === userId 
+             
   
   if (!isOwner) {
     throw new ApiError('You can only update your own products', 'UNAUTHORIZED_UPDATE', 403);
