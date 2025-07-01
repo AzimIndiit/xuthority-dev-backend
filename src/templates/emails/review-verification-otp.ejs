@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your Review - XUTHORITY</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f8fafc; padding: 30px; border-radius: 0 0 8px 8px; }
+    .otp-code { background: #e2e8f0; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; margin: 20px 0; border-radius: 8px; }
+    .footer { text-align: center; margin-top: 30px; color: #64748b; font-size: 14px; }
+    .button { display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>XUTHORITY</h1>
+      <p>Review Verification</p>
+    </div>
+    <div class="content">
+      <h2>Verify Your Review</h2>
+      <p>Hello ,</p>
+      <p>Thank you for submitting your review on XUTHORITY. To ensure the authenticity of reviews, we need to verify your identity.</p>
+      
+      <p><strong>Your verification code is:</strong></p>
+      <div class="otp-code"><%= otp %></div>
+      
+      <p>This code will expire in <strong>10 minutes</strong>.</p>
+      
+      <p>If you didn't request this verification, please ignore this email.</p>
+      
+      <p>Best regards,<br>The XUTHORITY Team</p>
+    </div>
+    <div class="footer">
+      <p>This is an automated message. Please do not reply to this email.</p>
+      <p>&copy; 2024 XUTHORITY. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

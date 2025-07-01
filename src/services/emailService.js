@@ -221,6 +221,22 @@ class EmailService {
       throw error;
     }
   }
+
+  async sendReviewVerificationOTP(email, otp) {
+    try {
+     
+
+      await this.sendTemplatedEmail({
+        to: email,
+        subject: 'Review Verification OTP',
+        template: 'review-verification-otp.ejs',
+        data: { otp }
+      });
+    } catch (error) {
+      logger.error('Error sending review verification OTP email:', error);
+      throw new Error('Failed to send review verification OTP email');
+    }
+  }
 }
 
 module.exports = new EmailService();

@@ -201,16 +201,17 @@ const getProducts = async (options = {}) => {
 
   // Add text search if provided
   if (search) {
-    filter.$text = { $search: search };
+    // Use regex for more flexible search instead of $text
+    filter.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } },
+      { keywords: { $in: [new RegExp(search, 'i')] } }
+    ];
   }
 
   // Build sort object
   const sort = {};
-  if (search) {
-    sort.score = { $meta: 'textScore' };
-  } else {
-    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
-  }
+  sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
   // Execute query with pagination
   const skip = (page - 1) * limit;

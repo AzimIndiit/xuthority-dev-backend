@@ -6,6 +6,7 @@ const apiResponse = require("../utils/apiResponse");
 const { logEvent } = require("../services/auditService");
 const { createNotification } = require('../services/notificationService');
 const emailService = require('../services/emailService');
+const userService = require('../services/userService');
 
 const SALT_ROUNDS = process.env.BCRYPT_SALT_ROUNDS ? parseInt(process.env.BCRYPT_SALT_ROUNDS) : 12;
 const TOKEN_EXPIRY = "7d";
@@ -278,7 +279,7 @@ exports.forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     
-    await require('../services/userService').forgotPassword(email);
+    await userService.forgotPassword(email);
     
     // Log the password reset request
     await logEvent({
@@ -303,7 +304,7 @@ exports.resetPassword = async (req, res, next) => {
   try {
     const { token, newPassword } = req.body;
     
-    await require('../services/userService').resetPassword(token, newPassword);
+    await userService.resetPassword(token, newPassword);
     
     // Log the password reset
     await logEvent({
@@ -328,7 +329,7 @@ exports.verifyResetToken = async (req, res, next) => {
   try {
     const { token } = req.body;
     
-    const userData = await require('../services/userService').verifyResetToken(token);
+    const userData = await userService.verifyResetToken(token);
     
     return res.json(apiResponse.success(
       userData, 
@@ -375,6 +376,59 @@ exports.handleOAuthCallback = async (req, res, provider) => {
     // Redirect to frontend with error
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent('Authentication failed')}&provider=${encodeURIComponent(provider)}`;
+    
+    res.redirect(redirectUrl);
+  }
+};
+
+// Add new method for LinkedIn verification callback
+exports.handleLinkedInVerificationCallback = async (req, res) => {
+  try {
+    const user = req.user;
+    
+    // For verification flow, user object contains LinkedIn data directly
+    let linkedInData;
+    
+    if (user.isVerification && user.linkedInData) {
+      // This is from the verification strategy
+      linkedInData = user.linkedInData;
+    } else {
+      // Fallback to user object (if using regular LinkedIn strategy)
+      linkedInData = {
+        linkedInId: user._id?.toString() || 'unknown',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        profileUrl: `https://linkedin.com/in/${user.firstName}-${user.lastName}`,
+        profilePicture: '',
+        headline: '',
+        industry: ''
+      };
+    }
+
+    // Only log if we have a real user (not verification flow)
+    if (!user.isVerification) {
+      await logEvent({
+        user: req.user,
+        action: "LINKEDIN_VERIFICATION",
+        target: "User",
+        targetId: req.user._id,
+        details: { method: "linkedin", linkedInId: linkedInData.linkedInId },
+        req,
+      });
+    }
+
+    // Redirect to frontend with LinkedIn verification data
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const redirectUrl = `${frontendUrl}/write-review?linkedin_verified=true&linkedin_data=${encodeURIComponent(JSON.stringify(linkedInData))}`;
+    
+    res.redirect(redirectUrl);
+  } catch (error) {
+    console.error('LinkedIn verification callback error:', error);
+    
+    // Redirect to frontend with error
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const redirectUrl = `${frontendUrl}/write-review?linkedin_error=${encodeURIComponent('LinkedIn verification failed')}`;
     
     res.redirect(redirectUrl);
   }

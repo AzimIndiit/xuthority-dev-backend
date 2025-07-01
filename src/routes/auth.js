@@ -615,4 +615,60 @@ router.get('/linkedin/failure', (req, res) => {
   res.redirect(redirectUrl);
 });
 
+/**
+ * @openapi
+ * /auth/linkedin/verify:
+ *   get:
+ *     tags:
+ *       - Authentication
+ *     summary: LinkedIn verification for review verification
+ *     description: Initiate LinkedIn OAuth authentication specifically for review verification
+ *     responses:
+ *       302:
+ *         description: Redirect to LinkedIn OAuth
+ */
+// LinkedIn verification for review verification (initiate)
+router.get('/linkedin/verify', (req, res, next) => {
+  // Mark this as verification flow
+  req.session.verificationFlow = true;
+  passport.authenticate('linkedin-verify')(req, res, next);
+});
+
+/**
+ * @openapi
+ * /auth/linkedin/verify/callback:
+ *   get:
+ *     tags:
+ *       - Authentication
+ *     summary: LinkedIn verification callback
+ *     description: Handle LinkedIn verification callback for review verification
+ *     responses:
+ *       200:
+ *         description: LinkedIn verification successful
+ *       401:
+ *         description: LinkedIn verification failed
+ */
+// LinkedIn verification callback  
+router.get('/linkedin/verify/callback', passport.authenticate('linkedin-verify', { session: false, failureRedirect: '/api/v1/auth/linkedin/verify/failure' }), (req, res) => {
+  authController.handleLinkedInVerificationCallback(req, res);
+});
+
+/**
+ * @openapi
+ * /auth/linkedin/verify/failure:
+ *   get:
+ *     tags:
+ *       - Authentication
+ *     summary: LinkedIn verification failure
+ *     description: Handle LinkedIn verification failure
+ *     responses:
+ *       401:
+ *         description: LinkedIn verification failed
+ */
+router.get('/linkedin/verify/failure', (req, res) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const redirectUrl = `${frontendUrl}/write-review?linkedin_error=${encodeURIComponent('LinkedIn verification failed')}`;
+  res.redirect(redirectUrl);
+});
+
 module.exports = router;

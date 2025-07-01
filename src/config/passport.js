@@ -39,7 +39,7 @@ passport.use(new GoogleStrategy({
 }));
 
 // LinkedIn OAuth Strategy
-passport.use(new LinkedInStrategy({
+passport.use('linkedin', new LinkedInStrategy({
   clientID: process.env.LINKEDIN_CLIENT_ID,
   clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
   callbackURL: process.env.LINKEDIN_CALLBACK_URL,
@@ -47,7 +47,20 @@ passport.use(new LinkedInStrategy({
   passReqToCallback: true, // Enable access to req object
 }, async (req, accessToken, refreshToken, profile, done) => {
   try {
-    console.log(profile,"profile");
+    console.log(profile,"LinkedIn profile");
+    
+    // Store additional LinkedIn profile data for verification flow
+    const linkedInData = {
+      linkedInId: profile.id,
+      firstName: profile.givenName,
+      lastName: profile.familyName,
+      email: profile.email,
+      profileUrl: profile.publicProfileUrl || `https://linkedin.com/in/${profile.id}`,
+      profilePicture: profile.pictureUrl || profile.displayPictureUrl,
+      headline: profile.headline,
+      industry: profile.industry
+    };
+    
     let user = await User.findOne({ email: profile.email});
     if (!user) {
       // Get role from session, default to 'user'
@@ -67,7 +80,46 @@ passport.use(new LinkedInStrategy({
         req.session.oauthRole = undefined;
       }
     }
+    
+    // Attach LinkedIn data to user object for verification flow
+    user.linkedInData = linkedInData;
+    
     return done(null, user);
+  } catch (err) {
+    return done(err, null);
+  }
+}));
+
+// LinkedIn Verification Strategy (separate for review verification)
+passport.use('linkedin-verify', new LinkedInStrategy({
+  clientID: process.env.LINKEDIN_CLIENT_ID,
+  clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+  callbackURL: 'http://localhost:8081/api/v1/auth/linkedin/verify/callback',
+  scope: ["profile", "email", "openid"],
+  passReqToCallback: true, // Enable access to req object
+}, async (req, accessToken, refreshToken, profile, done) => {
+  try {
+    console.log(profile,"LinkedIn verification profile");
+    
+    // Store additional LinkedIn profile data for verification flow
+    const linkedInData = {
+      linkedInId: profile.id,
+      firstName: profile.givenName,
+      lastName: profile.familyName,
+      email: profile.email,
+      profileUrl: profile.publicProfileUrl || `https://linkedin.com/in/${profile.id}`,
+      profilePicture: profile.pictureUrl || profile.displayPictureUrl,
+      headline: profile.headline,
+      industry: profile.industry
+    };
+    
+    // For verification flow, we don't need to create/find user, just return LinkedIn data
+    const verificationUser = {
+      linkedInData,
+      isVerification: true
+    };
+    
+    return done(null, verificationUser);
   } catch (err) {
     return done(err, null);
   }
