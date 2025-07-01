@@ -6752,7 +6752,13 @@
                 "views",
                 "likes",
                 "avgRating",
-                "totalReviews"
+                "totalReviews",
+                "ratings-desc",
+                "ratings-asc",
+                "pricing-desc",
+                "pricing-asc",
+                "reviewCounts-desc",
+                "reviewCounts-asc"
               ],
               "default": "createdAt"
             }
@@ -6767,6 +6773,48 @@
                 "desc"
               ],
               "default": "desc"
+            }
+          },
+          {
+            "in": "query",
+            "name": "segment",
+            "schema": {
+              "type": "string",
+              "description": "Market segment filter"
+            }
+          },
+          {
+            "in": "query",
+            "name": "categories",
+            "schema": {
+              "type": "string",
+              "description": "Comma-separated list of categories"
+            }
+          },
+          {
+            "in": "query",
+            "name": "industries",
+            "schema": {
+              "type": "string",
+              "description": "Comma-separated list of industries"
+            }
+          },
+          {
+            "in": "query",
+            "name": "minPrice",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Minimum price filter"
+            }
+          },
+          {
+            "in": "query",
+            "name": "maxPrice",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Maximum price filter"
             }
           }
         ],

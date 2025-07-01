@@ -42,5 +42,6 @@ module.exports = {
   blogService,
   productReviewService,
   reviewReplyService,
-  disputeService
+  disputeService,
+  searchService: require('./searchService')
 };

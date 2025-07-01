@@ -791,7 +791,7 @@ router.get('/user/:userId',
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [createdAt, updatedAt, name, views, likes, avgRating, totalReviews]
+ *           enum: [createdAt, updatedAt, name, views, likes, avgRating, totalReviews, ratings-desc, ratings-asc, pricing-desc, pricing-asc, reviewCounts-desc, reviewCounts-asc]
  *           default: createdAt
  *       - in: query
  *         name: sortOrder
@@ -799,6 +799,33 @@ router.get('/user/:userId',
  *           type: string
  *           enum: [asc, desc]
  *           default: desc
+ *       - in: query
+ *         name: segment
+ *         schema:
+ *           type: string
+ *           description: Market segment filter
+ *       - in: query
+ *         name: categories
+ *         schema:
+ *           type: string
+ *           description: Comma-separated list of categories
+ *       - in: query
+ *         name: industries
+ *         schema:
+ *           type: string
+ *           description: Comma-separated list of industries
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *           description: Minimum price filter
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *           description: Maximum price filter
  *     responses:
  *       200:
  *         description: Products retrieved successfully

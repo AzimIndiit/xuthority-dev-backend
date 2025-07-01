@@ -52,6 +52,7 @@ router.use(`${API_PREFIX}/disputes`, disputeRoutes);
 router.use(`${API_PREFIX}/badges`, badgeRoutes);
 router.use(`${API_PREFIX}/user-badges`, userBadgeRoutes);
 router.use('/notifications', notifications);
+router.use('/search', require('./search'));
 
 // API documentation route
 router.get('/', (req, res) => {

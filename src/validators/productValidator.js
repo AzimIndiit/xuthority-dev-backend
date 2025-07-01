@@ -342,7 +342,7 @@ const productValidator = {
 
     query('sort')
       .optional()
-      .isIn(['name', 'createdAt', 'avgRating', 'totalReviews', 'views', 'likes'])
+      .isIn(['name', 'createdAt', 'avgRating', 'totalReviews', 'views', 'likes','pricing'])
       .withMessage('Invalid sort field'),
 
     query('order')
@@ -398,7 +398,42 @@ const productValidator = {
     query('maxRating')
       .optional()
       .isFloat({ min: 0, max: 5 })
-      .withMessage('Maximum rating must be between 0 and 5')
+      .withMessage('Maximum rating must be between 0 and 5'),
+
+    query('segment')
+      .optional()
+      .isString()
+      .trim()
+      .withMessage('Segment must be a string'),
+
+    query('categories')
+      .optional()
+      .custom((value) => {
+        if (Array.isArray(value)) return true;
+        if (typeof value === 'string') return true;
+        return false;
+      })
+      .withMessage('Categories must be a string or array'),
+
+    query('minPrice')
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage('Minimum price must be a positive number'),
+
+    query('maxPrice')
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage('Maximum price must be a positive number'),
+
+    query('sortBy')
+      .optional()
+      .isIn(['createdAt', 'updatedAt', 'name', 'views', 'likes', 'avgRating', 'totalReviews', 'ratings-desc', 'ratings-asc', 'pricing-desc', 'pricing-asc', 'reviewCounts-desc', 'reviewCounts-asc','pricing'])
+      .withMessage('Invalid sort field'),
+
+    query('sortOrder')
+      .optional()
+      .isIn(['asc', 'desc'])
+      .withMessage('Sort order must be asc or desc')
   ]
 };
 

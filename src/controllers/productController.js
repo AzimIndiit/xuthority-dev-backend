@@ -80,7 +80,12 @@ exports.getProducts = async (req, res, next) => {
       sortOrder: req.query.sortOrder || 'desc',
       industries: req.query.industries,
       marketSegment: req.query.marketSegment,
-      solutions: req.query.solutions
+      solutions: req.query.solutions,
+      // New filter parameters
+      segment: req.query.segment,
+      categories: req.query.categories,
+      minPrice: req.query.minPrice ? parseFloat(req.query.minPrice) : undefined,
+      maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice) : undefined
     };
 
     // Convert comma-separated strings to arrays for ObjectId fields
@@ -92,6 +97,9 @@ exports.getProducts = async (req, res, next) => {
     }
     if (options.solutions && typeof options.solutions === 'string') {
       options.solutions = options.solutions.split(',');
+    }
+    if (options.categories && typeof options.categories === 'string') {
+      options.categories = options.categories.split(',');
     }
 
     const result = await productService.getProducts(options);
@@ -545,11 +553,24 @@ exports.getProductsByCategory = async (req, res, next) => {
       sortBy: req.query.sortBy || 'createdAt',
       sortOrder: req.query.sortOrder || 'desc',
       status: 'published', // Only published products
-      isActive: 'active' // Only active products
+      isActive: 'active', // Only active products
+      // New filter parameters
+      segment: req.query.segment,
+      categories: req.query.categories,
+      industries: req.query.industries,
+      minPrice: req.query.minPrice ? parseFloat(req.query.minPrice) : undefined,
+      maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice) : undefined
     };
 
+    // Convert comma-separated strings to arrays for filter fields
+    if (options.categories && typeof options.categories === 'string') {
+      options.categories = options.categories.split(',');
+    }
+    if (options.industries && typeof options.industries === 'string') {
+      options.industries = options.industries.split(',');
+    }
     // If we have both category and subCategory, we need to find the software/solution by slug
-    if (category && subCategory) {
+    if ( !options.categories && !options.industries && category && subCategory) {
       const { Software, Solution } = require('../models');
       
       if (category.toLowerCase() === 'software') {
@@ -564,7 +585,7 @@ exports.getProductsByCategory = async (req, res, next) => {
         }
       }
     }
-console.log(options,"options");
+    console.log(options,"options");
 
     const result = await productService.getProducts(options);
 

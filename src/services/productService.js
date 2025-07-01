@@ -83,7 +83,13 @@ const getProducts = async (options = {}) => {
     minRating,
     maxRating,
     sortBy = 'createdAt',
-    sortOrder = 'desc'
+    sortOrder = 'desc',
+    // New filter parameters
+    segment,
+    categories,
+    priceRange,
+    minPrice,
+    maxPrice
   } = options;
 
   // Build filter
@@ -133,6 +139,66 @@ const getProducts = async (options = {}) => {
     if (maxRating) filter.avgRating.$lte = maxRating;
   }
 
+  // Price filter
+  if (minPrice || maxPrice) {
+    filter['pricing.price'] = {};
+    if (minPrice) filter['pricing.price'].$gte = minPrice;
+    if (maxPrice) filter['pricing.price'].$lte = maxPrice;
+  }
+
+  // Segment filter (market segment)
+  if (segment && segment !== 'all') {
+    // Find market segment by name or slug
+    const { MarketSegment } = require('../models');
+    const segmentDoc = await MarketSegment.findOne({
+      $or: [
+        { name: { $regex: segment, $options: 'i' } },
+        { slug: segment }
+      ]
+    });
+    if (segmentDoc) {
+      filter.marketSegment = segmentDoc._id;
+    }
+  }
+
+  // Categories filter (software/solution categories)
+  if (categories && categories.length > 0) {
+    const { Software, Solution } = require('../models');
+    
+    // Find software/solution IDs by category names
+    const softwareIds = await Software.find({
+      name: { $in: categories }
+    }).distinct('_id');
+    
+    const solutionIds = await Solution.find({
+      name: { $in: categories }
+    }).distinct('_id');
+    
+    if (softwareIds.length > 0 || solutionIds.length > 0) {
+      filter.$or = [];
+      if (softwareIds.length > 0) {
+        filter.$or.push({ softwareIds: { $in: softwareIds } });
+      }
+      if (solutionIds.length > 0) {
+        filter.$or.push({ solutionIds: { $in: solutionIds } });
+      }
+    }
+  }
+
+  // Industries filter
+  if (industries && industries.length > 0) {
+    const { Industry } = require('../models');
+    
+    // Find industry IDs by industry names
+    const industryIds = await Industry.find({
+      name: { $in: industries }
+    }).distinct('_id');
+    
+    if (industryIds.length > 0) {
+      filter.industries = { $in: industryIds };
+    }
+  }
+
   // Add text search if provided
   if (search) {
     filter.$text = { $search: search };
@@ -148,7 +214,7 @@ const getProducts = async (options = {}) => {
 
   // Execute query with pagination
   const skip = (page - 1) * limit;
-  
+  console.log(filter,"filter",sort);
   const [products, total] = await Promise.all([
     Product.find(filter)
       .populate([

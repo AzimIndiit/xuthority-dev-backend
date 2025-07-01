@@ -202,7 +202,7 @@ const productSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: PRODUCT_STATUS,
-      default: "pending",
+      default: "published",
       index: true,
     },
 
