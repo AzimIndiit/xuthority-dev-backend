@@ -38,7 +38,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(compression);
 
 // Rate limiting
-app.use(rateLimiter);
+// app.use(rateLimiter);
 
 // Security middleware
 app.use(security);

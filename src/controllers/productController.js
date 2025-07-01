@@ -334,8 +334,18 @@ exports.getActiveProducts = async (req, res, next) => {
       sortBy: req.query.sortBy || 'createdAt',
       sortOrder: req.query.sortOrder || 'desc',
       status: 'published', // Only published products
-      isActive: 'active' // Only active products
+      isActive: 'active', // Only active products
+      softwareIds: req.query.softwareIds,
+      solutionIds: req.query.solutionIds
     };
+
+    // Convert comma-separated strings to arrays for ObjectId fields
+    if (options.softwareIds && typeof options.softwareIds === 'string') {
+      options.softwareIds = options.softwareIds.split(',');
+    }
+    if (options.solutionIds && typeof options.solutionIds === 'string') {
+      options.solutionIds = options.solutionIds.split(',');
+    }
 
     const result = await productService.getProducts(options);
 
@@ -508,6 +518,60 @@ exports.getProductsByUser = async (req, res, next) => {
       ApiResponse.success(
         result.products, 
         'User products retrieved successfully',
+        { pagination: result.pagination }
+      )
+    );
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getProductsByCategory = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json(
+        ApiResponse.error('Validation failed', {
+          errors: errors.array()
+        }, 400)
+      );
+    }
+
+    const { category, subCategory } = req.params;
+    const options = {
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 10,
+      search: req.query.search,
+      sortBy: req.query.sortBy || 'createdAt',
+      sortOrder: req.query.sortOrder || 'desc',
+      status: 'published', // Only published products
+      isActive: 'active' // Only active products
+    };
+
+    // If we have both category and subCategory, we need to find the software/solution by slug
+    if (category && subCategory) {
+      const { Software, Solution } = require('../models');
+      
+      if (category.toLowerCase() === 'software') {
+        const software = await Software.findOne({ slug: subCategory });
+        if (software) {
+          options.softwareIds = [software._id.toString()];
+        }
+      } else if (category.toLowerCase() === 'solutions') {
+        const solution = await Solution.findOne({ slug: subCategory });
+        if (solution) {
+          options.solutionIds = [solution._id.toString()];
+        }
+      }
+    }
+console.log(options,"options");
+
+    const result = await productService.getProducts(options);
+
+    return res.json(
+      ApiResponse.success(
+        result.products, 
+        'Products retrieved successfully',
         { pagination: result.pagination }
       )
     );

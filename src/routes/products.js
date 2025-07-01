@@ -188,6 +188,54 @@ router.get('/',
 
 /**
  * @openapi
+ * /products/active:
+ *   get:
+ *     summary: Get all active products (published/approved and active)
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, name, views, likes, avgRating, totalReviews]
+ *           default: createdAt
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *     responses:
+ *       200:
+ *         description: Active products retrieved successfully
+ */
+// Get all active products (published/approved and active)
+router.get('/active', 
+  productValidator.query,
+  validate(productValidator.query, 'query'),
+  productController.getActiveProducts
+);
+
+/**
+ * @openapi
  * /products/{id}:
  *   get:
  *     summary: Get product by ID
@@ -468,54 +516,6 @@ router.post('/:productId/rating',
 
 /**
  * @openapi
- * /products/active:
- *   get:
- *     summary: Get all active products (published/approved and active)
- *     tags:
- *       - Products
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 10
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *       - in: query
- *         name: sortBy
- *         schema:
- *           type: string
- *           enum: [createdAt, updatedAt, name, views, likes, avgRating, totalReviews]
- *           default: createdAt
- *       - in: query
- *         name: sortOrder
- *         schema:
- *           type: string
- *           enum: [asc, desc]
- *           default: desc
- *     responses:
- *       200:
- *         description: Active products retrieved successfully
- */
-// Get all active products (published/approved and active)
-router.get('/active', 
-  productValidator.query,
-  validate(productValidator.query, 'query'),
-  productController.getActiveProducts
-);
-
-/**
- * @openapi
  * /products/search:
  *   get:
  *     summary: Search products
@@ -748,6 +748,68 @@ router.get('/user/:userId',
   productValidator.query,
   validate(productValidator.query, 'query'),
   productController.getProductsByUser
+);
+
+/**
+ * @openapi
+ * /products/category/{category}/{subCategory}:
+ *   get:
+ *     summary: Get products by category and subcategory
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: path
+ *         name: category
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category (software or solutions)
+ *       - in: path
+ *         name: subCategory
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Subcategory slug
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, name, views, likes, avgRating, totalReviews]
+ *           default: createdAt
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *     responses:
+ *       200:
+ *         description: Products retrieved successfully
+ *       404:
+ *         description: Category or subcategory not found
+ */
+// Get products by category and subcategory
+router.get('/category/:category/:subCategory', 
+  productValidator.query,
+  validate(productValidator.query, 'query'),
+  productController.getProductsByCategory
 );
 
 module.exports = router;

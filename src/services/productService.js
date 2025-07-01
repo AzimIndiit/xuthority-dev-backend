@@ -75,6 +75,8 @@ const getProducts = async (options = {}) => {
     industries,
     marketSegment,
     solutions,
+    softwareIds,
+    solutionIds,
     search,
     isActive,
     isFeatured,
@@ -113,6 +115,15 @@ const getProducts = async (options = {}) => {
   
   if (solutions && solutions.length) {
     filter.solutions = { $in: solutions };
+  }
+
+  // Handle softwareIds and solutionIds filtering
+  if (softwareIds && softwareIds.length) {
+    filter.softwareIds = { $in: softwareIds };
+  }
+  
+  if (solutionIds && solutionIds.length) {
+    filter.solutionIds = { $in: solutionIds };
   }
 
   // Rating filter
