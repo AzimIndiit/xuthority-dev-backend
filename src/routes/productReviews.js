@@ -232,6 +232,35 @@ router.get('/product/:productId',
 
 /**
  * @openapi
+ * /product-reviews/product/{productId}/my-review:
+ *   get:
+ *     summary: Get current user's review for a specific product
+ *     tags: [Product Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *     responses:
+ *       200:
+ *         description: User's review retrieved successfully
+ *       404:
+ *         description: Review not found or product not found
+ *       401:
+ *         description: Unauthorized
+ */
+// Get current user's review for a specific product (authenticated users only)
+router.get('/product/:productId/my-review', 
+  auth,
+  productReviewController.getUserReviewForProduct
+);
+
+/**
+ * @openapi
  * /product-reviews/product/{productId}/stats:
  *   get:
  *     summary: Get review statistics for a product

@@ -5642,6 +5642,41 @@
         }
       }
     },
+    "/product-reviews/product/{productId}/my-review": {
+      "get": {
+        "summary": "Get current user's review for a specific product",
+        "tags": [
+          "Product Reviews"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User's review retrieved successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Review not found or product not found"
+          }
+        }
+      }
+    },
     "/product-reviews/product/{productId}/stats": {
       "get": {
         "summary": "Get review statistics for a product",

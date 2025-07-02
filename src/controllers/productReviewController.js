@@ -51,6 +51,11 @@ const moderateReview = asyncHandler(async (req, res) => {
   res.json(result);
 });
 
+const getUserReviewForProduct = asyncHandler(async (req, res) => {
+  const result = await productReviewService.getUserReviewForProduct(req.params.productId, req.user.id);
+  res.json(result);
+});
+
 module.exports = {
   createProductReview,
   getAllProductReviews,
@@ -61,5 +66,6 @@ module.exports = {
   deleteProductReview,
   voteHelpful,
   removeHelpfulVote,
-  moderateReview
+  moderateReview,
+  getUserReviewForProduct
 }; 

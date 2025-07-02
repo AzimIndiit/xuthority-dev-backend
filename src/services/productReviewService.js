@@ -526,6 +526,37 @@ const getProductReviewStats = async (productId) => {
   }
 };
 
+/**
+ * Get current user's review for a specific product
+ */
+const getUserReviewForProduct = async (productId, userId) => {
+  try {
+    // Check if product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+      throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
+    }
+
+    // Find user's review for this product
+    const review = await ProductReview.findOne({
+      product: productId,
+      reviewer: userId
+    }).populate([
+      { path: 'reviewer', select: 'name email' },
+      { path: 'product', select: 'name slug' }
+    ]);
+
+    if (!review) {
+      throw new ApiError('Review not found', 'REVIEW_NOT_FOUND', 404);
+    }
+
+    return ApiResponse.success(review, 'User review retrieved successfully');
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError('Error retrieving user review', 'USER_REVIEW_FETCH_ERROR', 500, { originalError: error.message });
+  }
+};
+
 module.exports = {
   createProductReview,
   getAllProductReviews,
@@ -536,5 +567,6 @@ module.exports = {
   voteHelpful,
   removeHelpfulVote,
   moderateReview,
-  getProductReviewStats
+  getProductReviewStats,
+  getUserReviewForProduct
 }; 
