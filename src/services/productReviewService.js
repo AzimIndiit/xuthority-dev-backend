@@ -227,7 +227,7 @@ const getProductReviews = async (productId, queryParams) => {
 
     const reviews = await ProductReview.find(filter)
       .populate([
-        { path: 'reviewer', select: 'name email' },
+        { path: 'reviewer', select: 'email isVerified avatar firstName lastName title companyName companySize industry' },
         { path: 'product', select: 'name slug' }
       ])
       .sort(sortOptions)

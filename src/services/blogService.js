@@ -297,6 +297,118 @@ const deleteBlog = async (blogId) => {
   }
 };
 
+/**
+ * Get blogs grouped by categories with limit
+ */
+const getBlogsGroupedByCategories = async (limit = 6) => {
+  try {
+    const result = await Blog.aggregate([
+      // Match only active blogs
+      { $match: { status: 'active' } },
+      
+      // Lookup resource category details
+      {
+        $lookup: {
+          from: 'resourcecategories',
+          localField: 'resourceCategoryId',
+          foreignField: '_id',
+          as: 'category'
+        }
+      },
+      
+      // Unwind category array (should be single item)
+      { $unwind: '$category' },
+      
+      // Match only active categories
+      { $match: { 'category.status': 'active' } },
+      
+      // Lookup created by user details
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'createdBy',
+          foreignField: '_id',
+          as: 'createdBy',
+          pipeline: [
+            { $project: { name: 1, email: 1 } }
+          ]
+        }
+      },
+      
+      // Unwind createdBy array
+      { $unwind: { path: '$createdBy', preserveNullAndEmptyArrays: true } },
+      
+      // Sort blogs by creation date (newest first)
+      { $sort: { createdAt: -1 } },
+      
+      // Group by category and limit blogs per category
+      {
+        $group: {
+          _id: '$category._id',
+          category: { $first: '$category' },
+          blogs: { $push: '$$ROOT' },
+          totalBlogs: { $sum: 1 }
+        }
+      },
+      
+      // Limit blogs per category
+      {
+        $project: {
+          category: 1,
+          blogs: { $slice: ['$blogs', limit] },
+          totalBlogs: 1,
+          hasMore: { $gt: ['$totalBlogs', limit] }
+        }
+      },
+      
+      // Sort categories by name
+      { $sort: { 'category.name': 1 } },
+      
+      // Clean up the blog objects in the array
+      {
+        $project: {
+          category: {
+            _id: '$category._id',
+            name: '$category.name',
+            slug: '$category.slug',
+            status: '$category.status',
+            createdAt: '$category.createdAt',
+            updatedAt: '$category.updatedAt'
+          },
+          blogs: {
+            $map: {
+              input: '$blogs',
+              as: 'blog',
+              in: {
+                _id: '$$blog._id',
+                title: '$$blog.title',
+                slug: '$$blog.slug',
+                description: '$$blog.description',
+                authorName: '$$blog.authorName',
+                designation: '$$blog.designation',
+                mediaUrl: '$$blog.mediaUrl',
+                watchUrl: '$$blog.watchUrl',
+                tag: '$$blog.tag',
+                status: '$$blog.status',
+                resourceCategoryId: '$$blog.category',
+                createdBy: '$$blog.createdBy',
+                createdAt: '$$blog.createdAt',
+                updatedAt: '$$blog.updatedAt'
+              }
+            }
+          },
+          totalBlogs: 1,
+          hasMore: 1
+        }
+      }
+    ]);
+
+    return ApiResponse.success(result, 'Blogs grouped by categories retrieved successfully');
+  } catch (error) {
+    throw new ApiError('Error retrieving blogs grouped by categories', 'BLOGS_GROUPED_FETCH_ERROR', 500, { originalError: error.message });
+  }
+};
+
 module.exports = {
   createBlog,
   getAllBlogs,
@@ -307,5 +419,6 @@ module.exports = {
   getBlogsByTag,
   updateBlog,
   toggleBlogStatus,
-  deleteBlog
+  deleteBlog,
+  getBlogsGroupedByCategories
 }; 

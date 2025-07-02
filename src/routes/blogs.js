@@ -114,6 +114,25 @@ router.get('/active', blogController.getActiveBlogs);
 
 /**
  * @openapi
+ * /api/v1/blogs/grouped-by-categories:
+ *   get:
+ *     summary: Get blogs grouped by categories with limit
+ *     tags: [Blogs]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 6
+ *         description: Number of blogs per category
+ *     responses:
+ *       200:
+ *         description: Blogs grouped by categories retrieved successfully
+ */
+router.get('/grouped-by-categories', blogController.getBlogsGroupedByCategories);
+
+/**
+ * @openapi
  * /api/v1/blogs/category/{categoryId}:
  *   get:
  *     summary: Get blogs by category

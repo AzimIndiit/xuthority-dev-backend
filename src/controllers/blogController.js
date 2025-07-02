@@ -140,6 +140,21 @@ const deleteBlog = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Get blogs grouped by categories
+ * @route   GET /api/v1/blogs/grouped-by-categories
+ * @access  Public
+ */
+const getBlogsGroupedByCategories = async (req, res, next) => {
+  try {
+    const { limit } = req.query;
+    const result = await blogService.getBlogsGroupedByCategories(limit ? parseInt(limit) : 6);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createBlog,
   getAllBlogs,
@@ -150,5 +165,6 @@ module.exports = {
   getBlogsByTag,
   updateBlog,
   toggleBlogStatus,
-  deleteBlog
+  deleteBlog,
+  getBlogsGroupedByCategories
 }; 
