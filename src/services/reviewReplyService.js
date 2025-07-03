@@ -281,7 +281,7 @@ const getAllReplies = async (queryParams) => {
 
     const replies = await ReviewReply.find(filter)
       .populate([
-        { path: 'author', select: 'firstName lastName email' },
+        { path: 'author', select: 'firstName lastName email avatar' },
         { path: 'review', select: 'title product', populate: { path: 'product', select: 'name' } }
       ])
       .sort(sortOptions)
