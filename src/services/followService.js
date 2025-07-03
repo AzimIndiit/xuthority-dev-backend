@@ -31,6 +31,11 @@ const toggleFollowWithTransaction = async (currentUserId, targetUserId) => {
   try {
     await session.startTransaction();
 
+    // Prevent self-follow
+    if (currentUserId === targetUserId) {
+      throw new ApiError('Cannot follow yourself', 'CANNOT_FOLLOW_SELF', 400);
+    }
+
     // Check if target user exists
     const targetUser = await User.findById(targetUserId);
     if (!targetUser) {
@@ -143,6 +148,11 @@ const toggleFollowWithTransaction = async (currentUserId, targetUserId) => {
  */
 const toggleFollowWithoutTransaction = async (currentUserId, targetUserId) => {
   try {
+    // Prevent self-follow
+    if (currentUserId === targetUserId) {
+      throw new ApiError('Cannot follow yourself', 'CANNOT_FOLLOW_SELF', 400);
+    }
+
     // Check if target user exists
     const targetUser = await User.findById(targetUserId);
     if (!targetUser) {
@@ -322,7 +332,8 @@ const getFollowList = async (options) => {
         followersCount: '$user.followersCount',
         followingCount: '$user.followingCount',
         isFollowing: { $gt: [{ $size: '$currentUserFollows' }, 0] },
-        createdAt: '$createdAt'
+        createdAt: '$createdAt',
+        avatar: '$user.avatar'
       }
     },
     { $sort: { createdAt: -1 } }

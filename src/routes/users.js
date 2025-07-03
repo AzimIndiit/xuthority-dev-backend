@@ -311,6 +311,80 @@ router.get(
 
 /**
  * @openapi
+ * /users/public-profile/slug/{slug}:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get user public profile by slug
+ *     description: Retrieve public profile information for any user using their slug
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User slug (e.g., john-doe)
+ *         example: "john-doe"
+ *     responses:
+ *       200:
+ *         description: Public profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                           example: "507f1f77bcf86cd799439011"
+ *                         firstName:
+ *                           type: string
+ *                           example: "John"
+ *                         lastName:
+ *                           type: string
+ *                           example: "Doe"
+ *                         slug:
+ *                           type: string
+ *                           example: "john-doe"
+ *                         userType:
+ *                           type: string
+ *                           example: "user"
+ *                         companyName:
+ *                           type: string
+ *                           example: "Tech Solutions Inc"
+ *                         isVerified:
+ *                           type: boolean
+ *                           example: true
+ *                         followersCount:
+ *                           type: integer
+ *                           example: 42
+ *                         followingCount:
+ *                           type: integer
+ *                           example: 15
+ *                 message:
+ *                   type: string
+ *                   example: "Public profile retrieved successfully"
+ *       404:
+ *         description: User not found
+ *       400:
+ *         description: Invalid slug format
+ */
+// GET /api/v1/users/public-profile/slug/:slug - Get any user's public profile by slug
+router.get(
+  '/public-profile/slug/:slug',
+  userController.getPublicProfileBySlug
+);
+
+/**
+ * @openapi
  * /users/profile:
  *   patch:
  *     tags:
@@ -514,6 +588,284 @@ router.patch(
     next();
   },
   changePassword
+);
+
+/**
+ * @openapi
+ * /users/{userId}/reviews:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get user's reviews
+ *     description: Retrieve all approved reviews written by a specific user
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: '^[0-9a-fA-F]{24}$'
+ *         description: User ID (MongoDB ObjectId)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 20
+ *           default: 10
+ *         description: Number of reviews per page
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [publishedAt, overallRating, title]
+ *           default: publishedAt
+ *         description: Field to sort by
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
+ *     responses:
+ *       200:
+ *         description: User reviews retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     reviews:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           title:
+ *                             type: string
+ *                           content:
+ *                             type: string
+ *                           overallRating:
+ *                             type: integer
+ *                           publishedAt:
+ *                             type: string
+ *                             format: date-time
+ *                           product:
+ *                             type: object
+ *                             properties:
+ *                               name:
+ *                                 type: string
+ *                               slug:
+ *                                 type: string
+ *                               logo:
+ *                                 type: string
+ *                               avgRating:
+ *                                 type: number
+ *                               totalReviews:
+ *                                 type: integer
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         currentPage:
+ *                           type: integer
+ *                         totalPages:
+ *                           type: integer
+ *                         totalItems:
+ *                           type: integer
+ *                         itemsPerPage:
+ *                           type: integer
+ *                         hasNext:
+ *                           type: boolean
+ *                         hasPrev:
+ *                           type: boolean
+ *                     total:
+ *                       type: integer
+ *                 message:
+ *                   type: string
+ *                   example: "User reviews retrieved successfully"
+ *       404:
+ *         description: User not found
+ *       400:
+ *         description: Invalid user ID format
+ */
+// GET /api/v1/users/:userId/reviews - Get user's reviews
+router.get(
+  '/:userId/reviews',
+  userIdValidator,
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(
+        new ApiError('Validation error', 'VALIDATION_ERROR', 400, { errors: errors.array() })
+      );
+    }
+    next();
+  },
+  userController.getUserReviews
+);
+
+/**
+ * @openapi
+ * /users/{userId}/profile-stats:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get user's profile statistics
+ *     description: Retrieve statistics for a user's profile including reviews count, disputes, followers, and following
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: '^[0-9a-fA-F]{24}$'
+ *         description: User ID (MongoDB ObjectId)
+ *     responses:
+ *       200:
+ *         description: User profile statistics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     reviewsWritten:
+ *                       type: integer
+ *                       example: 4
+ *                     disputes:
+ *                       type: integer
+ *                       example: 0
+ *                     followers:
+ *                       type: integer
+ *                       example: 1200
+ *                     following:
+ *                       type: integer
+ *                       example: 1100
+ *                 message:
+ *                   type: string
+ *                   example: "User profile statistics retrieved successfully"
+ *       404:
+ *         description: User not found
+ *       400:
+ *         description: Invalid user ID format
+ */
+// GET /api/v1/users/:userId/profile-stats - Get user's profile statistics
+router.get(
+  '/:userId/profile-stats',
+  userIdValidator,
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(
+        new ApiError('Validation error', 'VALIDATION_ERROR', 400, { errors: errors.array() })
+      );
+    }
+    next();
+  },
+  userController.getUserProfileStats
+);
+
+/**
+ * @openapi
+ * /users/slug/{slug}/reviews:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get user's reviews by slug
+ *     description: Retrieve all approved reviews written by a specific user using their slug
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User slug (e.g., john-doe)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 20
+ *           default: 10
+ *         description: Number of reviews per page
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [publishedAt, overallRating, title]
+ *           default: publishedAt
+ *         description: Field to sort by
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
+ *     responses:
+ *       200:
+ *         description: User reviews retrieved successfully
+ *       404:
+ *         description: User not found
+ */
+// GET /api/v1/users/slug/:slug/reviews - Get user's reviews by slug
+router.get(
+  '/slug/:slug/reviews',
+  userController.getUserReviewsBySlug
+);
+
+/**
+ * @openapi
+ * /users/slug/{slug}/profile-stats:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get user's profile statistics by slug
+ *     description: Retrieve statistics for a user's profile using their slug
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User slug (e.g., john-doe)
+ *     responses:
+ *       200:
+ *         description: User profile statistics retrieved successfully
+ *       404:
+ *         description: User not found
+ */
+// GET /api/v1/users/slug/:slug/profile-stats - Get user's profile statistics by slug
+router.get(
+  '/slug/:slug/profile-stats',
+  userController.getUserProfileStatsBySlug
 );
 
 module.exports = router;

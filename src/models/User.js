@@ -15,9 +15,30 @@ const COMPANY_SIZES = [
   '500+ Employees',
 ];
 
+// Helper function to generate slug from name
+const generateSlug = (firstName, lastName) => {
+  if (!firstName || !lastName) {
+    return '';
+  }
+  
+  const slug = `${firstName}-${lastName}`
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .trim('-'); // Remove leading/trailing hyphens
+    
+  return slug;
+};
+
 const userSchema = new mongoose.Schema({
   firstName: { type: String, required: true, trim: true },
   lastName: { type: String, required: true, trim: true },
+  slug: { 
+    type: String, 
+    unique: true, 
+    trim: true
+  },
   avatar: { type: String, required: false, default: '' },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: false }, // hashed
@@ -75,6 +96,39 @@ const userSchema = new mongoose.Schema({
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
+});
+
+// Pre-save hook to generate unique slug
+userSchema.pre('save', async function(next) {
+  // Only generate slug if firstName or lastName has changed, or slug doesn't exist
+  if (this.isModified('firstName') || this.isModified('lastName') || !this.slug) {
+    let baseSlug = generateSlug(this.firstName, this.lastName);
+    
+    if (!baseSlug) {
+      return next(new Error('Unable to generate slug from firstName and lastName'));
+    }
+    
+    let slug = baseSlug;
+    let counter = 1;
+    
+    // Check for uniqueness and add counter if needed
+    while (true) {
+      const existingUser = await this.constructor.findOne({ 
+        slug: slug, 
+        _id: { $ne: this._id } // Exclude current document
+      });
+      
+      if (!existingUser) {
+        this.slug = slug;
+        break;
+      }
+      
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+  }
+  
+  next();
 });
 
 module.exports = mongoose.model('User', userSchema);

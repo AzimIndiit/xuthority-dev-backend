@@ -132,6 +132,125 @@ exports.getPublicProfile = async (req, res, next) => {
   }
 };
 
+exports.getPublicProfileBySlug = async (req, res, next) => {
+  try {
+    const slug = req.params.slug;
+    const user = await require('../services/userService').getPublicUserProfileBySlug(slug);
+    
+    // Log the profile access
+    await require('../services/auditService').logEvent({
+      user: req.user,
+      action: 'view_public_profile_by_slug',
+      target: 'User',
+      targetId: user._id,
+      details: { slug },
+      req,
+    });
+    
+    return res.json(require('../utils/apiResponse').success({ user }, 'Public profile retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getUserReviews = async (req, res, next) => {
+  try {
+    const userId = req.params.userId;
+    const options = {
+      page: parseInt(req.query.page) || 1,
+      limit: Math.min(parseInt(req.query.limit) || 10, 20),
+      sortBy: req.query.sortBy || 'publishedAt',
+      sortOrder: req.query.sortOrder || 'desc'
+    };
+    
+    const result = await require('../services/userService').getUserReviews(userId, options);
+    
+    // Log the profile access
+    await require('../services/auditService').logEvent({
+      user: req.user,
+      action: 'view_user_reviews',
+      target: 'User',
+      targetId: userId,
+      details: { options },
+      req,
+    });
+    
+    return res.json(require('../utils/apiResponse').success(result, 'User reviews retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getUserReviewsBySlug = async (req, res, next) => {
+  try {
+    const slug = req.params.slug;
+    const options = {
+      page: parseInt(req.query.page) || 1,
+      limit: Math.min(parseInt(req.query.limit) || 10, 20),
+      sortBy: req.query.sortBy || 'publishedAt',
+      sortOrder: req.query.sortOrder || 'desc'
+    };
+    
+    const result = await require('../services/userService').getUserReviewsBySlug(slug, options);
+    
+    // Log the profile access
+    await require('../services/auditService').logEvent({
+      user: req.user,
+      action: 'view_user_reviews_by_slug',
+      target: 'User',
+      targetId: null, // We don't have the user ID here, but slug is in details
+      details: { slug, options },
+      req,
+    });
+    
+    return res.json(require('../utils/apiResponse').success(result, 'User reviews retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getUserProfileStats = async (req, res, next) => {
+  try {
+    const userId = req.params.userId;
+    const stats = await require('../services/userService').getUserProfileStats(userId);
+    
+    // Log the profile stats access
+    await require('../services/auditService').logEvent({
+      user: req.user,
+      action: 'view_user_profile_stats',
+      target: 'User',
+      targetId: userId,
+      details: {},
+      req,
+    });
+    
+    return res.json(require('../utils/apiResponse').success(stats, 'User profile statistics retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getUserProfileStatsBySlug = async (req, res, next) => {
+  try {
+    const slug = req.params.slug;
+    const stats = await require('../services/userService').getUserProfileStatsBySlug(slug);
+    
+    // Log the profile stats access
+    await require('../services/auditService').logEvent({
+      user: req.user,
+      action: 'view_user_profile_stats_by_slug',
+      target: 'User',
+      targetId: null, // We don't have the user ID here, but slug is in details
+      details: { slug },
+      req,
+    });
+    
+    return res.json(require('../utils/apiResponse').success(stats, 'User profile statistics retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.changePassword = async (req, res, next) => {
   try {
     const userId = req.user._id;

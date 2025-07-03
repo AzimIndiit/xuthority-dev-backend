@@ -96,10 +96,10 @@ exports.getFollowStatus = async (req, res, next) => {
     const followerId = req.user._id.toString();
     const followingId = req.params.userId;
 
-    const isFollowing = await followService.isFollowing(followerId, followingId);
+    const followStatus = await followService.getFollowStatus(followerId, followingId);
 
     return res.json(apiResponse.success({
-      isFollowing,
+      isFollowing: followStatus.isFollowing,
       userId: followingId
     }, 'Follow status retrieved successfully'));
   } catch (err) {

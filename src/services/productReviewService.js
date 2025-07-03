@@ -227,7 +227,7 @@ const getProductReviews = async (productId, queryParams) => {
 
     const reviews = await ProductReview.find(filter)
       .populate([
-        { path: 'reviewer', select: 'email isVerified avatar firstName lastName title companyName companySize industry' },
+        { path: 'reviewer', select: 'email isVerified avatar firstName lastName title companyName companySize industry slug ' },
         { path: 'product', select: 'name slug userId' }
       ])
       .sort(sortOptions)
@@ -341,7 +341,7 @@ const updateProductReview = async (reviewId, updateData, userId) => {
     const updatedReview = await review.save();
 
     await updatedReview.populate([
-      { path: 'reviewer', select: 'name email' },
+      { path: 'reviewer', select: 'name email avatar slug' },
       { path: 'product', select: 'name slug' }
     ]);
 
@@ -487,7 +487,7 @@ const moderateReview = async (reviewId, moderationData) => {
     await review.save();
 
     await review.populate([
-      { path: 'reviewer', select: 'name email' },
+      { path: 'reviewer', select: 'name email avatar slug' },
       { path: 'product', select: 'name slug' }
     ]);
 
@@ -542,7 +542,7 @@ const getUserReviewForProduct = async (productId, userId) => {
       product: productId,
       reviewer: userId
     }).populate([
-      { path: 'reviewer', select: 'name email' },
+      { path: 'reviewer', select: 'name email avatar slug ' },
       { path: 'product', select: 'name slug' }
     ]);
 

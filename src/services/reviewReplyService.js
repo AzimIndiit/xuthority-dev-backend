@@ -28,7 +28,7 @@ const createReply = async (reviewId, replyData, userId) => {
 
     // Populate author information
     await reply.populate([
-      { path: 'author', select: 'firstName lastName email profilePicture' },
+      { path: 'author', select: 'firstName lastName email profilePicture slug' },
       { path: 'review', select: 'title' }
     ]);
 
@@ -94,7 +94,7 @@ const getReplyById = async (replyId) => {
   try {
     const reply = await ReviewReply.findById(replyId)
       .populate([
-        { path: 'author', select: 'firstName lastName email profilePicture' },
+        { path: 'author', select: 'firstName lastName email profilePicture avatar slug' },
         { path: 'review', select: 'title product', populate: { path: 'product', select: 'name' } }
       ]);
 
@@ -130,7 +130,7 @@ const updateReply = async (replyId, updateData, userId) => {
     const updatedReply = await reply.save();
 
     await updatedReply.populate([
-      { path: 'author', select: 'firstName lastName email profilePicture' },
+      { path: 'author', select: 'firstName lastName email profilePicture avatar slug  ' },
       { path: 'review', select: 'title' }
     ]);
 
@@ -281,7 +281,7 @@ const getAllReplies = async (queryParams) => {
 
     const replies = await ReviewReply.find(filter)
       .populate([
-        { path: 'author', select: 'firstName lastName email avatar' },
+        { path: 'author', select: 'firstName lastName email avatar slug' },
         { path: 'review', select: 'title product', populate: { path: 'product', select: 'name' } }
       ])
       .sort(sortOptions)

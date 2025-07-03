@@ -22,6 +22,27 @@ exports.getUserProfile = async (userId) => {
 };
 
 /**
+ * Get any user's public profile by slug (limited public data)
+ * @param {string} slug - User's slug
+ * @returns {Promise<User>}
+ */
+exports.getPublicUserProfileBySlug = async (slug) => {
+  const user = await User.findOne({ slug })
+    .select('-password -accessToken -companyEmail -acceptedMarketing -acceptedTerms -emailVerified -authProvider');
+  
+  if (!user) {
+    throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+  }
+  
+  // Transform role to userType for public API consistency
+  const userProfile = user.toObject();
+  userProfile.userType = user.role;
+  delete userProfile.role;
+  
+  return userProfile;
+};
+
+/**
  * Get any user's public profile (limited public data)
  * @param {string} userId - User's MongoDB _id
  * @returns {Promise<User>}
@@ -280,4 +301,194 @@ exports.verifyVendorProfile = async (userId) => {
     actionUrl: '/profile'
   });
   return user;
+};
+
+/**
+ * Get user's reviews for public profile
+ * @param {string} userId - User's MongoDB _id
+ * @param {object} options - Query options (page, limit, sort)
+ * @returns {Promise<object>}
+ */
+exports.getUserReviews = async (userId, options = {}) => {
+  const { page = 1, limit = 10, sortBy = 'publishedAt', sortOrder = 'desc' } = options;
+  
+  const ProductReview = require('../models/ProductReview');
+  
+  // Check if user exists
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+  }
+
+  const skip = (page - 1) * limit;
+  const sortOptions = {};
+  sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+  const filter = {
+    reviewer: userId,
+    status: 'approved',
+    publishedAt: { $ne: null }
+  };
+
+  const [reviews, total] = await Promise.all([
+    ProductReview.find(filter)
+      .populate([
+        { path: 'product', select: 'name slug logo avgRating totalReviews' },
+        { path: 'reviewer', select: 'firstName lastName avatar isVerified' }
+      ])
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit)),
+    ProductReview.countDocuments(filter)
+  ]);
+
+  const pagination = {
+    currentPage: parseInt(page),
+    totalPages: Math.ceil(total / limit),
+    totalItems: total,
+    itemsPerPage: parseInt(limit),
+    hasNext: page < Math.ceil(total / limit),
+    hasPrev: page > 1
+  };
+
+  return {
+    reviews,
+    pagination,
+    total
+  };
+};
+
+/**
+ * Get user's profile statistics
+ * @param {string} userId - User's MongoDB _id
+ * @returns {Promise<object>}
+ */
+exports.getUserProfileStats = async (userId) => {
+  const ProductReview = require('../models/ProductReview');
+  const Dispute = require('../models/Dispute');
+  const Follow = require('../models/Follow');
+  
+  // Check if user exists
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+  }
+
+  // Get reviews count
+  const reviewsCount = await ProductReview.countDocuments({
+    reviewer: userId,
+    status: 'approved',
+    publishedAt: { $ne: null }
+  });
+
+  // Get disputes count (as a vendor)
+  const disputesCount = await Dispute.countDocuments({
+    vendor: userId
+  });
+
+  // Get follow statistics
+  const [followersCount, followingCount] = await Promise.all([
+    Follow.countDocuments({ following: userId }),
+    Follow.countDocuments({ follower: userId })
+  ]);
+
+  return {
+    reviewsWritten: reviewsCount,
+    disputes: disputesCount,
+    followers: followersCount,
+    following: followingCount
+  };
+};
+
+/**
+ * Get user's reviews for public profile by slug
+ * @param {string} slug - User's slug
+ * @param {object} options - Query options (page, limit, sort)
+ * @returns {Promise<object>}
+ */
+exports.getUserReviewsBySlug = async (slug, options = {}) => {
+  const { page = 1, limit = 10, sortBy = 'publishedAt', sortOrder = 'desc' } = options;
+  
+  const ProductReview = require('../models/ProductReview');
+  
+  // Get user profile first (this will throw error if user not found)
+  const userProfile = await exports.getPublicUserProfileBySlug(slug);
+  const userId = userProfile._id;
+
+  const skip = (page - 1) * limit;
+  const sortOptions = {};
+  sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+  const filter = {
+    reviewer: userId,
+    status: 'approved',
+    publishedAt: { $ne: null }
+  };
+
+  const [reviews, total] = await Promise.all([
+    ProductReview.find(filter)
+      .populate([
+        { path: 'product', select: 'name slug logo avgRating totalReviews' },
+        { path: 'reviewer', select: 'firstName lastName avatar isVerified' }
+      ])
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit)),
+    ProductReview.countDocuments(filter)
+  ]);
+
+  const pagination = {
+    currentPage: parseInt(page),
+    totalPages: Math.ceil(total / limit),
+    totalItems: total,
+    itemsPerPage: parseInt(limit),
+    hasNext: page < Math.ceil(total / limit),
+    hasPrev: page > 1
+  };
+
+  return {
+    reviews,
+    pagination,
+    total
+  };
+};
+
+/**
+ * Get user's profile statistics by slug
+ * @param {string} slug - User's slug
+ * @returns {Promise<object>}
+ */
+exports.getUserProfileStatsBySlug = async (slug) => {
+  const ProductReview = require('../models/ProductReview');
+  const Dispute = require('../models/Dispute');
+  const Follow = require('../models/Follow');
+  
+  // Get user profile first (this will throw error if user not found)
+  const userProfile = await exports.getPublicUserProfileBySlug(slug);
+  const userId = userProfile._id;
+
+  // Get reviews count
+  const reviewsCount = await ProductReview.countDocuments({
+    reviewer: userId,
+    status: 'approved',
+    publishedAt: { $ne: null }
+  });
+
+  // Get disputes count (as a vendor)
+  const disputesCount = await Dispute.countDocuments({
+    vendor: userId
+  });
+
+  // Get follow statistics
+  const [followersCount, followingCount] = await Promise.all([
+    Follow.countDocuments({ following: userId }),
+    Follow.countDocuments({ follower: userId })
+  ]);
+
+  return {
+    reviewsWritten: reviewsCount,
+    disputes: disputesCount,
+    followers: followersCount,
+    following: followingCount
+  };
 };
