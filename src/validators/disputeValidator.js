@@ -88,9 +88,41 @@ const idValidator = [
     .withMessage('Invalid dispute ID')
 ];
 
+const addExplanationValidator = [
+  param('id')
+    .isMongoId()
+    .withMessage('Invalid dispute ID'),
+
+  body('explanation')
+    .notEmpty()
+    .withMessage('Explanation is required')
+    .isLength({ min: 1, max: 2000 })
+    .withMessage('Explanation must be between 1 and 2000 characters')
+    .trim()
+];
+
+const updateExplanationValidator = [
+  param('id')
+    .isMongoId()
+    .withMessage('Invalid dispute ID'),
+
+  param('explanationId')
+    .isMongoId()
+    .withMessage('Invalid explanation ID'),
+
+  body('explanation')
+    .notEmpty()
+    .withMessage('Explanation is required')
+    .isLength({ min: 1, max: 2000 })
+    .withMessage('Explanation must be between 1 and 2000 characters')
+    .trim()
+];
+
 module.exports = {
   createDisputeValidator,
   updateDisputeValidator,
   getDisputesValidator,
-  idValidator
+  idValidator,
+  addExplanationValidator,
+  updateExplanationValidator
 }; 

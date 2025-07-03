@@ -97,7 +97,8 @@ const getDisputeById = async (disputeId, vendorId) => {
       .populate([
         { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName' } },
         { path: 'product', select: 'name slug' },
-        { path: 'vendor', select: 'firstName lastName email' }
+        { path: 'vendor', select: 'firstName lastName email' },
+        { path: 'explanations.author', select: 'firstName lastName avatar' }
       ]);
 
     if (!dispute) {
@@ -201,6 +202,173 @@ const deleteDispute = async (disputeId, vendorId) => {
 };
 
 /**
+ * Add explanation to a dispute
+ */
+const addExplanation = async (disputeId, userId, explanation) => {
+  try {
+    console.log('Adding explanation - disputeId:', disputeId, 'userId:', userId, 'explanation:', explanation);
+    
+    const dispute = await Dispute.findById(disputeId);
+    console.log('Found dispute:', dispute ? 'Yes' : 'No');
+    
+    if (!dispute) {
+      throw new ApiError('Dispute not found', 'NOT_FOUND', 404);
+    }
+
+    // Check if user is involved in the dispute (either vendor or review author)
+    const review = await ProductReview.findById(dispute.review);
+    console.log('Found review:', review ? 'Yes' : 'No');
+    
+    const isVendor = dispute.vendor.toString() === userId.toString();
+    const isReviewAuthor = review && review.reviewer.toString() === userId.toString();
+    console.log('User authorization - isVendor:', isVendor, 'isReviewAuthor:', isReviewAuthor);
+    
+    if (!isVendor && !isReviewAuthor) {
+      throw new ApiError('You are not authorized to add explanations to this dispute', 'UNAUTHORIZED', 403);
+    }
+
+    // Initialize explanations array if it doesn't exist
+    if (!dispute.explanations) {
+      dispute.explanations = [];
+    }
+
+    // Add the explanation
+    dispute.explanations.push({
+      content: explanation,
+      author: userId,
+      createdAt: new Date()
+    });
+
+    console.log('Saving dispute with explanation...');
+    await dispute.save();
+    console.log('Dispute saved successfully');
+
+    // Populate the updated dispute
+    console.log('Populating updated dispute...');
+    const updatedDispute = await Dispute.findById(disputeId)
+      .populate([
+        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title' } },
+        { path: 'product', select: 'name slug' },
+        { path: 'vendor', select: 'firstName lastName email' },
+        { path: 'explanations.author', select: 'firstName lastName avatar' }
+      ]);
+    console.log('Dispute populated successfully');
+
+    // Send notification to the other party
+    console.log('Sending notification...');
+    const otherPartyId = isVendor ? review.reviewer : dispute.vendor;
+    if (otherPartyId) {
+      try {
+        await createNotification({
+          userId: otherPartyId,
+          type: 'DISPUTE_EXPLANATION',
+          title: 'New Explanation Added to Dispute',
+          message: 'A new explanation has been added to a dispute you are involved in.',
+          meta: { disputeId },
+          actionUrl: `/disputes/${disputeId}`
+        });
+        console.log('Notification sent successfully');
+      } catch (notificationError) {
+        console.error('Notification error (non-blocking):', notificationError);
+        // Don't throw error for notification failure
+      }
+    }
+
+    console.log('Returning updated dispute');
+    return updatedDispute;
+  } catch (error) {
+    console.error('Error in addExplanation:', error);
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError('Failed to add explanation', 'ADD_EXPLANATION_FAILED', 500);
+  }
+};
+
+/**
+ * Update explanation in a dispute
+ */
+const updateExplanation = async (disputeId, explanationId, userId, explanation) => {
+  try {
+    console.log('Updating explanation - disputeId:', disputeId, 'explanationId:', explanationId, 'userId:', userId);
+    
+    const dispute = await Dispute.findById(disputeId);
+    console.log('Found dispute:', dispute ? 'Yes' : 'No');
+    
+    if (!dispute) {
+      throw new ApiError('Dispute not found', 'NOT_FOUND', 404);
+    }
+
+    // Find the explanation to update
+    const explanationIndex = dispute.explanations.findIndex(
+      exp => exp._id.toString() === explanationId
+    );
+    
+    if (explanationIndex === -1) {
+      throw new ApiError('Explanation not found', 'EXPLANATION_NOT_FOUND', 404);
+    }
+
+    const existingExplanation = dispute.explanations[explanationIndex];
+
+    // Check if user is the author of the explanation
+    if (existingExplanation.author.toString() !== userId.toString()) {
+      throw new ApiError('You are not authorized to update this explanation', 'UNAUTHORIZED', 403);
+    }
+
+    // Update the explanation
+    dispute.explanations[explanationIndex].content = explanation;
+    dispute.explanations[explanationIndex].updatedAt = new Date();
+
+    console.log('Saving dispute with updated explanation...');
+    await dispute.save();
+    console.log('Dispute saved successfully');
+
+    // Populate the updated dispute
+    console.log('Populating updated dispute...');
+    const updatedDispute = await Dispute.findById(disputeId)
+      .populate([
+        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title' } },
+        { path: 'product', select: 'name slug' },
+        { path: 'vendor', select: 'firstName lastName email' },
+        { path: 'explanations.author', select: 'firstName lastName avatar' }
+      ]);
+    console.log('Dispute populated successfully');
+
+    // Send notification to the other party
+    console.log('Sending notification...');
+    const review = await ProductReview.findById(dispute.review);
+    const isVendor = dispute.vendor.toString() === userId.toString();
+    const otherPartyId = isVendor ? review.reviewer : dispute.vendor;
+    
+    if (otherPartyId) {
+      try {
+        await createNotification({
+          userId: otherPartyId,
+          type: 'DISPUTE_EXPLANATION_UPDATE',
+          title: 'Explanation Updated in Dispute',
+          message: 'An explanation has been updated in a dispute you are involved in.',
+          meta: { disputeId },
+          actionUrl: `/disputes/${disputeId}`
+        });
+        console.log('Notification sent successfully');
+      } catch (notificationError) {
+        console.error('Notification error (non-blocking):', notificationError);
+        // Don't throw error for notification failure
+      }
+    }
+
+    console.log('Returning updated dispute');
+    return updatedDispute;
+  } catch (error) {
+    console.error('Error in updateExplanation:', error);
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError('Failed to update explanation', 'UPDATE_EXPLANATION_FAILED', 500);
+  }
+};
+
+/**
  * Get all disputes with admin filtering (for admin panel)
  */
 const getAllDisputes = async (options = {}) => {
@@ -225,9 +393,10 @@ const getAllDisputes = async (options = {}) => {
 
     const disputes = await Dispute.find(filter)
       .populate([
-        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName' } },
+        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title' } },
         { path: 'product', select: 'name slug' },
-        { path: 'vendor', select: 'firstName lastName email' }
+        { path: 'vendor', select: 'firstName lastName email' },
+        { path: 'explanations.author', select: 'firstName lastName avatar' }
       ])
       .sort(sort)
       .skip(skip)
@@ -257,5 +426,7 @@ module.exports = {
   getAllDisputes,
   getDisputeById,
   updateDispute,
-  deleteDispute
+  deleteDispute,
+  addExplanation,
+  updateExplanation
 }; 

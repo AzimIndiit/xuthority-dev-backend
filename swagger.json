@@ -1763,6 +1763,119 @@
         }
       }
     },
+    "/api/v1/disputes/{id}/explanation": {
+      "post": {
+        "summary": "Add explanation to dispute",
+        "tags": [
+          "Disputes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "explanation"
+                ],
+                "properties": {
+                  "explanation": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Explanation added successfully"
+          },
+          "404": {
+            "description": "Dispute not found"
+          }
+        }
+      }
+    },
+    "/api/v1/disputes/{id}/explanation/{explanationId}": {
+      "put": {
+        "summary": "Update explanation in dispute",
+        "tags": [
+          "Disputes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "explanationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "explanation"
+                ],
+                "properties": {
+                  "explanation": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Explanation updated successfully"
+          },
+          "403": {
+            "description": "Unauthorized to update this explanation"
+          },
+          "404": {
+            "description": "Dispute or explanation not found"
+          }
+        }
+      }
+    },
     "/files/upload": {
       "post": {
         "summary": "Upload a single file",

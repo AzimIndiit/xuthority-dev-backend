@@ -34,6 +34,28 @@ const disputeSchema = new mongoose.Schema({
     maxlength: 2000,
     trim: true
   },
+  explanations: [{
+    content: {
+      type: String,
+      required: true,
+      minlength: 1,
+      maxlength: 2000,
+      trim: true
+    },
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   status: {
     type: String,
     enum: ['active', 'resolved'],
@@ -77,7 +99,8 @@ disputeSchema.statics.getDisputesByVendor = async function(vendorId, options = {
   const disputes = await this.find(filter)
     .populate([
       { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName' } },
-      { path: 'product', select: 'name slug' }
+      { path: 'product', select: 'name slug' },
+      { path: 'explanations.author', select: 'firstName lastName avatar' }
     ])
     .sort(sort)
     .skip(skip)

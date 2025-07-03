@@ -145,7 +145,6 @@ router.post(
 router.get(
   '/',
   auth,
-  authorize(['vendor']),
   validate(disputeValidator.getDisputesValidator),
   disputeController.getVendorDisputes
 );
@@ -195,8 +194,6 @@ router.get(
  */
 router.get(
   '/all',
-  auth,
-  authorize(['admin']),
   validate(disputeValidator.getDisputesValidator),
   disputeController.getAllDisputes
 );
@@ -269,7 +266,7 @@ router.get(
 router.put(
   '/:id',
   auth,
-  authorize(['vendor']),
+  authorize(['vendor','user']),
   validate(disputeValidator.updateDisputeValidator),
   disputeController.updateDispute
 );
@@ -300,6 +297,93 @@ router.delete(
   authorize(['vendor']),
   validate(disputeValidator.idValidator),
   disputeController.deleteDispute
+);
+
+/**
+ * @swagger
+ * /api/v1/disputes/{id}/explanation:
+ *   post:
+ *     summary: Add explanation to dispute
+ *     tags: [Disputes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - explanation
+ *             properties:
+ *               explanation:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 2000
+ *     responses:
+ *       200:
+ *         description: Explanation added successfully
+ *       404:
+ *         description: Dispute not found
+ */
+router.post(
+  '/:id/explanation',
+  auth,
+  validate(disputeValidator.addExplanationValidator),
+  disputeController.addExplanation
+);
+
+/**
+ * @swagger
+ * /api/v1/disputes/{id}/explanation/{explanationId}:
+ *   put:
+ *     summary: Update explanation in dispute
+ *     tags: [Disputes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: explanationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - explanation
+ *             properties:
+ *               explanation:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 2000
+ *     responses:
+ *       200:
+ *         description: Explanation updated successfully
+ *       404:
+ *         description: Dispute or explanation not found
+ *       403:
+ *         description: Unauthorized to update this explanation
+ */
+router.put(
+  '/:id/explanation/:explanationId',
+  auth,
+  validate(disputeValidator.updateExplanationValidator),
+  disputeController.updateExplanation
 );
 
 module.exports = router; 

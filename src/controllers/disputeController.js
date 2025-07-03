@@ -186,11 +186,59 @@ const deleteDispute = async (req, res, next) => {
   }
 };
 
+/**
+ * Add explanation to dispute
+ * POST /api/v1/disputes/:id/explanation
+ */
+const addExplanation = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { explanation } = req.body;
+    const userId = req.user.id;
+
+    const dispute = await disputeService.addExplanation(id, userId, explanation);
+
+    return res.json(
+      ApiResponse.success(
+        dispute,
+        'Explanation added successfully'
+      )
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update explanation in dispute
+ * PUT /api/v1/disputes/:id/explanation/:explanationId
+ */
+const updateExplanation = async (req, res, next) => {
+  try {
+    const { id, explanationId } = req.params;
+    const { explanation } = req.body;
+    const userId = req.user.id;
+
+    const dispute = await disputeService.updateExplanation(id, explanationId, userId, explanation);
+
+    return res.json(
+      ApiResponse.success(
+        dispute,
+        'Explanation updated successfully'
+      )
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createDispute,
   getVendorDisputes,
   getAllDisputes,
   getDisputeById,
   updateDispute,
-  deleteDispute
+  deleteDispute,
+  addExplanation,
+  updateExplanation
 }; 
