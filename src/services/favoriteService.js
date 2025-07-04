@@ -74,9 +74,10 @@ const removeFromFavorites = async (userId, productId, listName = null) => {
  */
 const getUserFavoriteLists = async (userId, options = {}) => {
   const { page = 1, limit = 10, search = '' } = options;
+  const skip = (page - 1) * limit;
 
-  // Build aggregation pipeline
-  const pipeline = [
+  // Build aggregation pipeline to get all lists first
+  const listsPipeline = [
     { $match: { userId: new mongoose.Types.ObjectId(userId) } },
     {
       $lookup: {
@@ -112,7 +113,8 @@ const getUserFavoriteLists = async (userId, options = {}) => {
             avgRating: '$product.avgRating',
             totalReviews: '$product.totalReviews',
             addedAt: '$createdAt',
-            notes: '$notes'
+            notes: '$notes',
+            brandColors: '$product.brandColors'
           }
         },
         totalProducts: { $sum: 1 },
@@ -123,7 +125,7 @@ const getUserFavoriteLists = async (userId, options = {}) => {
     {
       $project: {
         listName: '$_id',
-        products: { $slice: ['$products', (page - 1) * limit, limit] },
+        products: { $slice: ['$products', 3] }, // Only show first 3 products for preview
         totalProducts: 1,
         lastUpdated: 1,
         isDefault: 1,
@@ -133,15 +135,58 @@ const getUserFavoriteLists = async (userId, options = {}) => {
     { $sort: { isDefault: -1, lastUpdated: -1 } }
   ];
 
-  const lists = await Favorite.aggregate(pipeline);
+  // Get total count of lists
+  const totalCountPipeline = [
+    { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+    {
+      $lookup: {
+        from: 'products',
+        localField: 'productId',
+        foreignField: '_id',
+        as: 'product'
+      }
+    },
+    { $unwind: '$product' },
+    {
+      $match: {
+        'product.status': { $in: ['published', 'approved'] },
+        'product.isActive': 'active',
+        ...(search && {
+          $or: [
+            { 'product.name': { $regex: search, $options: 'i' } },
+            { listName: { $regex: search, $options: 'i' } }
+          ]
+        })
+      }
+    },
+    {
+      $group: {
+        _id: '$listName'
+      }
+    },
+    {
+      $count: 'totalLists'
+    }
+  ];
+
+  const [allLists, totalCountResult] = await Promise.all([
+    Favorite.aggregate(listsPipeline),
+    Favorite.aggregate(totalCountPipeline)
+  ]);
+
+  const totalLists = totalCountResult[0]?.totalLists || 0;
+  const totalPages = Math.ceil(totalLists / limit);
+
+  // Apply pagination to lists
+  const paginatedLists = allLists.slice(skip, skip + limit);
 
   return {
-    lists,
-    totalLists: lists.length,
+    lists: paginatedLists,
+    totalLists,
     pagination: {
       currentPage: page,
-      totalPages: Math.ceil(lists.length / limit),
-      totalItems: lists.reduce((sum, list) => sum + list.totalProducts, 0),
+      totalPages,
+      totalItems: totalLists,
       itemsPerPage: limit
     }
   };
