@@ -52,4 +52,29 @@ exports.markAllAsRead = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+// Get unread notifications count
+exports.getUnreadCount = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const count = await Notification.countDocuments({ userId, isRead: false });
+    return res.json(ApiResponse.success({ count }, 'Unread notifications count retrieved'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Delete a notification
+exports.deleteNotification = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const notification = await Notification.findOneAndDelete({ _id: req.params.id, userId });
+    if (!notification) {
+      return res.status(404).json(ApiResponse.success(null, 'Notification not found'));
+    }
+    return res.json(ApiResponse.success(null, 'Notification deleted successfully'));
+  } catch (err) {
+    next(err);
+  }
 }; 
