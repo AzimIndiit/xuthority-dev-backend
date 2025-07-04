@@ -333,7 +333,8 @@ const getFollowList = async (options) => {
         followingCount: '$user.followingCount',
         isFollowing: { $gt: [{ $size: '$currentUserFollows' }, 0] },
         createdAt: '$createdAt',
-        avatar: '$user.avatar'
+        avatar: '$user.avatar',
+        slug: '$user.slug'
       }
     },
     { $sort: { createdAt: -1 } }

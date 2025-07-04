@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const emailService = require('./emailService');
 const { createNotification } = require('../services/notificationService');
+const { Product } = require('../models');
 
 /**
  * Get user's own profile (full profile with sensitive data)
@@ -333,7 +334,7 @@ exports.getUserReviews = async (userId, options = {}) => {
   const [reviews, total] = await Promise.all([
     ProductReview.find(filter)
       .populate([
-        { path: 'product', select: 'name slug logo avgRating totalReviews' },
+        { path: 'product', select: 'name slug logo avgRating totalReviews brandColor logoUrl userId' },
         { path: 'reviewer', select: 'firstName lastName avatar isVerified' }
       ])
       .sort(sortOptions)
@@ -381,10 +382,27 @@ exports.getUserProfileStats = async (userId) => {
     publishedAt: { $ne: null }
   });
 
-  // Get disputes count (as a vendor)
-  const disputesCount = await Dispute.countDocuments({
-    vendor: userId
-  });
+  // Get disputes count based on user role
+  let disputesCount = 0;
+  let productCount = 0;
+  if (user.role === 'user') {
+    // If user role is 'user', get disputes where this user is the reviewer
+    // First, get all review IDs by this user
+    const reviewIds = await ProductReview.find({ reviewer: userId }).distinct('_id');
+    // Then count disputes for those reviews
+    disputesCount = await Dispute.countDocuments({
+      review: { $in: reviewIds }
+    });
+  } else if (user.role === 'vendor') {
+    // If user role is 'vendor', get disputes where this user is the vendor
+    
+    disputesCount = await Dispute.countDocuments({
+      vendor: userId
+    });
+    productCount = await Product.countDocuments({
+      userId: userId
+    });
+  }
 
   // Get follow statistics
   const [followersCount, followingCount] = await Promise.all([
@@ -396,7 +414,8 @@ exports.getUserProfileStats = async (userId) => {
     reviewsWritten: reviewsCount,
     disputes: disputesCount,
     followers: followersCount,
-    following: followingCount
+    following: followingCount,
+    products: productCount
   };
 };
 

@@ -287,7 +287,7 @@ const getProductById = async (productId, incrementViews = false) => {
 const getProductBySlug = async (slug, incrementViews = false) => {
   const product = await Product.findOne({ slug })
     .populate([
-      { path: 'userId', select: 'firstName lastName companyName email socialLinks companyDescription companyWebsiteUrl hqLocation yearFounded companyAvatar socialLinks' },
+      { path: 'userId', select: 'firstName lastName companyName email socialLinks companyDescription companyWebsiteUrl hqLocation yearFounded companyAvatar socialLinks slug' },
       { path: 'industries', select: 'name slug status' },
       { path: 'languages', select: 'name slug status' },
       { path: 'integrations', select: 'name image status' },
