@@ -9,6 +9,10 @@ const softwareSchema = new mongoose.Schema({
     unique: true,
     maxLength: [100, 'Software name cannot exceed 100 characters']
   },
+  isFeatured: {
+    type: Boolean,
+    default: false
+  },
   slug: {
     type: String,
     unique: true,

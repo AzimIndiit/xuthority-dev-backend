@@ -107,6 +107,39 @@ const validateToggleSoftwareStatus = [
     .withMessage('Invalid software ID')
 ];
 
+// Validation for getting featured softwares with top products
+const validateGetFeaturedSoftwaresWithProducts = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Limit must be between 1 and 100'),
+
+  query('productsPerSoftware')
+    .optional()
+    .isInt({ min: 1, max: 20 })
+    .withMessage('Products per software must be between 1 and 20'),
+
+  query('minRating')
+    .optional()
+    .isFloat({ min: 0, max: 5 })
+    .withMessage('Minimum rating must be between 0 and 5'),
+
+  query('sortBy')
+    .optional()
+    .isIn(['createdAt', 'avgRating', 'totalReviews', 'productCount', 'name'])
+    .withMessage('Invalid sort field'),
+
+  query('sortOrder')
+    .optional()
+    .isIn(['asc', 'desc'])
+    .withMessage('Sort order must be either asc or desc')
+];
+
 module.exports = {
   validateCreateSoftware,
   validateUpdateSoftware,
@@ -114,5 +147,6 @@ module.exports = {
   validateGetSoftwareBySlug,
   validateGetSoftwareList,
   validateDeleteSoftware,
-  validateToggleSoftwareStatus
+  validateToggleSoftwareStatus,
+  validateGetFeaturedSoftwaresWithProducts
 }; 

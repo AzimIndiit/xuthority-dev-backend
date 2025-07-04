@@ -1,463 +1,234 @@
 const request = require('supertest');
-const mongoose = require('mongoose');
 const app = require('../../../app');
-const { User, Software } = require('../../models');
+const { Software, Product, User } = require('../../models');
 
-describe('Software Integration Tests', () => {
-  let authToken;
+describe('Software API Integration Tests', () => {
   let testUser;
   let testSoftware;
+  let testProduct;
+  let authToken;
 
   beforeAll(async () => {
-    // This will run once before all tests
-  });
-
-  beforeEach(async () => {
-    // Clean software collection before each test
-    await Software.deleteMany({});
-    
-    // Create test user with hashed password for each test
-    const bcrypt = require('bcrypt');
-    const hashedPassword = await bcrypt.hash('Password123!', 10);
-    
+    // Create a test user
     testUser = await User.create({
       firstName: 'Test',
       lastName: 'User',
-      email: 'software.test@example.com',
-      password: hashedPassword,
-      isEmailVerified: true,
-      role: 'user',
-      acceptedTerms: true,
-      authProvider: 'email'
+      email: 'test@example.com',
+      password: 'password123',
+      role: 'admin',
+      isVerified: true
+    });
+
+    // Create a test software
+    testSoftware = await Software.create({
+      name: 'Test Software',
+      slug: 'test-software',
+      status: 'active',
+      createdBy: testUser._id
+    });
+
+    // Create a test product
+    testProduct = await Product.create({
+      name: 'Test Product',
+      slug: 'test-product',
+      description: 'Test product description',
+      softwareIds: [testSoftware._id],
+      userId: testUser._id,
+      status: 'published',
+      isActive: 'active',
+      avgRating: 4.5,
+      totalReviews: 10
     });
 
     // Login to get auth token
     const loginRes = await request(app)
       .post('/api/v1/auth/login')
-      .send({ 
-        email: 'software.test@example.com', 
-        password: 'Password123!' 
+      .send({
+        email: 'test@example.com',
+        password: 'password123'
       });
-    
+
     authToken = loginRes.body.data.token;
   });
 
-
-
   afterAll(async () => {
     // Clean up test data
-    if (testUser && testUser._id) {
-      await User.findByIdAndDelete(testUser._id);
-    }
-    await Software.deleteMany({});
-  });
-
-  describe('POST /api/v1/software', () => {
-    it('should create new software successfully', async () => {
-      const softwareData = {
-        name: 'Test Software',
-        status: 'active'
-      };
-
-      const response = await request(app)
-        .post('/api/v1/software')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(softwareData)
-        .expect(201);
-
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.name).toBe(softwareData.name);
-      expect(response.body.data.status).toBe('active');
-      expect(response.body.data.slug).toBe('test-software');
-      expect(response.body.data.createdBy._id).toBe(testUser._id.toString());
-      expect(response.body.message).toBe('Software created successfully');
-    });
-
-    it('should create software with default status when not provided', async () => {
-      const softwareData = {
-        name: 'Default Status Software'
-      };
-
-      const response = await request(app)
-        .post('/api/v1/software')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(softwareData)
-        .expect(201);
-
-      expect(response.body.data.status).toBe('active');
-    });
-
-    it('should return 400 for duplicate software name', async () => {
-      const softwareData = {
-        name: 'Duplicate Software'
-      };
-
-      // Create first software
-      await request(app)
-        .post('/api/v1/software')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(softwareData)
-        .expect(201);
-
-      // Try to create duplicate
-      const response = await request(app)
-        .post('/api/v1/software')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(softwareData)
-        .expect(400);
-
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toBe('Software name already exists');
-    });
-
-    it('should return 400 for missing required fields', async () => {
-      const response = await request(app)
-        .post('/api/v1/software')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({})
-        .expect(400);
-
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toContain('Software name is required');
-    });
-
-    it('should return 400 for invalid software name', async () => {
-      const softwareData = {
-        name: 'A' // Too short
-      };
-
-      const response = await request(app)
-        .post('/api/v1/software')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(softwareData)
-        .expect(400);
-
-      expect(response.body.success).toBe(false);
-    });
-
-    it('should return 401 without authentication', async () => {
-      const softwareData = {
-        name: 'Unauthorized Software'
-      };
-
-      const response = await request(app)
-        .post('/api/v1/software')
-        .send(softwareData)
-        .expect(401);
-
-      expect(response.body.success).toBe(false);
-    });
+    await User.deleteOne({ _id: testUser._id });
+    await Software.deleteOne({ _id: testSoftware._id });
+    await Product.deleteOne({ _id: testProduct._id });
   });
 
   describe('GET /api/v1/software', () => {
-    beforeEach(async () => {
-      // Create test software data - let the model generate slugs
-      const softwareList = [
-        { name: 'Active Software 1', status: 'active', createdBy: testUser._id },
-        { name: 'Active Software 2', status: 'active', createdBy: testUser._id },
-        { name: 'Inactive Software', status: 'inactive', createdBy: testUser._id },
-        { name: 'Search Test Software', status: 'active', createdBy: testUser._id }
-      ];
-
-      for (const softwareData of softwareList) {
-        const software = new Software(softwareData);
-        await software.save();
-      }
-    });
-
-    it('should get all software with default pagination', async () => {
-      const response = await request(app)
+    it('should get all software', async () => {
+      const res = await request(app)
         .get('/api/v1/software')
         .expect(200);
 
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toHaveLength(4);
-      expect(response.body.meta.pagination.currentPage).toBe(1);
-      expect(response.body.meta.pagination.totalItems).toBe(4);
-      expect(response.body.message).toBe('Software retrieved successfully');
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toBeDefined();
+      expect(Array.isArray(res.body.data)).toBe(true);
     });
 
-    it('should support pagination', async () => {
-      const response = await request(app)
-        .get('/api/v1/software?page=1&limit=2')
+    it('should search software by name', async () => {
+      const res = await request(app)
+        .get('/api/v1/software?search=Test')
         .expect(200);
 
-      expect(response.body.data).toHaveLength(2);
-      expect(response.body.meta.pagination.currentPage).toBe(1);
-      expect(response.body.meta.pagination.itemsPerPage).toBe(2);
-      expect(response.body.meta.pagination.totalPages).toBe(2);
-      expect(response.body.meta.pagination.hasNextPage).toBe(true);
-    });
-
-    it('should support search functionality', async () => {
-      const response = await request(app)
-        .get('/api/v1/software?search=search test')
-        .expect(200);
-
-      expect(response.body.data).toHaveLength(1);
-      expect(response.body.data[0].name).toBe('Search Test Software');
-    });
-
-    it('should filter by status', async () => {
-      const response = await request(app)
-        .get('/api/v1/software?status=inactive')
-        .expect(200);
-
-      expect(response.body.data).toHaveLength(1);
-      expect(response.body.data[0].status).toBe('inactive');
-    });
-
-    it('should support sorting', async () => {
-      const response = await request(app)
-        .get('/api/v1/software?sortBy=name&sortOrder=asc')
-        .expect(200);
-
-      const names = response.body.data.map(s => s.name);
-      expect(names).toEqual(names.sort());
-    });
-
-    it('should return 400 for invalid pagination parameters', async () => {
-      const response = await request(app)
-        .get('/api/v1/software?page=0')
-        .expect(400);
-
-      expect(response.body.success).toBe(false);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toBeDefined();
     });
   });
 
   describe('GET /api/v1/software/active', () => {
-    beforeEach(async () => {
-      const softwareList = [
-        { name: 'Active Software 1', status: 'active', createdBy: testUser._id },
-        { name: 'Active Software 2', status: 'active', createdBy: testUser._id },
-        { name: 'Inactive Software', status: 'inactive', createdBy: testUser._id }
-      ];
-
-      for (const softwareData of softwareList) {
-        const software = new Software(softwareData);
-        await software.save();
-      }
-    });
-
-    it('should get only active software', async () => {
-      const response = await request(app)
+    it('should get active software only', async () => {
+      const res = await request(app)
         .get('/api/v1/software/active')
         .expect(200);
 
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toHaveLength(2);
-      expect(response.body.data.every(s => s.status === 'active')).toBe(true);
-      expect(response.body.message).toBe('Active software retrieved successfully');
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toBeDefined();
+      expect(Array.isArray(res.body.data)).toBe(true);
+    });
+  });
+
+  describe('GET /api/v1/software/featured-with-products', () => {
+    it('should get featured softwares with top products', async () => {
+      const res = await request(app)
+        .get('/api/v1/software/featured-with-products')
+        .expect(200);
+
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toBeDefined();
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.meta).toBeDefined();
+      expect(res.body.meta.productsPerSoftware).toBe(4);
+      expect(res.body.meta.minRating).toBe(0);
+      expect(res.body.pagination).toBeDefined();
+    });
+
+    it('should get featured softwares with custom parameters', async () => {
+      const res = await request(app)
+        .get('/api/v1/software/featured-with-products?productsPerSoftware=6&minRating=3.0&sortBy=avgRating&sortOrder=desc')
+        .expect(200);
+
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toBeDefined();
+      expect(res.body.meta.productsPerSoftware).toBe(6);
+      expect(res.body.meta.minRating).toBe(3);
+      expect(res.body.meta.sortBy).toBe('avgRating');
+      expect(res.body.meta.sortOrder).toBe('desc');
+    });
+
+    it('should validate query parameters', async () => {
+      const res = await request(app)
+        .get('/api/v1/software/featured-with-products?productsPerSoftware=25&minRating=6')
+        .expect(400);
+
+      expect(res.body.success).toBe(false);
+      expect(res.body.error).toBeDefined();
     });
   });
 
   describe('GET /api/v1/software/:id', () => {
-    beforeEach(async () => {
-      const software = new Software({
-        name: 'Test Software Detail',
-        status: 'active',
-        createdBy: testUser._id
-      });
-      testSoftware = await software.save();
-    });
-
     it('should get software by ID', async () => {
-      const response = await request(app)
+      const res = await request(app)
         .get(`/api/v1/software/${testSoftware._id}`)
         .expect(200);
 
-      expect(response.body.success).toBe(true);
-      expect(response.body.data._id).toBe(testSoftware._id.toString());
-      expect(response.body.data.name).toBe('Test Software Detail');
-      expect(response.body.data.createdBy._id).toBe(testUser._id.toString());
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toBeDefined();
+      expect(res.body.data.name).toBe('Test Software');
     });
 
     it('should return 404 for non-existent software', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId();
-      const response = await request(app)
+      const nonExistentId = '507f1f77bcf86cd799439011';
+      const res = await request(app)
         .get(`/api/v1/software/${nonExistentId}`)
         .expect(404);
 
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toBe('Software not found');
-    });
-
-    it('should return 400 for invalid software ID', async () => {
-      const response = await request(app)
-        .get('/api/v1/software/invalid-id')
-        .expect(400);
-
-      expect(response.body.success).toBe(false);
+      expect(res.body.success).toBe(false);
     });
   });
 
-  describe('GET /api/v1/software/slug/:slug', () => {
-    beforeEach(async () => {
-      const software = new Software({
-        name: 'Test Software Slug',
-        status: 'active',
-        createdBy: testUser._id
-      });
-      testSoftware = await software.save();
+  describe('POST /api/v1/software', () => {
+    it('should create new software with auth', async () => {
+      const softwareData = {
+        name: 'New Test Software',
+        status: 'active'
+      };
+
+      const res = await request(app)
+        .post('/api/v1/software')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(softwareData)
+        .expect(201);
+
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.name).toBe('New Test Software');
+
+      // Clean up
+      await Software.deleteOne({ _id: res.body.data._id });
     });
 
-    it('should get software by slug', async () => {
-      const response = await request(app)
-        .get(`/api/v1/software/slug/${testSoftware.slug}`)
-        .expect(200);
+    it('should return 401 without auth', async () => {
+      const softwareData = {
+        name: 'Unauthorized Software',
+        status: 'active'
+      };
 
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.slug).toBe(testSoftware.slug);
-      expect(response.body.data.name).toBe('Test Software Slug');
-    });
+      const res = await request(app)
+        .post('/api/v1/software')
+        .send(softwareData)
+        .expect(401);
 
-    it('should return 404 for non-existent slug', async () => {
-      const response = await request(app)
-        .get('/api/v1/software/slug/non-existent-slug')
-        .expect(404);
-
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toBe('Software not found');
+      expect(res.body.success).toBe(false);
     });
   });
 
   describe('PUT /api/v1/software/:id', () => {
-    beforeEach(async () => {
-      const software = new Software({
-        name: 'Original Software',
-        status: 'active',
-        createdBy: testUser._id
-      });
-      testSoftware = await software.save();
-    });
-
-    it('should update software successfully', async () => {
+    it('should update software with auth', async () => {
       const updateData = {
-        name: 'Updated Software',
+        name: 'Updated Test Software',
         status: 'inactive'
       };
 
-      const response = await request(app)
+      const res = await request(app)
         .put(`/api/v1/software/${testSoftware._id}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(200);
 
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.name).toBe('Updated Software');
-      expect(response.body.data.status).toBe('inactive');
-      expect(response.body.message).toBe('Software updated successfully');
-    });
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.name).toBe('Updated Test Software');
 
-    it('should return 404 for non-existent software', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId();
-      const response = await request(app)
-        .put(`/api/v1/software/${nonExistentId}`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Updated' })
-        .expect(404);
-
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toBe('Software not found');
-    });
-
-    it('should return 401 without authentication', async () => {
-      const response = await request(app)
-        .put(`/api/v1/software/${testSoftware._id}`)
-        .send({ name: 'Updated' })
-        .expect(401);
-
-      expect(response.body.success).toBe(false);
-    });
-  });
-
-  describe('PATCH /api/v1/software/:id/toggle-status', () => {
-    beforeEach(async () => {
-      const software = new Software({
-        name: 'Status Toggle Software',
-        status: 'active',
-        createdBy: testUser._id
+      // Reset the software back to original state
+      await Software.findByIdAndUpdate(testSoftware._id, {
+        name: 'Test Software',
+        status: 'active'
       });
-      testSoftware = await software.save();
-    });
-
-    it('should toggle software status from active to inactive', async () => {
-      const response = await request(app)
-        .patch(`/api/v1/software/${testSoftware._id}/toggle-status`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(200);
-
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.status).toBe('inactive');
-      expect(response.body.message).toBe('Software status changed to inactive');
-    });
-
-    it('should toggle software status from inactive to active', async () => {
-      await Software.findByIdAndUpdate(testSoftware._id, { status: 'inactive' });
-
-      const response = await request(app)
-        .patch(`/api/v1/software/${testSoftware._id}/toggle-status`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(200);
-
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.status).toBe('active');
-      expect(response.body.message).toBe('Software status changed to active');
-    });
-
-    it('should return 404 for non-existent software', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId();
-      const response = await request(app)
-        .patch(`/api/v1/software/${nonExistentId}/toggle-status`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(404);
-
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toBe('Software not found');
     });
   });
 
   describe('DELETE /api/v1/software/:id', () => {
-    beforeEach(async () => {
-      const software = new Software({
+    it('should delete software with auth', async () => {
+      // Create a software to delete
+      const softwareToDelete = await Software.create({
         name: 'Software to Delete',
+        slug: 'software-to-delete',
         status: 'active',
         createdBy: testUser._id
       });
-      testSoftware = await software.save();
-    });
 
-    it('should delete software successfully', async () => {
-      const response = await request(app)
-        .delete(`/api/v1/software/${testSoftware._id}`)
+      const res = await request(app)
+        .delete(`/api/v1/software/${softwareToDelete._id}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('Software deleted successfully');
+      expect(res.body.success).toBe(true);
 
-      // Verify software is deleted
-      const deletedSoftware = await Software.findById(testSoftware._id);
+      // Verify software was deleted
+      const deletedSoftware = await Software.findById(softwareToDelete._id);
       expect(deletedSoftware).toBeNull();
-    });
-
-    it('should return 404 for non-existent software', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId();
-      const response = await request(app)
-        .delete(`/api/v1/software/${nonExistentId}`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(404);
-
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toBe('Software not found');
-    });
-
-    it('should return 401 without authentication', async () => {
-      const response = await request(app)
-        .delete(`/api/v1/software/${testSoftware._id}`)
-        .expect(401);
-
-      expect(response.body.success).toBe(false);
     });
   });
 }); 

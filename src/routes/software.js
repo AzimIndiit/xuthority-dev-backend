@@ -132,6 +132,153 @@ router.get(
 
 /**
  * @swagger
+ * /api/v1/software/featured-with-products:
+ *   get:
+ *     summary: Get featured softwares with their top-rated products
+ *     tags: [Software]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *         description: Number of softwares per page
+ *       - in: query
+ *         name: productsPerSoftware
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 20
+ *         description: Number of top products to return per software
+ *       - in: query
+ *         name: minRating
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 5
+ *         description: Minimum rating filter for products
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, avgRating, totalReviews, productCount, name]
+ *         description: Sort field
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         description: Sort order
+ *     responses:
+ *       200:
+ *         description: Featured softwares with top products retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       software:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           slug:
+ *                             type: string
+ *                           status:
+ *                             type: string
+ *                           createdBy:
+ *                             type: object
+ *                             properties:
+ *                               firstName:
+ *                                 type: string
+ *                               lastName:
+ *                                 type: string
+ *                               email:
+ *                                 type: string
+ *                       topProducts:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                             name:
+ *                               type: string
+ *                             slug:
+ *                               type: string
+ *                             avgRating:
+ *                               type: number
+ *                             totalReviews:
+ *                               type: number
+ *                             logoUrl:
+ *                               type: string
+ *                             description:
+ *                               type: string
+ *                       productCount:
+ *                         type: number
+ *                       hasMinimumProducts:
+ *                         type: boolean
+ *                 message:
+ *                   type: string
+ *                   example: "Featured softwares with top products retrieved successfully"
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     currentPage:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *                     totalItems:
+ *                       type: integer
+ *                     itemsPerPage:
+ *                       type: integer
+ *                     hasNextPage:
+ *                       type: boolean
+ *                     hasPrevPage:
+ *                       type: boolean
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     totalSoftwaresWithProducts:
+ *                       type: integer
+ *                     productsPerSoftware:
+ *                       type: integer
+ *                     minRating:
+ *                       type: number
+ *                     sortBy:
+ *                       type: string
+ *                     sortOrder:
+ *                       type: string
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal server error
+ */
+router.get(
+  '/featured-with-products',
+  validate(softwareValidator.validateGetFeaturedSoftwaresWithProducts, 'query'),
+  softwareController.getFeaturedSoftwaresWithTopProducts
+);
+
+/**
+ * @swagger
  * /api/v1/software/{id}:
  *   get:
  *     summary: Get software by ID
