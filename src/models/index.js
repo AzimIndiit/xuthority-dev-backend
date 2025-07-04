@@ -17,6 +17,7 @@ const ReviewReply = require('./ReviewReply');
 const CommunityQuestion = require('./CommunityQuestion');
 const CommunityAnswer = require('./CommunityAnswer');
 const Dispute = require('./Dispute');
+const Favorite = require('./Favorite');
 
 module.exports = {
   User,
@@ -37,5 +38,6 @@ module.exports = {
   ReviewReply,
   CommunityQuestion,
   CommunityAnswer,
-  Dispute
+  Dispute,
+  Favorite
 };

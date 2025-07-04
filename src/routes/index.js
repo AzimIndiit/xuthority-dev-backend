@@ -27,6 +27,7 @@ const userBadgeRoutes = require('./userBadges');
 const notifications = require('./notifications');
 const searchRoutes = require('./search');
 const otpRoutes = require('./otp');
+const favoritesRoutes = require('./favorites');
 const { API_PREFIX } = require('../config/constants');
 
 // Register all routes
@@ -55,6 +56,7 @@ router.use(`${API_PREFIX}/user-badges`, userBadgeRoutes);
 router.use('/notifications', notifications);
 router.use(`${API_PREFIX}/search`, searchRoutes);
 router.use(`${API_PREFIX}/otp`, otpRoutes);
+router.use(`${API_PREFIX}/favorites`, favoritesRoutes);
 
 // API documentation route
 router.get('/', (req, res) => {

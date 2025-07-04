@@ -9,7 +9,7 @@ const { validationResult } = require('express-validator');
 const ApiError = require('../utils/apiError');
 
 // Apply rate limiting to all user routes
-router.use(rateLimiter);
+// router.use(rateLimiter);
 
 /**
  * @openapi
