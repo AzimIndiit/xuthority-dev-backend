@@ -217,4 +217,37 @@ exports.getFeaturedSoftwaresWithTopProducts = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+/**
+ * @desc    Get popular softwares with their top-rated products
+ * @route   GET /api/v1/software/popular-with-products
+ * @access  Public
+ */
+exports.getPopularSoftwaresWithTopProducts = async (req, res, next) => {
+  try {
+    const options = {
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 10,
+      productsPerSoftware: parseInt(req.query.productsPerSoftware) || 4,
+      minRating: parseFloat(req.query.minRating) || 0,
+      sortBy: req.query.sortBy || 'totalReviews',
+      sortOrder: req.query.sortOrder || 'desc'
+    };
+
+    const result = await softwareService.getPopularSoftwaresWithTopProducts(options);
+
+    res.status(200).json(
+      ApiResponse.success(
+        result.softwares,
+        'Popular softwares with top products retrieved successfully',
+        {
+          pagination: result.pagination,
+          meta: result.meta
+        }
+      )
+    );
+  } catch (error) {
+    next(error);
+  }
 }; 

@@ -1,0 +1,441 @@
+[{
+  "_id": {
+    "$oid": "686bac523a6022976f27e329"
+  },
+  "name": "Information Technology",
+  "slug": "information-technology",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e32a"
+  },
+  "name": "Software Development",
+  "slug": "software-development",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e32b"
+  },
+  "name": "Cybersecurity",
+  "slug": "cybersecurity",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e32c"
+  },
+  "name": "Cloud Computing",
+  "slug": "cloud-computing",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e32d"
+  },
+  "name": "Artificial Intelligence",
+  "slug": "artificial-intelligence",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e32e"
+  },
+  "name": "Healthcare",
+  "slug": "healthcare",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e32f"
+  },
+  "name": "Pharmaceuticals",
+  "slug": "pharmaceuticals",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e330"
+  },
+  "name": "Biotechnology",
+  "slug": "biotechnology",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e331"
+  },
+  "name": "Medical Devices",
+  "slug": "medical-devices",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e332"
+  },
+  "name": "Telemedicine",
+  "slug": "telemedicine",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e333"
+  },
+  "name": "Banking",
+  "slug": "banking",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e334"
+  },
+  "name": "Insurance",
+  "slug": "insurance",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e335"
+  },
+  "name": "Investment Banking",
+  "slug": "investment-banking",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e336"
+  },
+  "name": "Fintech",
+  "slug": "fintech",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e337"
+  },
+  "name": "Cryptocurrency",
+  "slug": "cryptocurrency",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e338"
+  },
+  "name": "Automotive",
+  "slug": "automotive",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e339"
+  },
+  "name": "Aerospace",
+  "slug": "aerospace",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e33a"
+  },
+  "name": "Electronics",
+  "slug": "electronics",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e33b"
+  },
+  "name": "Textiles",
+  "slug": "textiles",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e33c"
+  },
+  "name": "Food Processing",
+  "slug": "food-processing",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e33d"
+  },
+  "name": "E-commerce",
+  "slug": "e-commerce",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e33e"
+  },
+  "name": "Fashion",
+  "slug": "fashion",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e33f"
+  },
+  "name": "Supermarkets",
+  "slug": "supermarkets",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e340"
+  },
+  "name": "Consumer Electronics",
+  "slug": "consumer-electronics",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e341"
+  },
+  "name": "Luxury Goods",
+  "slug": "luxury-goods",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e342"
+  },
+  "name": "Higher Education",
+  "slug": "higher-education",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e343"
+  },
+  "name": "K-12 Education",
+  "slug": "k-12-education",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e344"
+  },
+  "name": "EdTech",
+  "slug": "edtech",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e345"
+  },
+  "name": "Vocational Training",
+  "slug": "vocational-training",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e346"
+  },
+  "name": "Online Education",
+  "slug": "online-education",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e347"
+  },
+  "name": "Telecommunications",
+  "slug": "telecommunications",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e348"
+  },
+  "name": "Media & Entertainment",
+  "slug": "media-entertainment",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e349"
+  },
+  "name": "Hospitality",
+  "slug": "hospitality",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e34a"
+  },
+  "name": "Travel & Tourism",
+  "slug": "travel-tourism",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e34b"
+  },
+  "name": "Real Estate",
+  "slug": "real-estate",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e34c"
+  },
+  "name": "Construction",
+  "slug": "construction",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e34d"
+  },
+  "name": "Agriculture",
+  "slug": "agriculture",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e34e"
+  },
+  "name": "Mining",
+  "slug": "mining",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e34f"
+  },
+  "name": "Oil & Gas",
+  "slug": "oil-gas",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e350"
+  },
+  "name": "Renewable Energy",
+  "slug": "renewable-energy",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e351"
+  },
+  "name": "Transportation",
+  "slug": "transportation",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e352"
+  },
+  "name": "Logistics",
+  "slug": "logistics",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e353"
+  },
+  "name": "Legal Services",
+  "slug": "legal-services",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e354"
+  },
+  "name": "Consulting",
+  "slug": "consulting",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e355"
+  },
+  "name": "Marketing & Advertising",
+  "slug": "marketing-advertising",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e356"
+  },
+  "name": "Non-profit",
+  "slug": "non-profit",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e357"
+  },
+  "name": "Government",
+  "slug": "government",
+  "status": "active",
+  "category": "solutions"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e358"
+  },
+  "name": "Defense",
+  "slug": "defense",
+  "status": "active",
+  "category": "software"
+},
+{
+  "_id": {
+    "$oid": "686bac523a6022976f27e359"
+  },
+  "name": "Environmental Services",
+  "slug": "environmental-services",
+  "status": "active",
+  "category": "solutions"
+}]

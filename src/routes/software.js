@@ -279,6 +279,62 @@ router.get(
 
 /**
  * @swagger
+ * /api/v1/software/popular-with-products:
+ *   get:
+ *     summary: Get popular softwares with their top-rated products
+ *     tags: [Software]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *         description: Number of softwares per page
+ *       - in: query
+ *         name: productsPerSoftware
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 20
+ *         description: Number of top products to return per software (default: 4)
+ *       - in: query
+ *         name: minRating
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 5
+ *         description: Minimum rating filter for products
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [totalReviews, avgRating, productCount, name]
+ *         description: Sort field (default: totalReviews)
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         description: Sort order (default: desc)
+ *     responses:
+ *       200:
+ *         description: Popular softwares with top products retrieved successfully
+ */
+router.get(
+  '/popular-with-products',
+  validate(softwareValidator.validateGetFeaturedSoftwaresWithProducts, 'query'),
+  softwareController.getPopularSoftwaresWithTopProducts
+);
+
+/**
+ * @swagger
  * /api/v1/software/{id}:
  *   get:
  *     summary: Get software by ID

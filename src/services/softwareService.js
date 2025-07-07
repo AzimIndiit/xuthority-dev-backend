@@ -387,4 +387,133 @@ exports.getFeaturedSoftwaresWithTopProducts = async (options = {}) => {
   } catch (error) {
     throw new ApiError('Failed to fetch featured softwares with top products', 'FEATURED_SOFTWARES_FETCH_FAILED', 500);
   }
+};
+
+/**
+ * Get popular softwares with their top-rated products
+ * @param {Object} options - Query options
+ * @returns {Promise<Object>} Popular softwares with top-rated products
+ */
+exports.getPopularSoftwaresWithTopProducts = async (options = {}) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      productsPerSoftware = 4,
+      minRating = 0,
+      sortBy = 'totalReviews',
+      sortOrder = 'desc'
+    } = options;
+
+    // Get all active popular softwares
+    const popularSoftwares = await Software.find({ status: 'active', isPopular: true })
+      .populate('createdBy', 'firstName lastName email')
+      .sort({ name: 1 }); // Sort softwares alphabetically
+
+    if (!popularSoftwares.length) {
+      return {
+        softwares: [],
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: 0,
+          totalItems: 0,
+          itemsPerPage: parseInt(limit),
+          hasNextPage: false,
+          hasPrevPage: false
+        }
+      };
+    }
+
+    // Get products for each software
+    const Product = require('../models/Product');
+    const skip = (page - 1) * limit;
+
+    // Get popular softwares with their top-rated products
+    const popularSoftwaresWithProducts = await Promise.all(
+      popularSoftwares.slice(skip, skip + limit).map(async (software) => {
+        // Get top 4 products for this software sorted by rating and total reviews
+        const topProducts = await Product.find({
+          softwareIds: software._id,
+          status: { $in: ['published', 'approved'] },
+          isActive: 'active',
+          avgRating: { $gte: minRating }
+        })
+        .populate([
+          { path: 'userId', select: 'firstName lastName companyName email' },
+          { path: 'industries', select: 'name slug status' },
+          { path: 'languages', select: 'name slug status' },
+          { path: 'integrations', select: 'name image status' },
+          { path: 'marketSegment', select: 'name slug status' },
+          { path: 'whoCanUse', select: 'name slug status' },
+          { path: 'solutionIds', select: 'name slug status' }
+        ])
+        .sort({ avgRating: -1, totalReviews: -1 }) // Sort by rating first, then by total reviews
+        .limit(productsPerSoftware);
+
+        // Only include software if it has at least one product
+        if (topProducts.length > 0) {
+          // Calculate average rating and total reviews for the software
+          const avgRating = topProducts.reduce((sum, product) => sum + product.avgRating, 0) / topProducts.length;
+          const totalReviews = topProducts.reduce((sum, product) => sum + product.totalReviews, 0);
+
+          return {
+            software: software.toObject(),
+            topProducts,
+            productCount: topProducts.length,
+            avgRating: parseFloat(avgRating.toFixed(2)),
+            totalReviews,
+            hasMinimumProducts: topProducts.length >= productsPerSoftware
+          };
+        }
+        return null;
+      })
+    );
+
+    // Filter out null values (softwares without products)
+    const validPopularSoftwares = popularSoftwaresWithProducts.filter(item => item !== null);
+
+    // Sort by criteria
+    const sortDirection = sortOrder === 'desc' ? -1 : 1;
+    validPopularSoftwares.sort((a, b) => {
+      switch (sortBy) {
+        case 'avgRating':
+          return (a.avgRating - b.avgRating) * sortDirection;
+        case 'totalReviews':
+          return (a.totalReviews - b.totalReviews) * sortDirection;
+        case 'productCount':
+          return (a.productCount - b.productCount) * sortDirection;
+        case 'name':
+          return a.software.name.localeCompare(b.software.name) * sortDirection;
+        default:
+          return (a.totalReviews - b.totalReviews) * sortDirection;
+      }
+    });
+
+    // Calculate pagination info
+    const totalSoftwaresWithProducts = validPopularSoftwares.length;
+    const totalPages = Math.ceil(popularSoftwares.length / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    return {
+      softwares: validPopularSoftwares,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages,
+        totalItems: popularSoftwares.length,
+        itemsPerPage: parseInt(limit),
+        hasNextPage,
+        hasPrevPage
+      },
+      meta: {
+        totalSoftwaresWithProducts,
+        productsPerSoftware: parseInt(productsPerSoftware),
+        minRating: parseFloat(minRating),
+        sortBy,
+        sortOrder
+      }
+    };
+  } catch (error) {
+    throw new ApiError('Failed to fetch popular softwares with top products', 'POPULAR_SOFTWARES_FETCH_FAILED', 500);
+  }
 }; 

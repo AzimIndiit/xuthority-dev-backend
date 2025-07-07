@@ -1,0 +1,1181 @@
+[{
+  "_id": {
+    "$oid": "686bb2a5feb692107b1521c4"
+  },
+  "userId": {
+    "$oid": "685fea0b3208e1f101da8390"
+  },
+  "softwareIds": [
+    {
+      "$oid": "686baa5f3a6022976f27e30a"
+    },
+    {
+      "$oid": "686baa5f3a6022976f27e30b"
+    }
+  ],
+  "solutionIds": [
+    {
+      "$oid": "686baaee3a6022976f27e317"
+    }
+  ],
+  "name": "Monday Work Management",
+  "slug": "monday-work-management",
+  "websiteUrl": "https://monday.com",
+  "description": "Voted one of the top Global Software companies of 2023 on XUTHORITY, monday.com Work OS is a customizable platform where teams can create and shape the tools they need to run every aspect of their work. With easy-to-use building blocks like dashboards, automations, and integrations, teams are empowered. Voted one of the top Global Software companies of 2023 on XUTHORITY, monday.com Work OS is a customizable platform where teams can create and shape the tools they need to run every aspect of their work. With easy-to-use building blocks like dashboards, automations, and integrations, teams are empowered.",
+  "whoCanUse": [
+    {
+      "$oid": "685be3f18c090aa35433c894"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c8a6"
+    }
+  ],
+  "industries": [
+    {
+      "$oid": "686bac523a6022976f27e355"
+    },
+    {
+      "$oid": "686bac523a6022976f27e34e"
+    }
+  ],
+  "integrations": [
+    {
+      "$oid": "685be3f18c090aa35433c880"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c87e"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c882"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c884"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c866"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c856"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c878"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c858"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c85a"
+    }
+  ],
+  "languages": [
+    {
+      "$oid": "685be3eb8c090aa35433c76a"
+    },
+    {
+      "$oid": "685be3eb8c090aa35433c766"
+    }
+  ],
+  "marketSegment": [
+    {
+      "$oid": "685be3f18c090aa35433c88f"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c88d"
+    }
+  ],
+  "brandColors": "#ffdde2",
+  "logoUrl": "https://nfls3.s3.us-east-1.amazonaws.com/uploads/1751888542794-file.png",
+  "mediaUrls": [
+    "https://nfls3.s3.us-east-1.amazonaws.com/uploads/1751888545107-file.png",
+    "https://nfls3.s3.us-east-1.amazonaws.com/uploads/1751888546929-file.jpg",
+    "https://nfls3.s3.us-east-1.amazonaws.com/uploads/1751888547240-file.jpg",
+    "https://nfls3.s3.us-east-1.amazonaws.com/uploads/1751888547259-file.jpg",
+    "https://nfls3.s3.us-east-1.amazonaws.com/uploads/1751888547278-file.jpg"
+  ],
+  "features": [
+    {
+      "title": "Project & Task Management",
+      "description": [
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "PCB Design Software"
+        }
+      ]
+    },
+    {
+      "title": "Deep Learning Software",
+      "description": [
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "PCB Design Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "GIS Software"
+        }
+      ]
+    },
+    {
+      "title": "IT Infrastructure Software",
+      "description": [
+        {
+          "value": "PCB Design Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "PCB Design Software"
+        }
+      ]
+    }
+  ],
+  "pricing": [
+    {
+      "name": "Standard",
+      "price": 12,
+      "seats": "3",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Timeline & Gantt View"
+        },
+        {
+          "value": "Calendar View"
+        },
+        {
+          "value": "Guest Access"
+        },
+        {
+          "value": "Automations"
+        }
+      ]
+    },
+    {
+      "name": "Pro",
+      "price": 19,
+      "seats": "3",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Private boards"
+        },
+        {
+          "value": "Chart view"
+        },
+        {
+          "value": "Time tracking"
+        },
+        {
+          "value": "Formula column"
+        }
+      ]
+    },
+    {
+      "name": "Basic",
+      "price": 9,
+      "seats": "4",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Unlimited boards"
+        },
+        {
+          "value": "Unlimited docs"
+        },
+        {
+          "value": "200+ templates"
+        },
+        {
+          "value": "Over 20 column types"
+        }
+      ]
+    }
+  ],
+  "totalReviews": 0,
+  "avgRating": 0,
+  "ratingDistribution": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0
+  },
+  "views": 0,
+  "likes": 0,
+  "status": "published",
+  "isActive": "active",
+  "isFeatured": false,
+  "keywords": [],
+  "lastUpdated": {
+    "$date": "2025-07-07T11:53:12.636Z"
+  },
+  "createdAt": {
+    "$date": "2025-07-07T11:42:29.086Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-07T11:53:12.636Z"
+  },
+  "__v": 0,
+  "website": "https://monday.com"
+},
+{
+  "_id": {
+    "$oid": "686bb6483a6022976f27e362"
+  },
+  "userId": {
+    "$oid": "685fea0b3208e1f101da8390"
+  },
+  "softwareIds": [
+    {
+      "$oid": "686baa5f3a6022976f27e30a"
+    },
+    {
+      "$oid": "686baa5f3a6022976f27e30b"
+    }
+  ],
+  "solutionIds": [
+    {
+      "$oid": "686baaee3a6022976f27e317"
+    }
+  ],
+  "name": "Asana",
+  "slug": "asana",
+  "websiteUrl": "https://asana.com",
+  "description": "Voted one of the top Global Software companies of 2023 on XUTHORITY, monday.com Work OS is a customizable platform where teams can create and shape the tools they need to run every aspect of their work. With easy-to-use building blocks like dashboards, automations, and integrations, teams are empowered. Voted one of the top Global Software companies of 2023 on XUTHORITY, monday.com Work OS is a customizable platform where teams can create and shape the tools they need to run every aspect of their work. With easy-to-use building blocks like dashboards, automations, and integrations, teams are empowered.",
+  "whoCanUse": [
+    {
+      "$oid": "685be3f18c090aa35433c894"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c8a6"
+    }
+  ],
+  "industries": [
+    {
+      "$oid": "686bac523a6022976f27e355"
+    },
+    {
+      "$oid": "686bac523a6022976f27e34e"
+    }
+  ],
+  "integrations": [
+    {
+      "$oid": "685be3f18c090aa35433c880"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c87e"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c882"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c884"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c866"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c856"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c878"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c858"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c85a"
+    }
+  ],
+  "languages": [
+    {
+      "$oid": "685be3eb8c090aa35433c76a"
+    },
+    {
+      "$oid": "685be3eb8c090aa35433c766"
+    }
+  ],
+  "marketSegment": [
+    {
+      "$oid": "685be3f18c090aa35433c88f"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c88d"
+    }
+  ],
+  "brandColors": "#ffdde2",
+"logoUrl": "https://nfls3.s3.amazonaws.com/uploads/pVv3DGTXFrmRwIw.png",
+  "mediaUrls": [
+    "https://nfls3.s3.amazonaws.com/uploads/0AOltXc28sL64eM.png",
+    "https://storage.googleapis.com/msgsndr/5Krs9xjVunq2xyjqkVhd/media/645facc802c82b22e6e8726e.svg+xml",
+    "https://insider.fitt.co/wp-content/uploads/2023/12/3pr-images-test-vupload-e1703000441836.png",
+    "https://content.nordlayer.com/uploads/virtual_private_gateway_bd2c491e7d.svg",
+    "https://content.nordlayer.com/uploads/exclusive_for_nonprofits_60_off_for_all_plans_0905f0094b.svg"
+  ],
+  "features": [
+    {
+      "title": "Project & Task Management",
+      "description": [
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "PCB Design Software"
+        }
+      ]
+    },
+    {
+      "title": "Deep Learning Software",
+      "description": [
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "PCB Design Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "GIS Software"
+        }
+      ]
+    },
+    {
+      "title": "IT Infrastructure Software",
+      "description": [
+        {
+          "value": "PCB Design Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "PCB Design Software"
+        }
+      ]
+    }
+  ],
+  "pricing": [
+    {
+      "name": "Standard",
+      "price": 12,
+      "seats": "3",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Timeline & Gantt View"
+        },
+        {
+          "value": "Calendar View"
+        },
+        {
+          "value": "Guest Access"
+        },
+        {
+          "value": "Automations"
+        }
+      ]
+    },
+    {
+      "name": "Pro",
+      "price": 19,
+      "seats": "3",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Private boards"
+        },
+        {
+          "value": "Chart view"
+        },
+        {
+          "value": "Time tracking"
+        },
+        {
+          "value": "Formula column"
+        }
+      ]
+    },
+    {
+      "name": "Basic",
+      "price": 9,
+      "seats": "4",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Unlimited boards"
+        },
+        {
+          "value": "Unlimited docs"
+        },
+        {
+          "value": "200+ templates"
+        },
+        {
+          "value": "Over 20 column types"
+        }
+      ]
+    }
+  ],
+  "totalReviews": 0,
+  "avgRating": 0,
+  "ratingDistribution": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0
+  },
+  "views": 0,
+  "likes": 0,
+  "status": "published",
+  "isActive": "active",
+  "isFeatured": false,
+  "keywords": [],
+  "lastUpdated": {
+    "$date": "2025-07-07T11:53:12.636Z"
+  },
+  "createdAt": {
+    "$date": "2025-07-07T11:42:29.086Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-07T11:53:12.636Z"
+  },
+  "__v": 0,
+  "website": "https://monday.com"
+},
+{
+  "_id": {
+    "$oid": "686bb65f3a6022976f27e363"
+  },
+  "userId": {
+    "$oid": "685fea0b3208e1f101da8390"
+  },
+  "softwareIds": [
+    {
+      "$oid": "686baa5f3a6022976f27e30a"
+    },
+    {
+      "$oid": "686baa5f3a6022976f27e30b"
+    }
+  ],
+  "solutionIds": [
+    {
+      "$oid": "686baaee3a6022976f27e317"
+    }
+  ],
+  "name": "Airtable",
+  "slug": "airtable",
+  "websiteUrl": "https://airtable.com",
+  "description": "Voted one of the top Global Software companies of 2023 on XUTHORITY, monday.com Work OS is a customizable platform where teams can create and shape the tools they need to run every aspect of their work. With easy-to-use building blocks like dashboards, automations, and integrations, teams are empowered. Voted one of the top Global Software companies of 2023 on XUTHORITY, monday.com Work OS is a customizable platform where teams can create and shape the tools they need to run every aspect of their work. With easy-to-use building blocks like dashboards, automations, and integrations, teams are empowered.",
+  "whoCanUse": [
+    {
+      "$oid": "685be3f18c090aa35433c894"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c8a6"
+    }
+  ],
+  "industries": [
+    {
+      "$oid": "686bac523a6022976f27e355"
+    },
+    {
+      "$oid": "686bac523a6022976f27e34e"
+    }
+  ],
+  "integrations": [
+    {
+      "$oid": "685be3f18c090aa35433c880"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c87e"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c882"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c884"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c866"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c856"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c878"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c858"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c85a"
+    }
+  ],
+  "languages": [
+    {
+      "$oid": "685be3eb8c090aa35433c76a"
+    },
+    {
+      "$oid": "685be3eb8c090aa35433c766"
+    }
+  ],
+  "marketSegment": [
+    {
+      "$oid": "685be3f18c090aa35433c88f"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c88d"
+    }
+  ],
+  "brandColors": "#FFF7D7",
+  "logoUrl": "https://nfls3.s3.amazonaws.com/uploads/yCa44klruesSM2v.png",
+  "mediaUrls": [
+    "https://nfls3.s3.amazonaws.com/uploads/24xFJsulWq4wP4n.webp",
+    "https://storage.googleapis.com/msgsndr/5Krs9xjVunq2xyjqkVhd/media/645facc802c82b22e6e8726e.svg+xml",
+    "https://insider.fitt.co/wp-content/uploads/2023/12/3pr-images-test-vupload-e1703000441836.png",
+    "https://content.nordlayer.com/uploads/virtual_private_gateway_bd2c491e7d.svg",
+    "https://content.nordlayer.com/uploads/exclusive_for_nonprofits_60_off_for_all_plans_0905f0094b.svg"
+  ],
+  "features": [
+    {
+      "title": "Project & Task Management",
+      "description": [
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "PCB Design Software"
+        }
+      ]
+    },
+    {
+      "title": "Deep Learning Software",
+      "description": [
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "PCB Design Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "GIS Software"
+        }
+      ]
+    },
+    {
+      "title": "IT Infrastructure Software",
+      "description": [
+        {
+          "value": "PCB Design Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "PCB Design Software"
+        }
+      ]
+    }
+  ],
+  "pricing": [
+    {
+      "name": "Standard",
+      "price": 12,
+      "seats": "3",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Timeline & Gantt View"
+        },
+        {
+          "value": "Calendar View"
+        },
+        {
+          "value": "Guest Access"
+        },
+        {
+          "value": "Automations"
+        }
+      ]
+    },
+    {
+      "name": "Pro",
+      "price": 19,
+      "seats": "3",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Private boards"
+        },
+        {
+          "value": "Chart view"
+        },
+        {
+          "value": "Time tracking"
+        },
+        {
+          "value": "Formula column"
+        }
+      ]
+    },
+    {
+      "name": "Basic",
+      "price": 9,
+      "seats": "4",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Unlimited boards"
+        },
+        {
+          "value": "Unlimited docs"
+        },
+        {
+          "value": "200+ templates"
+        },
+        {
+          "value": "Over 20 column types"
+        }
+      ]
+    }
+  ],
+  "totalReviews": 0,
+  "avgRating": 0,
+  "ratingDistribution": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0
+  },
+  "views": 0,
+  "likes": 0,
+  "status": "published",
+  "isActive": "active",
+  "isFeatured": false,
+  "keywords": [],
+  "lastUpdated": {
+    "$date": "2025-07-07T11:53:12.636Z"
+  },
+  "createdAt": {
+    "$date": "2025-07-07T11:42:29.086Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-07T11:53:12.636Z"
+  },
+  "__v": 0,
+  "website": "https://monday.com"
+},
+{
+  "_id": {
+    "$oid": "686bb6743a6022976f27e364"
+  },
+  "userId": {
+    "$oid": "685fea0b3208e1f101da8390"
+  },
+  "softwareIds": [
+    {
+      "$oid": "686baa5f3a6022976f27e30a"
+    },
+    {
+      "$oid": "686baa5f3a6022976f27e30b"
+    }
+  ],
+  "solutionIds": [
+    {
+      "$oid": "686baaee3a6022976f27e317"
+    }
+  ],
+  "name": "Notion",
+  "slug": "notion",
+  "websiteUrl": "https://notion.com",
+  "description": "Voted one of the top Global Software companies of 2023 on XUTHORITY, monday.com Work OS is a customizable platform where teams can create and shape the tools they need to run every aspect of their work. With easy-to-use building blocks like dashboards, automations, and integrations, teams are empowered. Voted one of the top Global Software companies of 2023 on XUTHORITY, monday.com Work OS is a customizable platform where teams can create and shape the tools they need to run every aspect of their work. With easy-to-use building blocks like dashboards, automations, and integrations, teams are empowered.",
+  "whoCanUse": [
+    {
+      "$oid": "685be3f18c090aa35433c894"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c8a6"
+    }
+  ],
+  "industries": [
+    {
+      "$oid": "686bac523a6022976f27e355"
+    },
+    {
+      "$oid": "686bac523a6022976f27e34e"
+    }
+  ],
+  "integrations": [
+    {
+      "$oid": "685be3f18c090aa35433c880"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c87e"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c882"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c884"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c866"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c856"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c878"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c858"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c85a"
+    }
+  ],
+  "languages": [
+    {
+      "$oid": "685be3eb8c090aa35433c76a"
+    },
+    {
+      "$oid": "685be3eb8c090aa35433c766"
+    }
+  ],
+  "marketSegment": [
+    {
+      "$oid": "685be3f18c090aa35433c88f"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c88d"
+    }
+  ],
+  "brandColors": "#E6DFFF",
+  "logoUrl": "https://nfls3.s3.amazonaws.com/uploads/L8WyugxIQVx78q6.png",
+  "mediaUrls": [
+    "https://nfls3.s3.amazonaws.com/uploads/nsA8t9zWbhWVIlm.avif",
+    "https://storage.googleapis.com/msgsndr/5Krs9xjVunq2xyjqkVhd/media/645facc802c82b22e6e8726e.svg+xml",
+    "https://insider.fitt.co/wp-content/uploads/2023/12/3pr-images-test-vupload-e1703000441836.png",
+    "https://content.nordlayer.com/uploads/virtual_private_gateway_bd2c491e7d.svg",
+    "https://content.nordlayer.com/uploads/exclusive_for_nonprofits_60_off_for_all_plans_0905f0094b.svg"
+  ],
+  "features": [
+    {
+      "title": "Project & Task Management",
+      "description": [
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "PCB Design Software"
+        }
+      ]
+    },
+    {
+      "title": "Deep Learning Software",
+      "description": [
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "PCB Design Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "GIS Software"
+        }
+      ]
+    },
+    {
+      "title": "IT Infrastructure Software",
+      "description": [
+        {
+          "value": "PCB Design Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "PCB Design Software"
+        }
+      ]
+    }
+  ],
+  "pricing": [
+    {
+      "name": "Standard",
+      "price": 12,
+      "seats": "3",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Timeline & Gantt View"
+        },
+        {
+          "value": "Calendar View"
+        },
+        {
+          "value": "Guest Access"
+        },
+        {
+          "value": "Automations"
+        }
+      ]
+    },
+    {
+      "name": "Pro",
+      "price": 19,
+      "seats": "3",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Private boards"
+        },
+        {
+          "value": "Chart view"
+        },
+        {
+          "value": "Time tracking"
+        },
+        {
+          "value": "Formula column"
+        }
+      ]
+    },
+    {
+      "name": "Basic",
+      "price": 9,
+      "seats": "4",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Unlimited boards"
+        },
+        {
+          "value": "Unlimited docs"
+        },
+        {
+          "value": "200+ templates"
+        },
+        {
+          "value": "Over 20 column types"
+        }
+      ]
+    }
+  ],
+  "totalReviews": 0,
+  "avgRating": 0,
+  "ratingDistribution": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0
+  },
+  "views": 0,
+  "likes": 0,
+  "status": "published",
+  "isActive": "active",
+  "isFeatured": false,
+  "keywords": [],
+  "lastUpdated": {
+    "$date": "2025-07-07T11:53:12.636Z"
+  },
+  "createdAt": {
+    "$date": "2025-07-07T11:42:29.086Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-07T11:53:12.636Z"
+  },
+  "__v": 0,
+  "website": "https://monday.com"
+},
+{
+  "_id": {
+    "$oid": "686bb6983a6022976f27e365"
+  },
+  "userId": {
+    "$oid": "685fea0b3208e1f101da8390"
+  },
+  "softwareIds": [
+    {
+      "$oid": "686baa5f3a6022976f27e30a"
+    },
+    {
+      "$oid": "686baa5f3a6022976f27e30b"
+    }
+  ],
+  "solutionIds": [
+    {
+      "$oid": "686baaee3a6022976f27e317"
+    }
+  ],
+  "name": "Smartsheet",
+  "slug": "smartsheet",
+  "websiteUrl": "https://smartsheet.com",
+  "description": "Voted one of the top Global Software companies of 2023 on XUTHORITY, monday.com Work OS is a customizable platform where teams can create and shape the tools they need to run every aspect of their work. With easy-to-use building blocks like dashboards, automations, and integrations, teams are empowered. Voted one of the top Global Software companies of 2023 on XUTHORITY, monday.com Work OS is a customizable platform where teams can create and shape the tools they need to run every aspect of their work. With easy-to-use building blocks like dashboards, automations, and integrations, teams are empowered.",
+  "whoCanUse": [
+    {
+      "$oid": "685be3f18c090aa35433c894"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c8a6"
+    }
+  ],
+  "industries": [
+    {
+      "$oid": "686bac523a6022976f27e355"
+    },
+    {
+      "$oid": "686bac523a6022976f27e34e"
+    }
+  ],
+  "integrations": [
+    {
+      "$oid": "685be3f18c090aa35433c880"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c87e"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c882"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c884"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c866"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c856"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c878"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c858"
+    },
+    {
+      "$oid": "685be3f08c090aa35433c85a"
+    }
+  ],
+  "languages": [
+    {
+      "$oid": "685be3eb8c090aa35433c76a"
+    },
+    {
+      "$oid": "685be3eb8c090aa35433c766"
+    }
+  ],
+  "marketSegment": [
+    {
+      "$oid": "685be3f18c090aa35433c88f"
+    },
+    {
+      "$oid": "685be3f18c090aa35433c88d"
+    }
+  ],
+  "brandColors": "#D4EBFF",
+  "logoUrl": "https://nfls3.s3.amazonaws.com/uploads/cTjiGKY2KXlEp1N.png",
+  "mediaUrls": [
+    "https://nfls3.s3.amazonaws.com/uploads/kalUhhF21xIo2j8.png",
+    "https://storage.googleapis.com/msgsndr/5Krs9xjVunq2xyjqkVhd/media/645facc802c82b22e6e8726e.svg+xml",
+    "https://insider.fitt.co/wp-content/uploads/2023/12/3pr-images-test-vupload-e1703000441836.png",
+    "https://content.nordlayer.com/uploads/virtual_private_gateway_bd2c491e7d.svg",
+    "https://content.nordlayer.com/uploads/exclusive_for_nonprofits_60_off_for_all_plans_0905f0094b.svg"
+  ],
+  "features": [
+    {
+      "title": "Project & Task Management",
+      "description": [
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "PCB Design Software"
+        }
+      ]
+    },
+    {
+      "title": "Deep Learning Software",
+      "description": [
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "PCB Design Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "GIS Software"
+        }
+      ]
+    },
+    {
+      "title": "IT Infrastructure Software",
+      "description": [
+        {
+          "value": "PCB Design Software"
+        },
+        {
+          "value": "GIS Software"
+        },
+        {
+          "value": "Computer-Aided Manufacturing (CAM) Software"
+        },
+        {
+          "value": "PCB Design Software"
+        }
+      ]
+    }
+  ],
+  "pricing": [
+    {
+      "name": "Standard",
+      "price": 12,
+      "seats": "3",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Timeline & Gantt View"
+        },
+        {
+          "value": "Calendar View"
+        },
+        {
+          "value": "Guest Access"
+        },
+        {
+          "value": "Automations"
+        }
+      ]
+    },
+    {
+      "name": "Pro",
+      "price": 19,
+      "seats": "3",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Private boards"
+        },
+        {
+          "value": "Chart view"
+        },
+        {
+          "value": "Time tracking"
+        },
+        {
+          "value": "Formula column"
+        }
+      ]
+    },
+    {
+      "name": "Basic",
+      "price": 9,
+      "seats": "4",
+      "description": "Collaborate and optimize your team processes",
+      "features": [
+        {
+          "value": "Unlimited boards"
+        },
+        {
+          "value": "Unlimited docs"
+        },
+        {
+          "value": "200+ templates"
+        },
+        {
+          "value": "Over 20 column types"
+        }
+      ]
+    }
+  ],
+  "totalReviews": 0,
+  "avgRating": 0,
+  "ratingDistribution": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0
+  },
+  "views": 0,
+  "likes": 0,
+  "status": "published",
+  "isActive": "active",
+  "isFeatured": false,
+  "keywords": [],
+  "lastUpdated": {
+    "$date": "2025-07-07T11:53:12.636Z"
+  },
+  "createdAt": {
+    "$date": "2025-07-07T11:42:29.086Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-07T11:53:12.636Z"
+  },
+  "__v": 0,
+  "website": "https://monday.com"
+}
+]
