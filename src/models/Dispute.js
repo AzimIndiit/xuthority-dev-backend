@@ -98,7 +98,7 @@ disputeSchema.statics.getDisputesByVendor = async function(vendorId, options = {
 
   const disputes = await this.find(filter)
     .populate([
-      { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName' } },
+      { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar slug' } },
       { path: 'product', select: 'name slug' },
       { path: 'explanations.author', select: 'firstName lastName avatar' }
     ])

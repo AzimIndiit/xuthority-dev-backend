@@ -47,7 +47,7 @@ exports.requestBadge = async (req, res, next) => {
 exports.getUserBadges = async (req, res, next) => {
   try {
     const userId = req.params.userId || req.user.id;
-    const userBadges = await UserBadge.find({ userId, status: 'accepted' }).populate('badgeId');
+    const userBadges = await UserBadge.find({ userId,  }).populate('badgeId');
     // Format for stats: total, and badge media URLs
     const badges = userBadges.map(ub => ({
       badgeId: ub.badgeId._id,
@@ -57,7 +57,7 @@ exports.getUserBadges = async (req, res, next) => {
       description: ub.badgeId.description,
       status: ub.status
     }));
-    return res.json(ApiResponse.success({ total: badges.length, badges }, 'User badges retrieved'));
+    return res.json(ApiResponse.success(badges , 'User badges retrieved'));
   } catch (err) {
     next(err);
   }
