@@ -86,7 +86,7 @@ const verifyOTP = async (email, otp, type) => {
       type: type,
       expiresAt: { $gt: new Date() },
       isVerified: false
-    });
+    }).sort({ createdAt: -1 });
 
     if (!otpRecord) {
       throw new ApiError('Invalid or expired OTP', 'INVALID_OTP', 400);

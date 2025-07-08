@@ -236,6 +236,150 @@ router.get('/active',
 
 /**
  * @openapi
+ * /products/search:
+ *   get:
+ *     summary: Search products
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Search query
+ *       - in: query
+ *         name: software
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: industries
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *       - in: query
+ *         name: minRating
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 5
+ *       - in: query
+ *         name: maxRating
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 5
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Search results retrieved successfully
+ */
+// Search products
+router.get('/search', 
+  productValidator.query,
+  validate(productValidator.query, 'query'),
+  productController.searchProducts
+);
+
+/**
+ * @openapi
+ * /products/stats:
+ *   get:
+ *     summary: Get product statistics
+ *     tags:
+ *       - Products
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Statistics retrieved successfully
+ */
+// Get product statistics
+router.get('/stats', productController.getProductStats);
+
+/**
+ * @openapi
+ * /products/top-rated:
+ *   get:
+ *     summary: Get top rated products
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Top rated products retrieved successfully
+ */
+// Get top rated products
+router.get('/top-rated', productController.getTopRatedProducts);
+
+/**
+ * @openapi
+ * /products/featured:
+ *   get:
+ *     summary: Get featured products
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Featured products retrieved successfully
+ */
+// Get featured products
+router.get('/featured', productController.getFeaturedProducts);
+
+/**
+ * @openapi
+ * /products/slug/{slug}:
+ *   get:
+ *     summary: Get product by slug
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product slug
+ *     responses:
+ *       200:
+ *         description: Product retrieved successfully
+ *       404:
+ *         description: Product not found
+ */
+// Get product by slug
+router.get('/slug/:slug', 
+  productValidator.getBySlug,
+  validate(productValidator.getBySlug, 'params'),
+  productController.getProductBySlug
+);
+
+/**
+ * @openapi
  * /products/{id}:
  *   get:
  *     summary: Get product by ID
@@ -265,33 +409,6 @@ router.get('/:id',
   productValidator.getById,
   validate(productValidator.getById, 'params'),
   productController.getProductById
-);
-
-/**
- * @openapi
- * /products/slug/{slug}:
- *   get:
- *     summary: Get product by slug
- *     tags:
- *       - Products
- *     parameters:
- *       - in: path
- *         name: slug
- *         required: true
- *         schema:
- *           type: string
- *         description: Product slug
- *     responses:
- *       200:
- *         description: Product retrieved successfully
- *       404:
- *         description: Product not found
- */
-// Get product by slug
-router.get('/slug/:slug', 
-  productValidator.getBySlug,
-  validate(productValidator.getBySlug, 'params'),
-  productController.getProductBySlug
 );
 
 /**
@@ -513,123 +630,6 @@ router.post('/:productId/rating',
   validate(productValidator.updateRating, 'body'),
   productController.updateProductRating
 );
-
-/**
- * @openapi
- * /products/search:
- *   get:
- *     summary: Search products
- *     tags:
- *       - Products
- *     parameters:
- *       - in: query
- *         name: q
- *         required: true
- *         schema:
- *           type: string
- *         description: Search query
- *       - in: query
- *         name: software
- *         schema:
- *           type: string
- *       - in: query
- *         name: industries
- *         schema:
- *           type: array
- *           items:
- *             type: string
- *       - in: query
- *         name: minRating
- *         schema:
- *           type: number
- *           minimum: 0
- *           maximum: 5
- *       - in: query
- *         name: maxRating
- *         schema:
- *           type: number
- *           minimum: 0
- *           maximum: 5
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *     responses:
- *       200:
- *         description: Search results retrieved successfully
- */
-// Search products
-router.get('/search', 
-  productValidator.query,
-  validate(productValidator.query, 'query'),
-  productController.searchProducts
-);
-
-/**
- * @openapi
- * /products/stats:
- *   get:
- *     summary: Get product statistics
- *     tags:
- *       - Products
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Statistics retrieved successfully
- */
-// Get product statistics
-router.get('/stats', productController.getProductStats);
-
-/**
- * @openapi
- * /products/top-rated:
- *   get:
- *     summary: Get top rated products
- *     tags:
- *       - Products
- *     parameters:
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 50
- *           default: 10
- *     responses:
- *       200:
- *         description: Top rated products retrieved successfully
- */
-// Get top rated products
-router.get('/top-rated', productController.getTopRatedProducts);
-
-/**
- * @openapi
- * /products/featured:
- *   get:
- *     summary: Get featured products
- *     tags:
- *       - Products
- *     parameters:
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 50
- *           default: 10
- *     responses:
- *       200:
- *         description: Featured products retrieved successfully
- */
-// Get featured products
-router.get('/featured', productController.getFeaturedProducts);
 
 /**
  * @openapi

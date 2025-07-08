@@ -53,7 +53,7 @@ router.use(`${API_PREFIX}/community`, communityRoutes);
 router.use(`${API_PREFIX}/disputes`, disputeRoutes);
 router.use(`${API_PREFIX}/badges`, badgeRoutes);
 router.use(`${API_PREFIX}/user-badges`, userBadgeRoutes);
-router.use('/notifications', notifications);
+router.use(`${API_PREFIX}/notifications`, notifications);
 router.use(`${API_PREFIX}/search`, searchRoutes);
 router.use(`${API_PREFIX}/otp`, otpRoutes);
 router.use(`${API_PREFIX}/favorites`, favoritesRoutes);
@@ -78,6 +78,7 @@ router.get('/', (req, res) => {
       following: `${API_PREFIX}/following`,
       community: `${API_PREFIX}/community`,
       disputes: `${API_PREFIX}/disputes`,
+      notifications: `${API_PREFIX}/notifications`,
     },
   });
 });

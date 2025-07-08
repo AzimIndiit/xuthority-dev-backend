@@ -398,12 +398,36 @@ exports.searchProducts = async (req, res, next) => {
       limit
     };
 
-    const result = await productService.searchProducts(searchOptions);
+    let result;
+    
+    try {
+      // Try using the searchProducts service which uses text search
+      result = await productService.searchProducts(searchOptions);
+    } catch (error) {
+      // If text search fails, fallback to regex search
+      console.log('Text search failed, falling back to regex search:', error.message);
+      
+      // Use the getProducts method with search parameter which uses regex
+      const fallbackOptions = {
+        page,
+        limit,
+        search: query.trim(),
+        status: 'published',
+        isActive: 'active',
+        minRating: searchOptions.minRating,
+        maxRating: searchOptions.maxRating
+      };
+      
+      if (software) fallbackOptions.software = software;
+      if (industries) fallbackOptions.industries = industries.split(',');
+      
+      result = await productService.getProducts(fallbackOptions);
+    }
 
     return res.json(
       ApiResponse.success(
         result.products, 
-        `Found ${result.total} product(s) matching "${query}"`,
+        `Found ${result.total || result.pagination?.total || 0} product(s) matching "${query}"`,
         { 
           pagination: result.pagination,
           searchQuery: query
