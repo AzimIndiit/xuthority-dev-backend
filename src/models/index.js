@@ -18,6 +18,8 @@ const CommunityQuestion = require('./CommunityQuestion');
 const CommunityAnswer = require('./CommunityAnswer');
 const Dispute = require('./Dispute');
 const Favorite = require('./Favorite');
+const SubscriptionPlan = require('./SubscriptionPlan');
+const UserSubscription = require('./UserSubscription');
 
 module.exports = {
   User,
@@ -39,5 +41,7 @@ module.exports = {
   CommunityQuestion,
   CommunityAnswer,
   Dispute,
-  Favorite
+  Favorite,
+  SubscriptionPlan,
+  UserSubscription
 };

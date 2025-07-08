@@ -30,7 +30,14 @@ app.use(cors);
 // Logging
 app.use(loggerMiddleware);
 
-// JSON parsing
+// Handle Stripe webhook BEFORE JSON parsing
+app.use('/api/v1/subscription/webhook', express.raw({ type: 'application/json' }), (req, res, next) => {
+  // Add webhook flag to request
+  req.isWebhook = true;
+  next();
+});
+
+// JSON parsing for all other routes
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 

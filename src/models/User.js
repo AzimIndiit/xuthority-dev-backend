@@ -86,6 +86,14 @@ const userSchema = new mongoose.Schema({
   acceptedMarketing: { type: Boolean, default: false },
   accessToken: { type: String, default: '' },
   
+  // Stripe customer ID for payment processing
+  stripeCustomerId: { 
+    type: String, 
+    trim: true,
+    default: null,
+    index: true // Add index for faster lookups
+  },
+  
   // Password reset fields
   passwordResetToken: { type: String },
   passwordResetExpires: { type: Date },
