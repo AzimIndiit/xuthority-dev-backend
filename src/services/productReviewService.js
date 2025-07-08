@@ -42,7 +42,7 @@ const createProductReview = async (reviewData, userId) => {
       title: "You've Got a New Review!",
       message: 'A user has left a review on your product. Check it out and respond to engage with your customers.',
       meta: { productId: product._id, reviewId: review._id },
-      actionUrl: `/products/${product._id}/reviews`
+      actionUrl: `/product-detail/${product.slug}`
     });
 
     // Populate the review before returning
