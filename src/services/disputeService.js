@@ -47,7 +47,7 @@ const createDispute = async (reviewId, vendorId, disputeData) => {
       title: 'Review Dispute Status Update',
       message: 'Your review dispute has been created. Click here to see the outcome and any necessary actions.',
       meta: { disputeId: dispute._id, reviewId },
-      actionUrl: `/disputes/${dispute._id}`
+      actionUrl: `/product-detail/${review.product.slug}/disputes`
     });
     // Also notify the review author (user)
     if (review.reviewer) {
@@ -57,7 +57,7 @@ const createDispute = async (reviewId, vendorId, disputeData) => {
         title: 'Your Review is Under Dispute',
         message: 'A vendor has disputed your review. You may be contacted for more information.',
         meta: { disputeId: dispute._id, reviewId },
-        actionUrl: `/disputes/${dispute._id}`
+        actionUrl: `/product-detail/${review.product.slug}/disputes`
       });
     }
 

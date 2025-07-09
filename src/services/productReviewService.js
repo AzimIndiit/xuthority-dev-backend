@@ -175,6 +175,7 @@ const getProductReviews = async (productId, queryParams) => {
     const {
       page = 1,
       limit = 10,
+      search,
       overallRating,
       isVerified,
       sortBy = 'publishedAt',
@@ -188,6 +189,14 @@ const getProductReviews = async (productId, queryParams) => {
       status: 'approved',
       publishedAt: { $ne: null }
     };
+
+    // Add search functionality
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } }
+      ];
+    }
 
     // Add rating filters
     if (overallRating) {

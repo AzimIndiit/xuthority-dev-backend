@@ -1,4 +1,4 @@
-const { CommunityQuestion, CommunityAnswer } = require('../models');
+const { CommunityQuestion, CommunityAnswer, Product } = require('../models');
 const apiResponse = require('../utils/apiResponse');
 const ApiError = require('../utils/apiError');
 const { validationResult } = require('express-validator');
@@ -25,6 +25,7 @@ const getQuestions = async (req, res, next) => {
       sortOrder = 'desc',
       status = 'approved',
       product,
+      productSlug,
       author,
       search
     } = req.query;
@@ -33,6 +34,24 @@ const getQuestions = async (req, res, next) => {
     const query = { status };
     
     if (product) query.product = product;
+    if (productSlug) {
+      // Find product by slug to get product ID
+      const productDoc = await Product.findOne({ slug: productSlug });
+      if (productDoc) {
+        query.product = productDoc._id;
+      } else {
+        // If product not found, return empty result
+        return res.status(200).json(apiResponse.success({ 
+          questions: [], 
+          pagination: {
+            current: parseInt(page),
+            pages: 0,
+            total: 0,
+            limit: parseInt(limit)
+          }
+        }, 'Questions retrieved successfully'));
+      }
+    }
     if (author) query.author = author;
     
     // Add text search if provided
@@ -46,7 +65,7 @@ const getQuestions = async (req, res, next) => {
 
     const [questions, totalCount] = await Promise.all([
       CommunityQuestion.find(query)
-        .populate('author', 'firstName lastName avatar email')
+        .populate('author', 'firstName lastName avatar email slug')
         .populate('product', 'name slug logoUrl')
         .sort(sortOptions)
         .skip(skip)
@@ -86,7 +105,7 @@ const getQuestion = async (req, res, next) => {
     const { id } = req.params;
     
     const question = await CommunityQuestion.findById(id)
-      .populate('author', 'firstName lastName avatar email')
+      .populate('author', 'firstName lastName avatar email slug')
       .populate('product', 'name slug logoUrl');
 
     if (!question) {
@@ -112,20 +131,28 @@ const createQuestion = async (req, res, next) => {
       return next(new ApiError('Validation failed', 'VALIDATION_ERROR', 400, errors.array()));
     }
 
-    const { title, product } = req.body;
+    const { title, product, productSlug } = req.body;
     
     const questionData = {
       title,
       author: req.user._id
     };
 
-    if (product) questionData.product = product;
+    if (product) {
+      questionData.product = product;
+    } else if (productSlug) {
+      // Find product by slug to get product ID
+      const productDoc = await Product.findOne({ slug: productSlug });
+      if (productDoc) {
+        questionData.product = productDoc._id;
+      }
+    }
 
     const question = new CommunityQuestion(questionData);
     await question.save();
 
     const populatedQuestion = await CommunityQuestion.findById(question._id)
-      .populate('author', 'firstName lastName avatar email')
+      .populate('author', 'firstName lastName avatar email slug')
       .populate('product', 'name slug logoUrl');
 
     return res.status(201).json(apiResponse.success(populatedQuestion, 'Question created successfully'));

@@ -125,7 +125,7 @@ const getUserFavoriteLists = async (userId, options = {}) => {
     {
       $project: {
         listName: '$_id',
-        products: { $slice: ['$products', 3] }, // Only show first 3 products for preview
+        products: 1, // Only show first 3 products for preview
         totalProducts: 1,
         lastUpdated: 1,
         isDefault: 1,

@@ -78,15 +78,16 @@ exports.getProducts = async (req, res, next) => {
       maxRating: req.query.maxRating ? parseFloat(req.query.maxRating) : undefined,
       sortBy: req.query.sortBy || 'createdAt',
       sortOrder: req.query.sortOrder || 'desc',
-      industries: req.query.industries,
+      industries: req.query.industries ? req.query.industries.split(',') : undefined,
       marketSegment: req.query.marketSegment,
       solutions: req.query.solutions,
       // New filter parameters
       segment: req.query.segment,
-      categories: req.query.categories,
+      categories:req.query.categories ? req.query.categories.split(',') : undefined,
       minPrice: req.query.minPrice ? parseFloat(req.query.minPrice) : undefined,
       maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice) : undefined
     };
+    console.log(options,"options");
 
     // Convert comma-separated strings to arrays for ObjectId fields
     if (options.industries && typeof options.industries === 'string') {

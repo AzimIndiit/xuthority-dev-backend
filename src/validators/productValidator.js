@@ -350,13 +350,6 @@ const productValidator = {
       .isIn(['asc', 'desc'])
       .withMessage('Order must be asc or desc'),
 
-    query('industries')
-      .optional()
-      .custom((value) => {
-        const ids = Array.isArray(value) ? value : [value];
-        return isValidObjectIdArray(ids);
-      })
-      .withMessage('Industries must be valid ObjectId array'),
 
     query('languages')
       .optional()
@@ -366,14 +359,14 @@ const productValidator = {
       })
       .withMessage('Languages must be valid ObjectId array'),
 
-    query('integrations')
+      query('industries')
       .optional()
       .custom((value) => {
-        const ids = Array.isArray(value) ? value : [value];
-        return isValidObjectIdArray(ids);
+        if (Array.isArray(value)) return true;
+        if (typeof value === 'string') return true;
+        return false;
       })
-      .withMessage('Integrations must be valid ObjectId array'),
-
+      .withMessage('Industries must be a string or array'),
     query('marketSegment')
       .optional()
       .custom((value) => {

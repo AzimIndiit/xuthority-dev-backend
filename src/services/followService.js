@@ -116,7 +116,7 @@ const toggleFollowWithTransaction = async (currentUserId, targetUserId) => {
           title: 'New Follower',
           message: `${follower.firstName} ${follower.lastName} has started following your profile. Keep them engaged by sharing updates.`,
           meta: { followerId: currentUserId },
-          actionUrl: `/users/${currentUserId}`
+          actionUrl: `/profile/followers`
         });
       }
     }
@@ -229,7 +229,7 @@ const toggleFollowWithoutTransaction = async (currentUserId, targetUserId) => {
           title: 'New Follower',
           message: `${follower.firstName} ${follower.lastName} has started following your profile. Keep them engaged by sharing updates.`,
           meta: { followerId: currentUserId },
-          actionUrl: `/users/${currentUserId}`
+          actionUrl: `/profile/followers`
         });
       }
     }

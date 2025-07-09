@@ -12,7 +12,13 @@ const createQuestionValidator = [
   body('product')
     .optional()
     .isMongoId()
-    .withMessage('Invalid product ID')
+    .withMessage('Invalid product ID'),
+
+  body('productSlug')
+    .optional()
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Product slug must be between 1 and 100 characters')
+    .trim()
 ];
 
 const updateQuestionValidator = [
@@ -85,6 +91,12 @@ const getQuestionsValidator = [
     .optional()
     .isMongoId()
     .withMessage('Invalid product ID'),
+
+  query('productSlug')
+    .optional()
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Product slug must be between 1 and 100 characters')
+    .trim(),
 
   query('author')
     .optional()

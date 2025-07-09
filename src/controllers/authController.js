@@ -80,7 +80,7 @@ exports.register = async (req, res, next) => {
       type: 'WELCOME',
       title: 'Welcome to XUTHORITY!',
       message: 'Welcome to XUTHORITY! Start exploring and add your products today.',
-      actionUrl: '/dashboard'
+      actionUrl: '/'
     });
     const newUser = {
       ...user.toObject(),
