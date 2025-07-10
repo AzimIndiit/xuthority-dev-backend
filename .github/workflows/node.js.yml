@@ -194,11 +194,9 @@ jobs:
             exit 1
           fi
           
-          # Copy environment file
-          sudo cp /opt/xuthority/backend/.env "$DEPLOY_DIR/.env"
           
-          # Run database migrations if needed
-          npm run migrate || echo "No migrations to run"
+          
+          
           
           # Health check before switching
           echo "Running pre-deployment health check..."
