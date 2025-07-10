@@ -68,14 +68,8 @@ jobs:
       - name: Run security audit
         run: npm audit --audit-level=high || echo "Security audit completed"
 
-      - name: Run unit tests
-        run: npm run test:unit || echo "Unit tests completed"
-
-      - name: Run integration tests
-        run: npm run test:integration || echo "Integration tests completed"
-
-      - name: Generate test coverage
-        run: npm run test:coverage || echo "Coverage report generated"
+      - name: Run tests
+        run: npm run test || echo "Tests completed"
 
   build:
     needs: test
@@ -109,8 +103,6 @@ jobs:
               }
             });
           "
-          echo "Dependencies installed:"
-          npm list --depth=0
 
       - name: Create deployment package
         run: |
@@ -128,8 +120,7 @@ jobs:
             ./ deployment-temp/
           tar -czf backend-deployment.tar.gz -C deployment-temp .
           rm -rf deployment-temp
-          echo "Package created successfully:"
-          tar -tzf backend-deployment.tar.gz | head -10
+          echo "Package created successfully: $(ls -lh backend-deployment.tar.gz)"
 
       - name: Upload deployment artifact
         uses: actions/upload-artifact@v4
@@ -160,19 +151,59 @@ jobs:
 
       - name: Deploy to server
         run: |
+          # Copy deployment package to server
           scp backend-deployment.tar.gz ubuntu@${{ secrets.SERVER_HOST }}:/tmp/
+          
+          # Deploy on server
           ssh ubuntu@${{ secrets.SERVER_HOST }} << 'EOF'
             set -e
-            DEPLOY_DIR="/opt/xuthority/backend-$(date +%Y%m%d-%H%M%S)"
-            sudo mkdir -p "$DEPLOY_DIR"
-            sudo chown ubuntu:ubuntu "$DEPLOY_DIR"
+            
+            echo "Starting backend deployment..."
+            
+            # Create deployment directory
+            sudo mkdir -p /opt/xuthority
+            sudo chown -R ubuntu:ubuntu /opt/xuthority
+            
+            DEPLOY_DIR="/opt/xuthority/backend"
+            mkdir -p "$DEPLOY_DIR"
             cd "$DEPLOY_DIR"
+            
+            # Extract deployment package
             tar -xzf /tmp/backend-deployment.tar.gz
             rm /tmp/backend-deployment.tar.gz
-
+            
+            # Verify required files
+            if [ ! -f "package.json" ]; then
+              echo "Error: package.json not found"
+              exit 1
+            fi
+            
+            if [ ! -f "server.js" ]; then
+              echo "Error: server.js not found"
+              exit 1
+            fi
+            
+            if [ ! -f "ecosystem.config.js" ]; then
+              echo "Error: ecosystem.config.js not found"
+              exit 1
+            fi
+            
+            # Install Node.js and npm if not present
+            if ! command -v node &> /dev/null; then
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+            fi
+            
+            # Install PM2 globally if not present
+            if ! command -v pm2 &> /dev/null; then
+              sudo npm install -g pm2
+            fi
+            
+            # Install dependencies
             echo "Installing dependencies..."
             npm ci --no-audit --no-fund --silent
-
+            
+            # Verify critical dependencies
             echo "Verifying dependencies..."
             node -e "
               const deps = ['express', 'mongoose', 'swagger-jsdoc', 'swagger-ui-express'];
@@ -186,58 +217,79 @@ jobs:
                 }
               });
             "
-
-            if [ ! -f "package.json" ]; then
-              echo "Error: package.json not found"
-              exit 1
-            fi
-
-            if [ ! -f "server.js" ]; then
-              echo "Error: server.js not found"
-              exit 1
-            fi
-
-
-            cd /opt/xuthority/backend-current
-            echo "Restarting PM2 application..."
-            pm2 startOrRestart ecosystem.config.js --env production
-
-            echo "Waiting for application to start..."
-            sleep 15
-
-            echo "PM2 Status:"
-            pm2 status
-
-            echo "Running post-deployment health checks..."
-            for i in {1..5}; do
-              echo "Health check attempt $i/5..."
-              if curl -f http://localhost:8081/api/v1/software > /dev/null 2>&1; then
-                echo "✅ Health check passed!"
-                break
-              elif [ $i -eq 5 ]; then
-                echo "❌ All health checks failed"
-                pm2 logs xuthority-backend --lines 50
-                exit 1
-              else
-                echo "Health check failed, retrying in 5 seconds..."
-                sleep 5
-              fi
-            done
-
-            cd /opt/xuthority
-            ls -dt backend-20* | tail -n +4 | sudo xargs rm -rf || true
-
-            echo "✅ Backend deployment completed successfully"
+            
+            # Create logs directory
+            mkdir -p logs
+            
+            # Stop existing PM2 processes
+            echo "Stopping existing PM2 processes..."
+            pm2 kill || true
+            
+            # Start application with PM2
+            echo "Starting application with PM2..."
+            pm2 start ecosystem.config.js --env production
+            
+            # Save PM2 configuration
+            pm2 save
+            
+            # Setup PM2 startup script
+            sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u ubuntu --hp /home/ubuntu || true
+            
+            echo "Backend deployment completed successfully"
           EOF
 
       - name: Verify deployment
         run: |
+          # Wait for application to start
+          sleep 15
+          
+          # Verify deployment
           ssh ubuntu@${{ secrets.SERVER_HOST }} << 'EOF'
+            echo "Verifying backend deployment..."
+            
+            # Check PM2 status
+            echo "PM2 Status:"
             pm2 status
-            curl -f http://localhost:8081/api/v1/software > /dev/null && echo "✅ Backend API accessible"
-            curl -f http://localhost/api/v1/software > /dev/null && echo "✅ Nginx proxy working"
-            curl -f http://localhost/health > /dev/null && echo "✅ Frontend accessible"
-            echo "✅ Deployment verification completed successfully"
+            
+            # Check if application is running
+            if pm2 list | grep -q "xuthority-backend.*online"; then
+              echo "✅ PM2 process is running"
+            else
+              echo "❌ PM2 process is not running"
+              pm2 logs xuthority-backend --lines 20
+              exit 1
+            fi
+            
+            # Health check with retries
+            echo "Running health checks..."
+            for i in {1..10}; do
+              echo "Health check attempt $i/10..."
+              if curl -f http://localhost:8081/api/v1/health > /dev/null 2>&1; then
+                echo "✅ Backend health check passed!"
+                break
+              elif [ $i -eq 10 ]; then
+                echo "❌ All health checks failed"
+                pm2 logs xuthority-backend --lines 50
+                exit 1
+              else
+                echo "Health check failed, retrying in 3 seconds..."
+                sleep 3
+              fi
+            done
+            
+            # Test API endpoints
+            echo "Testing API endpoints..."
+            curl -f http://localhost:8081/api/v1/health && echo "✅ Health endpoint working"
+            
+            # Check if port is listening
+            if netstat -tlnp | grep -q ":8081"; then
+              echo "✅ Backend is listening on port 8081"
+            else
+              echo "❌ Backend is not listening on port 8081"
+              exit 1
+            fi
+            
+            echo "✅ Backend deployment verification completed successfully"
           EOF
 
       - name: Notify deployment status

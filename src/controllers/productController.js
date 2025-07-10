@@ -506,7 +506,7 @@ exports.getMyProducts = async (req, res, next) => {
       search: req.query.search,
       sortBy: req.query.sortBy || 'createdAt',
       sortOrder: req.query.sortOrder || 'desc',
-      vendor: vendorId // Only current user's products
+      userId: vendorId // Only current user's products
     };
 
     const result = await productService.getProducts(options);
@@ -542,7 +542,7 @@ exports.getProductsByUser = async (req, res, next) => {
       search: req.query.search,
       sortBy: req.query.sortBy || 'createdAt',
       sortOrder: req.query.sortOrder || 'desc',
-      vendor: userId // Products by specific user
+      userId: userId // Products by specific user
     };
 
     const result = await productService.getProducts(options);
