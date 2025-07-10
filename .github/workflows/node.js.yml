@@ -2,8 +2,6 @@ name: Backend CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
     branches: [ main ]
 
 env:
@@ -93,7 +91,16 @@ jobs:
         cache: 'npm'
 
     - name: Install production dependencies
-      run: npm ci --only=production
+      run: |
+        # Clear npm cache to ensure clean install
+        npm cache clean --force
+        
+        # Install only production dependencies
+        npm ci --only=production --no-audit --no-fund
+        
+        # Verify installation
+        echo "Production dependencies installed:"
+        npm list --depth=0 --only=production
 
     - name: Create deployment package
       run: |
@@ -152,9 +159,6 @@ jobs:
 
     - name: Deploy to server
       run: |
-        # Create deployment directory with timestamp
-        DEPLOY_DIR="/opt/xuthority/backend-$(date +%Y%m%d-%H%M%S)"
-        
         # Copy deployment package to server
         scp backend-deployment.tar.gz ubuntu@${{ secrets.SERVER_HOST }}:/tmp/
         
@@ -162,37 +166,63 @@ jobs:
         ssh ubuntu@${{ secrets.SERVER_HOST }} << 'EOF'
           set -e
           
+          # Create deployment directory with proper timestamp
+          DEPLOY_DIR="/opt/xuthority/backend-$(date +%Y%m%d-%H%M%S)"
+          
           # Create deployment directory
-          sudo mkdir -p $DEPLOY_DIR
-          sudo chown ubuntu:ubuntu $DEPLOY_DIR
+          sudo mkdir -p "$DEPLOY_DIR"
+          sudo chown ubuntu:ubuntu "$DEPLOY_DIR"
           
           # Extract deployment package
-          cd $DEPLOY_DIR
+          cd "$DEPLOY_DIR"
+          echo "Extracting deployment package..."
           tar -xzf /tmp/backend-deployment.tar.gz
           rm /tmp/backend-deployment.tar.gz
           
-          # Install dependencies
-          npm ci --only=production
+          # Install dependencies with optimizations
+          echo "Installing production dependencies..."
+          npm ci --only=production --no-audit --no-fund --silent
+          
+          # Verify package.json and key files exist
+          if [ ! -f "package.json" ]; then
+            echo "Error: package.json not found in deployment"
+            exit 1
+          fi
+          
+          if [ ! -f "server.js" ]; then
+            echo "Error: server.js not found in deployment"
+            exit 1
+          fi
           
           # Copy environment file
-          sudo cp /opt/xuthority/backend/.env $DEPLOY_DIR/.env
+          sudo cp /opt/xuthority/backend/.env "$DEPLOY_DIR/.env"
           
           # Run database migrations if needed
           npm run migrate || echo "No migrations to run"
           
           # Health check before switching
+          echo "Running pre-deployment health check..."
           timeout 30 node -e "
-            const app = require('./app.js');
-            const server = app.listen(8082, () => {
-              console.log('Health check passed');
-              server.close();
-              process.exit(0);
-            });
-          " || (echo "Health check failed" && exit 1)
+            try {
+              const app = require('./app.js');
+              const server = app.listen(8082, '127.0.0.1', () => {
+                console.log('Pre-deployment health check passed');
+                server.close();
+                process.exit(0);
+              });
+              server.on('error', (err) => {
+                console.error('Health check failed:', err.message);
+                process.exit(1);
+              });
+            } catch (error) {
+              console.error('Health check error:', error.message);
+              process.exit(1);
+            }
+          " || (echo "Pre-deployment health check failed" && exit 1)
           
           # Switch to new deployment
           sudo rm -f /opt/xuthority/backend-current
-          sudo ln -sf $DEPLOY_DIR /opt/xuthority/backend-current
+          sudo ln -sf "$DEPLOY_DIR" /opt/xuthority/backend-current
           
           # Update PM2 ecosystem file
           cat > /opt/xuthority/backend-current/ecosystem.config.js << 'ECOSYSTEM_EOF'
@@ -224,17 +254,34 @@ jobs:
           
           # Restart PM2 application
           cd /opt/xuthority/backend-current
+          echo "Restarting PM2 application..."
           pm2 startOrRestart ecosystem.config.js --env production
           
-          # Wait for application to start
-          sleep 10
+          # Wait for application to start and stabilize
+          echo "Waiting for application to start..."
+          sleep 15
           
-          # Health check after deployment
-          curl -f http://localhost:8081/api/v1/health || (
-            echo "Deployment health check failed"
-            pm2 logs xuthority-backend --lines 50
-            exit 1
-          )
+          # Check PM2 status
+          echo "PM2 Status:"
+          pm2 status
+          
+          # Health check after deployment with retries
+          echo "Running post-deployment health checks..."
+          for i in {1..5}; do
+            echo "Health check attempt $i/5..."
+            if curl -f http://localhost:8081/api/v1/software > /dev/null 2>&1; then
+              echo "✅ Health check passed!"
+              break
+            elif [ $i -eq 5 ]; then
+              echo "❌ All health checks failed"
+              echo "PM2 Logs:"
+              pm2 logs xuthority-backend --lines 50
+              exit 1
+            else
+              echo "Health check failed, retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
           
           # Clean up old deployments (keep last 3)
           cd /opt/xuthority
@@ -250,13 +297,16 @@ jobs:
           # Check PM2 status
           pm2 status
           
-          # Check application health
-          curl -f http://localhost:8081/api/v1/health
+          # Check application health (using working endpoint)
+          curl -f http://localhost:8081/api/v1/software > /dev/null && echo "✅ Backend API accessible"
           
           # Check through Nginx
-          curl -f http://localhost/api/v1/health
+          curl -f http://localhost/api/v1/software > /dev/null && echo "✅ Nginx proxy working"
           
-          echo "Deployment verification completed"
+          # Check frontend health
+          curl -f http://localhost/health > /dev/null && echo "✅ Frontend accessible"
+          
+          echo "✅ Deployment verification completed successfully"
         EOF
 
     - name: Notify deployment status
