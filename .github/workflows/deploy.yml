@@ -263,7 +263,7 @@ jobs:
             echo "Running health checks..."
             for i in {1..10}; do
               echo "Health check attempt $i/10..."
-              if curl -f http://{{ secrets.SERVER_HOST }}api/v1/health > /dev/null 2>&1; then
+              if curl -f http://localhost:8081/api/v1/health > /dev/null 2>&1; then
                 echo "✅ Backend health check passed!"
                 break
               elif [ $i -eq 10 ]; then
@@ -278,7 +278,7 @@ jobs:
             
             # Test API endpoints
             echo "Testing API endpoints..."
-            curl -f http://{{ secrets.SERVER_HOST }}/api/v1/health && echo "✅ Health endpoint working"
+            curl -f http://localhost:8081/api/v1/health && echo "✅ Health endpoint working"
             
             # Check if port is listening
             if netstat -tlnp | grep -q ":8081"; then
