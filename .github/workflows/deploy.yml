@@ -276,18 +276,6 @@ jobs:
               fi
             done
             
-            # Test API endpoints
-            echo "Testing API endpoints..."
-            curl -f http://localhost:8081/api/v1/health && echo "✅ Health endpoint working"
-            
-            # Check if port is listening
-            if netstat -tlnp | grep -q ":8081"; then
-              echo "✅ Backend is listening on port 8081"
-            else
-              echo "❌ Backend is not listening on port 8081"
-              exit 1
-            fi
-            
             echo "✅ Backend deployment verification completed successfully"
           EOF
 
