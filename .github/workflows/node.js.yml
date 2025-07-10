@@ -3,6 +3,8 @@ name: Backend CI/CD Pipeline
 on:
   push:
     branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
 
 env:
   NODE_VERSION: '20.x'
@@ -95,14 +97,31 @@ jobs:
 
     - name: Create deployment package
       run: |
-        tar -czf backend-deployment.tar.gz \
-          --exclude=node_modules \
-          --exclude=.git \
-          --exclude=tests \
-          --exclude=.env* \
-          --exclude=logs \
-          --exclude=*.log \
-          .
+        # Create a clean deployment directory
+        mkdir -p deployment-temp
+        
+        # Copy files to deployment directory with exclusions
+        rsync -av \
+          --exclude='node_modules/' \
+          --exclude='.git/' \
+          --exclude='tests/' \
+          --exclude='.env*' \
+          --exclude='logs/' \
+          --exclude='*.log' \
+          --exclude='.github/' \
+          --exclude='deployment-temp/' \
+          --exclude='backend-deployment.tar.gz' \
+          ./ deployment-temp/
+        
+        # Create optimized package
+        tar -czf backend-deployment.tar.gz -C deployment-temp .
+        
+        # Clean up temporary directory
+        rm -rf deployment-temp
+        
+        # Verify package contents
+        echo "Package created successfully:"
+        tar -tzf backend-deployment.tar.gz | head -10
 
     - name: Upload deployment artifact
       uses: actions/upload-artifact@v4
