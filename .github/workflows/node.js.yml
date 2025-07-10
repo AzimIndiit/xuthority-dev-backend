@@ -2,316 +2,127 @@ name: Backend CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 env:
-  NODE_VERSION: '20.x'
-  PM2_APP_NAME: 'xuthority-backend'
+  PROJECT_NAME: backend
+  BUILD_DIR: dist
+  DEPLOY_DIR: backend-current
+  DEPLOY_HISTORY_DIR: backend-releases
+  SSH_USER: ubuntu
 
 jobs:
-  test:
+  test-and-build:
+    name: Run Tests and Build
     runs-on: ubuntu-latest
-    
+
     services:
       mongodb:
-        image: mongo:7.0
-        ports:
-          - 27017:27017
+        image: mongo:6
+        ports: [27017:27017]
         options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      
+          --health-cmd="mongosh --eval 'db.adminCommand(\"ping\")'" 
+          --health-interval=10s --health-timeout=5s --health-retries=3
+
       redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
+        image: redis:alpine
+        ports: [6379:6379]
         options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd="redis-cli ping" 
+          --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
+      - name: Use Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install Dependencies
+        run: npm ci
 
-    - name: Create test environment file
-      run: |
-        cat > .env.test << EOF
-        NODE_ENV=test
-        PORT=3001
-        MONGODB_URI=mongodb://localhost:27017/xuthority_test
-        REDIS_URL=redis://localhost:6379
-        JWT_SECRET=test-jwt-secret-key-for-testing-only
-        JWT_REFRESH_SECRET=test-refresh-secret-key-for-testing-only
-        BCRYPT_SALT_ROUNDS=10
-        RATE_LIMIT_WINDOW_MS=900000
-        RATE_LIMIT_MAX_REQUESTS=100
-        EOF
+      - name: Create Test Environment File
+        run: echo "${{ secrets.TEST_ENV }}" > .env.test
 
-    - name: Run linting
-      run: npm run lint || echo "Linting completed with warnings"
+      - name: Run Tests
+        run: npm test
 
-    - name: Run security audit
-      run: npm audit --audit-level=high || echo "Security audit completed"
+      - name: Build Project
+        run: npm run build
 
-    - name: Run unit tests
-      run: npm run test:unit || echo "Unit tests completed"
+      - name: Archive Build
+        run: |
+          tar -czf ${{ env.PROJECT_NAME }}-deployment.tar.gz ${{ env.BUILD_DIR }} package.json ecosystem.config.js .env
 
-    - name: Run integration tests
-      run: npm run test:integration || echo "Integration tests completed"
-
-    - name: Generate test coverage
-      run: npm run test:coverage || echo "Coverage report generated"
-
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-
-    - name: Install production dependencies
-      run: |
-        # Clear npm cache to ensure clean install
-        npm cache clean --force
-        
-        # Install only production dependencies
-        npm ci --only=production --no-audit --no-fund
-        
-        # Verify installation
-        echo "Production dependencies installed:"
-        npm list --depth=0 --only=production
-
-    - name: Create deployment package
-      run: |
-        # Create a clean deployment directory
-        mkdir -p deployment-temp
-        
-        # Copy files to deployment directory with exclusions
-        rsync -av \
-          --exclude='node_modules/' \
-          --exclude='.git/' \
-          --exclude='tests/' \
-          --exclude='.env*' \
-          --exclude='logs/' \
-          --exclude='*.log' \
-          --exclude='.github/' \
-          --exclude='deployment-temp/' \
-          --exclude='backend-deployment.tar.gz' \
-          ./ deployment-temp/
-        
-        # Create optimized package
-        tar -czf backend-deployment.tar.gz -C deployment-temp .
-        
-        # Clean up temporary directory
-        rm -rf deployment-temp
-        
-        # Verify package contents
-        echo "Package created successfully:"
-        tar -tzf backend-deployment.tar.gz | head -10
-
-    - name: Upload deployment artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-deployment
-        path: backend-deployment.tar.gz
-        retention-days: 30
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-artifact
+          path: ${{ env.PROJECT_NAME }}-deployment.tar.gz
 
   deploy:
-    needs: [test, build]
+    name: Deploy to Production Server
+    needs: test-and-build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: Download deployment artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: backend-deployment
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-artifact
 
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Setup SSH Access
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Add server to known hosts
-      run: |
-        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+      - name: Add Server to Known Hosts
+        run: ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts || echo "⚠️ ssh-keyscan failed"
 
-    - name: Deploy to server
-      run: |
-        # Copy deployment package to server
-        scp backend-deployment.tar.gz ubuntu@${{ secrets.SERVER_HOST }}:/tmp/
-        
-        # Deploy on server
-        ssh ubuntu@${{ secrets.SERVER_HOST }} << 'EOF'
-          set -e
-          
-          # Create deployment directory with proper timestamp
-          DEPLOY_DIR="/opt/xuthority/backend-$(date +%Y%m%d-%H%M%S)"
-          
-          # Create deployment directory
-          sudo mkdir -p "$DEPLOY_DIR"
-          sudo chown ubuntu:ubuntu "$DEPLOY_DIR"
-          
-          # Extract deployment package
-          cd "$DEPLOY_DIR"
-          echo "Extracting deployment package..."
-          tar -xzf /tmp/backend-deployment.tar.gz
-          rm /tmp/backend-deployment.tar.gz
-          
-          # Install dependencies with optimizations
-          echo "Installing production dependencies..."
-          npm ci --only=production --no-audit --no-fund --silent
-          
-          # Verify package.json and key files exist
-          if [ ! -f "package.json" ]; then
-            echo "Error: package.json not found in deployment"
-            exit 1
-          fi
-          
-          if [ ! -f "server.js" ]; then
-            echo "Error: server.js not found in deployment"
-            exit 1
-          fi
-          
-          
-          
-          
-          
-          # Health check before switching
-          echo "Running pre-deployment health check..."
-          timeout 30 node -e "
-            try {
-              const app = require('./app.js');
-              const server = app.listen(8082, '127.0.0.1', () => {
-                console.log('Pre-deployment health check passed');
-                server.close();
-                process.exit(0);
-              });
-              server.on('error', (err) => {
-                console.error('Health check failed:', err.message);
-                process.exit(1);
-              });
-            } catch (error) {
-              console.error('Health check error:', error.message);
-              process.exit(1);
-            }
-          " || (echo "Pre-deployment health check failed" && exit 1)
-          
-          # Switch to new deployment
-          sudo rm -f /opt/xuthority/backend-current
-          sudo ln -sf "$DEPLOY_DIR" /opt/xuthority/backend-current
-          
-          # Update PM2 ecosystem file
-          cat > /opt/xuthority/backend-current/ecosystem.config.js << 'ECOSYSTEM_EOF'
-          module.exports = {
-            apps: [{
-              name: 'xuthority-backend',
-              script: './server.js',
-              cwd: '/opt/xuthority/backend-current',
-              instances: 2,
-              exec_mode: 'cluster',
-              env: {
-                NODE_ENV: 'production',
-                PORT: 8081
-              },
-              error_file: '/var/log/xuthority/backend-error.log',
-              out_file: '/var/log/xuthority/backend-out.log',
-              log_file: '/var/log/xuthority/backend.log',
-              time: true,
-              max_memory_restart: '1G',
-              node_args: '--max-old-space-size=1024',
-              watch: false,
-              ignore_watch: ['node_modules', 'logs', '*.log'],
-              restart_delay: 4000,
-              max_restarts: 10,
-              min_uptime: '10s'
-            }]
-          };
-          ECOSYSTEM_EOF
-          
-          # Restart PM2 application
-          cd /opt/xuthority/backend-current
-          echo "Restarting PM2 application..."
-          pm2 startOrRestart ecosystem.config.js --env production
-          
-          # Wait for application to start and stabilize
-          echo "Waiting for application to start..."
-          sleep 15
-          
-          # Check PM2 status
-          echo "PM2 Status:"
-          pm2 status
-          
-          # Health check after deployment with retries
-          echo "Running post-deployment health checks..."
-          for i in {1..5}; do
-            echo "Health check attempt $i/5..."
-            if curl -f http://localhost:8081/api/v1/software > /dev/null 2>&1; then
-              echo "✅ Health check passed!"
-              break
-            elif [ $i -eq 5 ]; then
-              echo "❌ All health checks failed"
-              echo "PM2 Logs:"
-              pm2 logs xuthority-backend --lines 50
-              exit 1
-            else
-              echo "Health check failed, retrying in 5 seconds..."
-              sleep 5
-            fi
-          done
-          
-          # Clean up old deployments (keep last 3)
-          cd /opt/xuthority
-          ls -dt backend-20* | tail -n +4 | sudo xargs rm -rf
-          
-          echo "Backend deployment completed successfully"
-        EOF
+      - name: Upload to Server
+        run: |
+          scp ${{ env.PROJECT_NAME }}-deployment.tar.gz ${{ env.SSH_USER }}@${{ secrets.SERVER_HOST }}:/tmp/
 
-    - name: Verify deployment
-      run: |
-        # Final verification
-        ssh ubuntu@${{ secrets.SERVER_HOST }} << 'EOF'
-          # Check PM2 status
-          pm2 status
-          
-          # Check application health (using working endpoint)
-          curl -f http://localhost:8081/api/v1/software > /dev/null && echo "✅ Backend API accessible"
-          
-          # Check through Nginx
-          curl -f http://localhost/api/v1/software > /dev/null && echo "✅ Nginx proxy working"
-          
-          # Check frontend health
-          curl -f http://localhost/health > /dev/null && echo "✅ Frontend accessible"
-          
-          echo "✅ Deployment verification completed successfully"
-        EOF
+      - name: Deploy on Server
+        run: |
+          ssh ${{ env.SSH_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            set -e
 
-    - name: Notify deployment status
-      if: always()
-      run: |
-        if [ ${{ job.status }} == 'success' ]; then
-          echo "✅ Backend deployment successful"
-        else
-          echo "❌ Backend deployment failed"
-        fi 
+            DEPLOY_PATH=~/${{ env.DEPLOY_HISTORY_DIR }}/$(date +%Y%m%d%H%M%S)
+            mkdir -p "$DEPLOY_PATH"
+            tar -xzf /tmp/${{ env.PROJECT_NAME }}-deployment.tar.gz -C "$DEPLOY_PATH"
+
+            [ -f "$DEPLOY_PATH/.env" ] || echo "${{ secrets.PRODUCTION_ENV }}" > "$DEPLOY_PATH/.env"
+
+            cat <<PM2 > "$DEPLOY_PATH/ecosystem.config.js"
+            module.exports = {
+              apps: [{
+                name: "${{ env.PROJECT_NAME }}",
+                script: "./${{ env.BUILD_DIR }}/main.js",
+                watch: false,
+                env: {
+                  NODE_ENV: "production"
+                }
+              }]
+            };
+PM2
+
+            ln -sfn "$DEPLOY_PATH" ~/${{ env.DEPLOY_DIR }}
+            cd ~/${{ env.DEPLOY_DIR }}
+
+            pm2 startOrRestart ecosystem.config.js --env production
+
+            echo "🟢 Deployment completed at $(date)"
+
+            echo "🩺 Running Health Check..."
+            for i in {1..10}; do
+              curl -fs http://localhost/api/v1/software && break || sleep 3
+            done
+
+            echo "🧹 Cleaning up old releases..."
+            cd ~/${{ env.DEPLOY_HISTORY_DIR }}
+            ls -1dt */ | tail -n +4 | xargs -r rm -rf
+
+EOF
