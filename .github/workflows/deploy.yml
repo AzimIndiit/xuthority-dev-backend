@@ -2,9 +2,8 @@ name: Backend CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
     branches: [main]
+
 
 env:
   NODE_VERSION: '20.x'
