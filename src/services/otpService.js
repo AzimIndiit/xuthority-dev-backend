@@ -1,6 +1,6 @@
 const emailService = require('./emailService');
 const ApiError = require('../utils/apiError');
-const OTP = require('../models/OTP');
+const OTP = require('../models/Otp');
 
 /**
  * Generate a 6-digit OTP
