@@ -2,9 +2,9 @@ name: Backend CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 env:
   NODE_VERSION: '20.x'
@@ -20,20 +20,20 @@ jobs:
         ports:
           - 27017:27017
         options: >-
-          --health-cmd="mongosh --eval 'db.runCommand({ping: 1})'"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+          --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
       redis:
         image: redis:7-alpine
         ports:
           - 6379:6379
         options: >-
-          --health-cmd="redis-cli ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code
@@ -62,20 +62,20 @@ jobs:
           RATE_LIMIT_MAX_REQUESTS=100
           EOF
 
-      - name: Run linting
-        run: npm run lint || true
+          - name: Run linting
+      run: npm run lint || echo "Linting completed with warnings"
 
-      - name: Run security audit
-        run: npm audit --audit-level=high || true
+    - name: Run security audit
+      run: npm audit --audit-level=high || echo "Security audit completed"
 
-      - name: Run unit tests
-        run: npm run test:unit || true
+    - name: Run unit tests
+      run: npm run test:unit || echo "Unit tests completed"
 
-      - name: Run integration tests
-        run: npm run test:integration || true
+    - name: Run integration tests
+      run: npm run test:integration || echo "Integration tests completed"
 
-      - name: Generate test coverage
-        run: npm run test:coverage || true
+    - name: Generate test coverage
+      run: npm run test:coverage || echo "Coverage report generated"
 
   build:
     needs: test
@@ -92,44 +92,60 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install dependencies for build
-        run: |
-          npm cache clean --force
-          npm ci --no-audit --no-fund
-          echo "Verifying critical dependencies..."
-          node -e "
-            const deps = ['express', 'mongoose', 'swagger-jsdoc', 'swagger-ui-express'];
-            deps.forEach(dep => {
-              try {
-                require.resolve(dep);
-                console.log('✅', dep);
-              } catch (e) {
-                console.log('❌', dep, 'missing');
-                process.exit(1);
-              }
-            });
-          "
-          echo "Dependencies installed:"
-          npm list --depth=0
+          - name: Install dependencies for build
+      run: |
+        # Clear npm cache to ensure clean install
+        npm cache clean --force
+        
+        # Install all dependencies (including dev dependencies that might be needed)
+        npm ci --no-audit --no-fund
+        
+        # Verify critical dependencies
+        echo "Verifying critical dependencies..."
+        node -e "
+          const deps = ['express', 'mongoose', 'swagger-jsdoc', 'swagger-ui-express'];
+          deps.forEach(dep => {
+            try {
+              require.resolve(dep);
+              console.log('✅', dep);
+            } catch (e) {
+              console.log('❌', dep, 'missing');
+              process.exit(1);
+            }
+          });
+        "
+        
+        # Show installed packages
+        echo "Dependencies installed:"
+        npm list --depth=0
 
-      - name: Create deployment package
-        run: |
-          mkdir -p deployment-temp
-          rsync -av \
-            --exclude='node_modules/' \
-            --exclude='.git/' \
-            --exclude='tests/' \
-            --exclude='.env*' \
-            --exclude='logs/' \
-            --exclude='*.log' \
-            --exclude='.github/' \
-            --exclude='deployment-temp/' \
-            --exclude='backend-deployment.tar.gz' \
-            ./ deployment-temp/
-          tar -czf backend-deployment.tar.gz -C deployment-temp .
-          rm -rf deployment-temp
-          echo "Package created successfully:"
-          tar -tzf backend-deployment.tar.gz | head -10
+          - name: Create deployment package
+      run: |
+        # Create a clean deployment directory
+        mkdir -p deployment-temp
+        
+        # Copy files to deployment directory with exclusions
+        rsync -av \
+          --exclude='node_modules/' \
+          --exclude='.git/' \
+          --exclude='tests/' \
+          --exclude='.env*' \
+          --exclude='logs/' \
+          --exclude='*.log' \
+          --exclude='.github/' \
+          --exclude='deployment-temp/' \
+          --exclude='backend-deployment.tar.gz' \
+          ./ deployment-temp/
+        
+        # Create optimized package
+        tar -czf backend-deployment.tar.gz -C deployment-temp .
+        
+        # Clean up temporary directory
+        rm -rf deployment-temp
+        
+        # Verify package contents
+        echo "Package created successfully:"
+        tar -tzf backend-deployment.tar.gz | head -10
 
       - name: Upload deployment artifact
         uses: actions/upload-artifact@v4
@@ -154,18 +170,17 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Add server to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          - name: Add server to known hosts
+      run: |
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to server
-        env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-        run: |
-          set -e
-          scp backend-deployment.tar.gz ubuntu@${SERVER_HOST}:/tmp/
-          ssh ubuntu@${SERVER_HOST} 'bash -s' <<'EOF'
+          - name: Deploy to server
+      run: |
+        # Copy deployment package to server
+        scp backend-deployment.tar.gz ubuntu@${{ secrets.SERVER_HOST }}:/tmp/
+        
+        # Deploy on server
+        ssh ubuntu@${{ secrets.SERVER_HOST }} << 'EOF'
             set -e
 
             DEPLOY_DIR="/opt/xuthority/backend-$(date +%Y%m%d-%H%M%S)"
@@ -308,21 +323,30 @@ ECOSYSTEM_EOF
             echo "Backend deployment completed successfully"
           EOF
 
-      - name: Verify deployment
-        run: |
-          ssh ubuntu@${{ secrets.SERVER_HOST }} 'bash -s' <<'EOF'
-            pm2 status
-            curl -f http://localhost:8081/api/v1/software > /dev/null && echo "✅ Backend API accessible"
-            curl -f http://localhost/api/v1/software > /dev/null && echo "✅ Nginx proxy working"
-            curl -f http://localhost/health > /dev/null && echo "✅ Frontend accessible"
-            echo "✅ Deployment verification completed successfully"
-          EOF
+          - name: Verify deployment
+      run: |
+        # Final verification
+        ssh ubuntu@${{ secrets.SERVER_HOST }} << 'EOF'
+          # Check PM2 status
+          pm2 status
+          
+          # Check application health (using working endpoint)
+          curl -f http://localhost:8081/api/v1/software > /dev/null && echo "✅ Backend API accessible"
+          
+          # Check through Nginx
+          curl -f http://localhost/api/v1/software > /dev/null && echo "✅ Nginx proxy working"
+          
+          # Check frontend health
+          curl -f http://localhost/health > /dev/null && echo "✅ Frontend accessible"
+          
+          echo "✅ Deployment verification completed successfully"
+        EOF
 
-      - name: Notify deployment status
-        if: always()
-        run: |
-          if [ "${{ job.status }}" = "success" ]; then
-            echo "✅ Backend deployment successful"
-          else
-            echo "❌ Backend deployment failed"
-          fi
+          - name: Notify deployment status
+      if: always()
+      run: |
+        if [ ${{ job.status }} == 'success' ]; then
+          echo "✅ Backend deployment successful"
+        else
+          echo "❌ Backend deployment failed"
+        fi
