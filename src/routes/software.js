@@ -303,7 +303,7 @@ router.get(
  *           type: integer
  *           minimum: 1
  *           maximum: 20
- *         description: Number of top products to return per software (default: 4)
+ *         description: "Number of top products to return per software (default: 4)"
  *       - in: query
  *         name: minRating
  *         schema:
@@ -316,13 +316,13 @@ router.get(
  *         schema:
  *           type: string
  *           enum: [totalReviews, avgRating, productCount, name]
- *         description: Sort field (default: totalReviews)
+ *         description: "Sort field (default: totalReviews)"
  *       - in: query
  *         name: sortOrder
  *         schema:
  *           type: string
  *           enum: [asc, desc]
- *         description: Sort order (default: desc)
+ *         description: "Sort order (default: desc)"
  *     responses:
  *       200:
  *         description: Popular softwares with top products retrieved successfully
