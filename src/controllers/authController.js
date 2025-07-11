@@ -426,9 +426,9 @@ exports.handleLinkedInVerificationCallback = async (req, res) => {
   } catch (error) {
     console.error('LinkedIn verification callback error:', error);
     
-    // Redirect to frontend with error
+    // Redirect to frontend with error and preserve state
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const redirectUrl = `${frontendUrl}/write-review?linkedin_error=${encodeURIComponent('LinkedIn verification failed')}`;
+    const redirectUrl = `${frontendUrl}/write-review?linkedin_error=${encodeURIComponent('LinkedIn verification failed')}&preserve_state=true`;
     
     res.redirect(redirectUrl);
   }

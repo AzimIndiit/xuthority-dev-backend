@@ -593,7 +593,32 @@ router.get('/linkedin', (req, res, next) => {
  *         description: OAuth login failed
  */
 // LinkedIn OAuth callback
-router.get('/linkedin/callback', passport.authenticate('linkedin', { session: false, failureRedirect: '/api/v1/auth/linkedin/failure' }), (req, res) => {
+router.get('/linkedin/callback', (req, res, next) => {
+  // Check for LinkedIn error parameters
+  const error = req.query.error;
+  const errorDescription = req.query.error_description;
+  
+  if (error) {
+    // Handle LinkedIn cancellation or error
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    let redirectUrl;
+    
+    if (error === 'user_cancelled_login' || error === 'user_cancelled_authorize') {
+      redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent('Login cancelled')}&provider=LinkedIn`;
+    } else {
+      const errorMsg = errorDescription || 'LinkedIn login failed';
+      redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent(errorMsg)}&provider=LinkedIn`;
+    }
+    
+    return res.redirect(redirectUrl);
+  }
+  
+  // Proceed with normal authentication
+  passport.authenticate('linkedin', { 
+    session: false, 
+    failureRedirect: '/api/v1/auth/linkedin/failure' 
+  })(req, res, next);
+}, (req, res) => {
   authController.handleOAuthCallback(req, res, 'LinkedIn');
 });
 
@@ -649,7 +674,33 @@ router.get('/linkedin/verify', (req, res, next) => {
  *         description: LinkedIn verification failed
  */
 // LinkedIn verification callback  
-router.get('/linkedin/verify/callback', passport.authenticate('linkedin-verify', { session: false, failureRedirect: '/api/v1/auth/linkedin/verify/failure' }), (req, res) => {
+router.get('/linkedin/verify/callback', (req, res, next) => {
+  // Check for LinkedIn error parameters
+  const error = req.query.error;
+  const errorDescription = req.query.error_description;
+  
+  if (error) {
+    // Handle LinkedIn cancellation or error for verification flow
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    let redirectUrl;
+    
+    if (error === 'user_cancelled_login' || error === 'user_cancelled_authorize') {
+      // For verification flow, redirect back to write-review with current step preserved
+      redirectUrl = `${frontendUrl}/write-review?linkedin_error=${encodeURIComponent('LinkedIn verification cancelled')}&preserve_state=true`;
+    } else {
+      const errorMsg = errorDescription || 'LinkedIn verification failed';
+      redirectUrl = `${frontendUrl}/write-review?linkedin_error=${encodeURIComponent(errorMsg)}&preserve_state=true`;
+    }
+    
+    return res.redirect(redirectUrl);
+  }
+  
+  // Proceed with normal verification
+  passport.authenticate('linkedin-verify', { 
+    session: false, 
+    failureRedirect: '/api/v1/auth/linkedin/verify/failure' 
+  })(req, res, next);
+}, (req, res) => {
   authController.handleLinkedInVerificationCallback(req, res);
 });
 
@@ -667,7 +718,7 @@ router.get('/linkedin/verify/callback', passport.authenticate('linkedin-verify',
  */
 router.get('/linkedin/verify/failure', (req, res) => {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const redirectUrl = `${frontendUrl}/write-review?linkedin_error=${encodeURIComponent('LinkedIn verification failed')}`;
+  const redirectUrl = `${frontendUrl}/write-review?linkedin_error=${encodeURIComponent('LinkedIn verification failed')}&preserve_state=true`;
   res.redirect(redirectUrl);
 });
 

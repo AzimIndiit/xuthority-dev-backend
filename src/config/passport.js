@@ -94,7 +94,7 @@ passport.use('linkedin', new LinkedInStrategy({
 passport.use('linkedin-verify', new LinkedInStrategy({
   clientID: process.env.LINKEDIN_CLIENT_ID,
   clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-  callbackURL: 'http://localhost:8081/api/v1/auth/linkedin/verify/callback',
+  callbackURL: process.env.LINKEDIN_VERIFY_CALLBACK_URL || 'http://localhost:8081/api/v1/auth/linkedin/verify/callback',
   scope: ["profile", "email", "openid"],
   passReqToCallback: true, // Enable access to req object
 }, async (req, accessToken, refreshToken, profile, done) => {
