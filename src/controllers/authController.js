@@ -39,7 +39,7 @@ exports.register = async (req, res, next) => {
     const existing = await User.findOne({ email });
     if (existing) {
       return next(
-        new ApiError("User already exists", "USER_ALREADY_EXISTS", 400),
+        new ApiError("User already exists with this email", "USER_ALREADY_EXISTS", 400),
       );
     }
 
@@ -174,48 +174,13 @@ exports.registerVendor = async (req, res, next) => {
       acceptedTerms,
       acceptedMarketing,
     } = req.body;
+    
+    // Check if user already exists with this email
     const existing = await User.findOne({ email });
     if (existing) {
-      if (existing.accessToken) {
-        const expiryMs = getTokenExpiryMs(existing.accessToken);
-        if (expiryMs > Date.now() + TOKEN_REFRESH_THRESHOLD_MS) {
-          await logEvent({
-            user: existing,
-            action: "REGISTER_VENDOR_ATTEMPT_EXISTING",
-            target: "User",
-            targetId: existing._id,
-            details: { method: "email" },
-            req,
-          });
-          return res
-            .status(200)
-            .json(
-              apiResponse.success(
-                { user: existing, token: existing.accessToken },
-                "Vendor registration successful",
-              ),
-            );
-        }
-      }
-      const token = generateToken(existing);
-      existing.accessToken = token;
-      await existing.save();
-      await logEvent({
-        user: existing,
-        action: "REGISTER_VENDOR_REFRESH_TOKEN",
-        target: "User",
-        targetId: existing._id,
-        details: { method: "email" },
-        req,
-      });
-      return res
-        .status(200)
-        .json(
-          apiResponse.success(
-            { user: existing, token },
-            "Vendor registration successful",
-          ),
-        );
+      return next(
+        new ApiError("User already exists with this email", "USER_ALREADY_EXISTS", 400),
+      );
     }
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     const user = await User.create({
