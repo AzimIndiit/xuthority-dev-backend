@@ -3,6 +3,7 @@ const router = express.Router();
 const fileController = require("../controllers/fileController");
 const { uploadMiddleware } = require("../middleware/upload");
 const { uploadArray } = require("../middleware/upload");
+const authenticate = require("../middleware/auth");
 
 // POST /api/v1/files/upload
 /**
@@ -331,6 +332,16 @@ router.post(
   fileController.uploadFile,
 );
 
+// GET /api/v1/files - Get user's files (paginated)
+router.get("/", authenticate, fileController.getUserFiles);
 
+// GET /api/v1/files/stats - Get file statistics (must come before /:id)
+router.get("/stats", authenticate, fileController.getFileStats);
+
+// GET /api/v1/files/:id - Get file by ID
+router.get("/:id", authenticate, fileController.getFile);
+
+// DELETE /api/v1/files/:id - Delete file
+router.delete("/:id", authenticate, fileController.deleteFile);
 
 module.exports = router;
