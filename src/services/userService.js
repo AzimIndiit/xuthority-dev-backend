@@ -334,7 +334,7 @@ exports.getUserReviews = async (userId, options = {}) => {
   const [reviews, total] = await Promise.all([
     ProductReview.find(filter)
       .populate([
-        { path: 'product', select: 'name slug logo avgRating totalReviews brandColor logoUrl userId' },
+        { path: 'product', select: 'name slug logo avgRating totalReviews brandColor logoUrl userId isActive status' },
         { path: 'reviewer', select: 'firstName lastName avatar isVerified' }
       ])
       .sort(sortOptions)
@@ -400,7 +400,8 @@ exports.getUserProfileStats = async (userId) => {
       vendor: userId
     });
     productCount = await Product.countDocuments({
-      userId: userId
+      userId: userId,
+      isActive: 'active'
     });
   }
 

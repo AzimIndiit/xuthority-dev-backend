@@ -420,8 +420,25 @@ const productValidator = {
 
     query('sortBy')
       .optional()
-      .isIn(['createdAt', 'updatedAt', 'name', 'views', 'likes', 'avgRating', 'totalReviews', 'ratings-desc', 'ratings-asc', 'pricing-desc', 'pricing-asc', 'reviewCounts-desc', 'reviewCounts-asc','pricing'])
-      .withMessage('Invalid sort field'),
+      .custom((value) => {
+        if (!value) return true;
+        
+        const allowedSortFields = [
+          'createdAt', 'updatedAt', 'name', 'views', 'likes', 'avgRating', 'totalReviews', 
+          'ratings-desc', 'ratings-asc', 'pricing-desc', 'pricing-asc', 
+          'reviewCounts-desc', 'reviewCounts-asc', 'pricing'
+        ];
+        
+        // Handle comma-separated sort criteria
+        if (value.includes(',')) {
+          const sortCriteria = value.split(',').map(s => s.trim());
+          return sortCriteria.every(criterion => allowedSortFields.includes(criterion));
+        }
+        
+        // Handle single sort criterion
+        return allowedSortFields.includes(value);
+      })
+      .withMessage('Invalid sort field. Allowed values: createdAt, updatedAt, name, views, likes, avgRating, totalReviews, ratings-desc, ratings-asc, pricing-desc, pricing-asc, reviewCounts-desc, reviewCounts-asc, pricing'),
 
     query('sortOrder')
       .optional()

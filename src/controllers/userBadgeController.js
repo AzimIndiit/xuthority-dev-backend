@@ -68,7 +68,7 @@ exports.approveBadgeRequest = async (req, res, next) => {
   try {
     const userBadge = await UserBadge.findByIdAndUpdate(
       req.params.id,
-      { status: 'accepted' },
+      { status: 'approved' },
       { new: true }
     ).populate('badgeId');
     if (!userBadge) return next(new ApiError('Badge request not found', 'NOT_FOUND', 404));

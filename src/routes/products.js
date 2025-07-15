@@ -548,12 +548,46 @@ router.put('/:id',
  *       404:
  *         description: Product not found
  */
-// Delete product
+// Delete product (soft delete)
 router.delete('/:id', 
   auth,
   productValidator.delete,
   validate(productValidator.delete, 'params'),
   productController.deleteProduct
+);
+
+/**
+ * @openapi
+ * /products/{id}/restore:
+ *   put:
+ *     summary: Restore a product (reactivate) - Admin only
+ *     tags:
+ *       - Products
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *     responses:
+ *       200:
+ *         description: Product restored successfully
+ *       400:
+ *         description: Product is already active
+ *       403:
+ *         description: Admin access required
+ *       404:
+ *         description: Product not found
+ */
+// Restore product
+router.put('/:id/restore', 
+  auth,
+  productValidator.delete, // Use same validator as delete
+  validate(productValidator.delete, 'params'),
+  productController.restoreProduct
 );
 
 /**
@@ -687,6 +721,57 @@ router.get('/my/products',
   productValidator.query,
   validate(productValidator.query, 'query'),
   productController.getMyProducts
+);
+
+/**
+ * @openapi
+ * /products/my/deleted:
+ *   get:
+ *     summary: Get deleted products (Admin only)
+ *     tags:
+ *       - Products
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Items per page
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: lastUpdated
+ *         description: Sort field
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
+ *     responses:
+ *       200:
+ *         description: Deleted products retrieved successfully
+ *       401:
+ *         description: Authentication required
+ *       403:
+ *         description: Admin access required
+ */
+// Get my deleted products
+router.get('/my/deleted', 
+  auth,
+  productValidator.query,
+  validate(productValidator.query, 'query'),
+  productController.getMyDeletedProducts
 );
 
 /**

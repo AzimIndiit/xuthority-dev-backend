@@ -96,7 +96,7 @@ const getDisputeById = async (disputeId, vendorId) => {
     const dispute = await Dispute.findOne({ _id: disputeId, vendor: vendorId })
       .populate([
         { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName' } },
-        { path: 'product', select: 'name slug' },
+        { path: 'product', select: 'name slug isActive' },
         { path: 'vendor', select: 'firstName lastName email' },
         { path: 'explanations.author', select: 'firstName lastName avatar' }
       ]);
@@ -141,7 +141,7 @@ const updateDispute = async (disputeId, vendorId, updateData) => {
       { new: true, runValidators: true }
     ).populate([
       { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName' } },
-      { path: 'product', select: 'name slug' },
+      { path: 'product', select: 'name slug isActive' },
       { path: 'vendor', select: 'firstName lastName email' }
     ]);
 
@@ -394,7 +394,7 @@ const getAllDisputes = async (options = {}) => {
     const disputes = await Dispute.find(filter)
       .populate([
         { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title' } },
-        { path: 'product', select: 'name slug' },
+        { path: 'product', select: 'name slug isActive' },
         { path: 'vendor', select: 'firstName lastName email' },
         { path: 'explanations.author', select: 'firstName lastName avatar' }
       ])

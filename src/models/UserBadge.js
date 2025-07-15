@@ -16,7 +16,7 @@ const userBadgeSchema = new mongoose.Schema({
   reason: { type: String, trim: true },
   status: {
     type: String,
-    enum: ['requested', 'accepted', 'canceled'],
+    enum: ['requested', 'approved', 'canceled'],
     default: 'requested',
     index: true
   }

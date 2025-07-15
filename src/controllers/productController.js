@@ -87,6 +87,11 @@ exports.getProducts = async (req, res, next) => {
       minPrice: req.query.minPrice ? parseFloat(req.query.minPrice) : undefined,
       maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice) : undefined
     };
+
+    // For non-admin users, force isActive to 'active' to hide inactive products
+    if (!req.user || req.user.role !== 'admin') {
+      options.isActive = 'active';
+    }
     console.log(options,"options");
 
     // Convert comma-separated strings to arrays for ObjectId fields
@@ -103,7 +108,7 @@ exports.getProducts = async (req, res, next) => {
       options.categories = options.categories.split(',');
     }
 
-    const result = await productService.getProducts(options);
+    const result = await productService.getProducts(options, req.user);
 
     return res.json(
       ApiResponse.success(
@@ -131,7 +136,7 @@ exports.getProductById = async (req, res, next) => {
     const productId = req.params.id;
     const incrementViews = req.query.incrementViews === 'true';
     
-    const product = await productService.getProductById(productId, incrementViews);
+    const product = await productService.getProductById(productId, incrementViews, req.user);
 
     return res.json(
       ApiResponse.success(
@@ -158,7 +163,7 @@ exports.getProductBySlug = async (req, res, next) => {
     const slug = req.params.slug;
     const incrementViews = req.query.incrementViews === 'true';
     
-    const product = await productService.getProductBySlug(slug, incrementViews);
+    const product = await productService.getProductBySlug(slug, incrementViews, req.user);
 
     return res.json(
       ApiResponse.success(
@@ -243,7 +248,8 @@ exports.deleteProduct = async (req, res, next) => {
       target: 'Product',
       targetId: productId,
       details: { 
-        productName: product.name
+        productName: product.name,
+        action: 'soft_delete'
       },
       req,
     });
@@ -251,7 +257,68 @@ exports.deleteProduct = async (req, res, next) => {
     return res.json(
       ApiResponse.success(
         { product }, 
-        `Product "${product.name}" deleted successfully`
+        `Product "${product.name}" has been deactivated successfully`
+      )
+    );
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Restore a product (reactivate)
+ * @route PUT /api/v1/products/:id/restore
+ * @access Private (Admin only)
+ */
+exports.restoreProduct = async (req, res, next) => {
+  try {
+    // Only admins can restore products
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json(
+        ApiResponse.error('Access denied. Only admins can restore products.', 'ADMIN_ACCESS_REQUIRED', 403)
+      );
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json(
+        ApiResponse.error('Validation failed', {
+          errors: errors.array()
+        }, 400)
+      );
+    }
+
+    const productId = req.params.id;
+    const vendorId = req.user._id.toString();
+
+    const product = await productService.restoreProduct(productId, vendorId);
+
+    // Update vendor's totalProducts count if user is a vendor
+    if (req.user.role === 'vendor') {
+      const { User } = require('../models');
+      await User.findByIdAndUpdate(
+        vendorId,
+        { $inc: { totalProducts: 1 } },
+        { new: true }
+      );
+    }
+
+    await logEvent({
+      user: req.user,
+      action: 'RESTORE_PRODUCT',
+      target: 'Product',
+      targetId: productId,
+      details: { 
+        productName: product.name,
+        action: 'restore'
+      },
+      req,
+    });
+
+    return res.json(
+      ApiResponse.success(
+        { product }, 
+        `Product "${product.name}" has been restored successfully`
       )
     );
   } catch (err) {
@@ -356,7 +423,7 @@ exports.getActiveProducts = async (req, res, next) => {
       options.solutionIds = options.solutionIds.split(',');
     }
 
-    const result = await productService.getProducts(options);
+    const result = await productService.getProducts(options, req.user);
 
     return res.json(
       ApiResponse.success(
@@ -422,7 +489,7 @@ exports.searchProducts = async (req, res, next) => {
       if (software) fallbackOptions.software = software;
       if (industries) fallbackOptions.industries = industries.split(',');
       
-      result = await productService.getProducts(fallbackOptions);
+      result = await productService.getProducts(fallbackOptions, req.user);
     }
 
     return res.json(
@@ -442,7 +509,7 @@ exports.searchProducts = async (req, res, next) => {
 
 exports.getProductStats = async (req, res, next) => {
   try {
-    const stats = await productService.getProductStats();
+    const stats = await productService.getProductStats(null, req.user);
 
     return res.json(
       ApiResponse.success(
@@ -509,12 +576,55 @@ exports.getMyProducts = async (req, res, next) => {
       userId: vendorId // Only current user's products
     };
 
-    const result = await productService.getProducts(options);
+    // For non-admin users, force isActive to 'active' to hide inactive products
+    if (req.user.role !== 'admin') {
+      options.isActive = 'active';
+    }
+
+    const result = await productService.getProducts(options, req.user);
 
     return res.json(
       ApiResponse.success(
         result.products, 
         'My products retrieved successfully',
+        { pagination: result.pagination }
+      )
+    );
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Get vendor's deleted products
+ * @route GET /api/v1/products/my-deleted
+ * @access Private (Admin only)
+ */
+exports.getMyDeletedProducts = async (req, res, next) => {
+  try {
+    // Only admins can view deleted products
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json(
+        ApiResponse.error('Access denied. Only admins can view deleted products.', 'ADMIN_ACCESS_REQUIRED', 403)
+      );
+    }
+
+    const vendorId = req.user._id.toString();
+    const options = {
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 10,
+      isActive: 'inactive', // Only show deleted products
+      sortBy: req.query.sortBy || 'lastUpdated',
+      sortOrder: req.query.sortOrder || 'desc',
+      userId: vendorId // Only current user's products
+    };
+
+    const result = await productService.getProducts(options, req.user);
+
+    return res.json(
+      ApiResponse.success(
+        result.products, 
+        'Deleted products retrieved successfully',
         { pagination: result.pagination }
       )
     );
@@ -545,7 +655,12 @@ exports.getProductsByUser = async (req, res, next) => {
       userId: userId // Products by specific user
     };
 
-    const result = await productService.getProducts(options);
+    // For non-admin users, force isActive to 'active' to hide inactive products
+    if (!req.user || req.user.role !== 'admin') {
+      options.isActive = 'active';
+    }
+
+    const result = await productService.getProducts(options, req.user);
 
     return res.json(
       ApiResponse.success(
@@ -612,7 +727,7 @@ exports.getProductsByCategory = async (req, res, next) => {
     }
     console.log(options,"options");
 
-    const result = await productService.getProducts(options);
+    const result = await productService.getProducts(options, req.user);
 
     return res.json(
       ApiResponse.success(

@@ -63,9 +63,10 @@ const createProduct = async (productData, userId) => {
 /**
  * Get products with filtering and pagination
  * @param {Object} options - Query options
+ * @param {Object} user - Current user object (to check if admin)
  * @returns {Object} Products with metadata
  */
-const getProducts = async (options = {}) => {
+const getProducts = async (options = {}, user = null) => {
   const {
     page = 1,
     limit = 10,
@@ -106,6 +107,11 @@ const getProducts = async (options = {}) => {
     } else {
       filter.isActive = isActive;
     }
+  }
+
+  // For non-admin users, force isActive to 'active' to hide inactive products
+  if (!user || user.role !== 'admin') {
+    filter.isActive = 'active';
   }
   
   if (isFeatured !== undefined) filter.isFeatured = isFeatured;
@@ -209,9 +215,68 @@ const getProducts = async (options = {}) => {
     ];
   }
 
-  // Build sort object
+  // Build sort object - support multiple sorting criteria
   const sort = {};
-  sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+  
+  // Handle multiple sort criteria (comma-separated)
+  if (sortBy && sortBy.includes(',')) {
+    const sortCriteria = sortBy.split(',');
+    const sortOrders = sortOrder ? sortOrder.split(',') : [];
+    
+    sortCriteria.forEach((criterion, index) => {
+      const order = sortOrders[index] || 'desc';
+      const trimmedCriterion = criterion.trim();
+      
+      // Map frontend sort values to backend fields
+      switch (trimmedCriterion) {
+        case 'ratings-desc':
+          sort.avgRating = -1;
+          break;
+        case 'ratings-asc':
+          sort.avgRating = 1;
+          break;
+        case 'pricing-desc':
+          sort['pricing.price'] = -1;
+          break;
+        case 'pricing-asc':
+          sort['pricing.price'] = 1;
+          break;
+        case 'reviewCounts-desc':
+          sort.totalReviews = -1;
+          break;
+        case 'reviewCounts-asc':
+          sort.totalReviews = 1;
+          break;
+        default:
+          sort[trimmedCriterion] = order === 'desc' ? -1 : 1;
+      }
+    });
+  } else {
+    // Single sort criterion
+    const mappedSortBy = sortBy;
+    switch (sortBy) {
+      case 'ratings-desc':
+        sort.avgRating = -1;
+        break;
+      case 'ratings-asc':
+        sort.avgRating = 1;
+        break;
+      case 'pricing-desc':
+        sort['pricing.price'] = -1;
+        break;
+      case 'pricing-asc':
+        sort['pricing.price'] = 1;
+        break;
+      case 'reviewCounts-desc':
+        sort.totalReviews = -1;
+        break;
+      case 'reviewCounts-asc':
+        sort.totalReviews = 1;
+        break;
+      default:
+        sort[mappedSortBy] = sortOrder === 'desc' ? -1 : 1;
+    }
+  }
 
   // Execute query with pagination
   const skip = (page - 1) * limit;
@@ -251,9 +316,10 @@ const getProducts = async (options = {}) => {
  * Get product by ID with optional view increment
  * @param {string} productId - Product ID
  * @param {boolean} incrementViews - Whether to increment view count
+ * @param {Object} user - Current user object (to check if admin)
  * @returns {Object} Product with populated fields
  */
-const getProductById = async (productId, incrementViews = false) => {
+const getProductById = async (productId, incrementViews = false, user = null) => {
   const product = await Product.findById(productId)
     .populate([
       { path: 'userId', select: 'firstName lastName companyName email socialLinks' },
@@ -270,6 +336,11 @@ const getProductById = async (productId, incrementViews = false) => {
     throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
   }
 
+  // For non-admin users, hide inactive products
+  if (product.isActive === 'inactive' && (!user || user.role !== 'admin')) {
+    throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
+  }
+
   // Increment views if requested
   if (incrementViews) {
     await product.incrementViews();
@@ -282,9 +353,10 @@ const getProductById = async (productId, incrementViews = false) => {
  * Get product by slug
  * @param {string} slug - Product slug
  * @param {boolean} incrementViews - Whether to increment view count
+ * @param {Object} user - Current user object (to check if admin)
  * @returns {Object} Product
  */
-const getProductBySlug = async (slug, incrementViews = false) => {
+const getProductBySlug = async (slug, incrementViews = false, user = null) => {
   const product = await Product.findOne({ slug })
     .populate([
       { path: 'userId', select: 'firstName lastName companyName email socialLinks companyDescription companyWebsiteUrl hqLocation yearFounded companyAvatar socialLinks slug' },
@@ -298,6 +370,11 @@ const getProductBySlug = async (slug, incrementViews = false) => {
     ]);
 
   if (!product) {
+    throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
+  }
+
+  // For non-admin users, hide inactive products
+  if (product.isActive === 'inactive' && (!user || user.role !== 'admin')) {
     throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
   }
 
@@ -389,16 +466,21 @@ const updateProduct = async (productId, updateData, userId) => {
 };
 
 /**
- * Delete product (only by vendor who owns it)
+ * Delete product (only by vendor who owns it) - Soft delete by setting isActive to inactive
  * @param {string} productId - Product ID
  * @param {string} userId - User ID
- * @returns {Object} Delete result
+ * @returns {Object} Updated product with inactive status
  */
 const deleteProduct = async (productId, userId) => {
   const product = await Product.findById(productId);
   
   if (!product) {
     throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
+  }
+
+  // Check if product is already inactive
+  if (product.isActive === 'inactive') {
+    throw new ApiError('Product is already deleted', 'PRODUCT_ALREADY_DELETED', 400);
   }
 
   // Check ownership - support both userId and vendor fields
@@ -409,22 +491,66 @@ const deleteProduct = async (productId, userId) => {
     throw new ApiError('You can only delete your own products', 'UNAUTHORIZED_DELETE', 403);
   }
 
-  await Product.findByIdAndDelete(productId);
+  // Soft delete: set isActive to inactive and update lastUpdated
+  const updatedProduct = await Product.findByIdAndUpdate(
+    productId,
+    { 
+      isActive: 'inactive',
+      lastUpdated: new Date()
+    },
+    { new: true }
+  ).populate('userId', 'firstName lastName companyName email');
   
-  return { 
-    success: true, 
-    message: 'Product deleted successfully',
-    productId 
-  };
+  return updatedProduct;
+};
+
+/**
+ * Restore a product (reactivate by setting isActive to active)
+ * @param {string} productId - Product ID
+ * @param {string} userId - User ID
+ * @returns {Object} Updated product with active status
+ */
+const restoreProduct = async (productId, userId) => {
+  const product = await Product.findById(productId);
+  
+  if (!product) {
+    throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
+  }
+
+  // Check if product is already active
+  if (product.isActive === 'active') {
+    throw new ApiError('Product is already active', 'PRODUCT_ALREADY_ACTIVE', 400);
+  }
+
+  // Check ownership - support both userId and vendor fields
+  const isOwner = product.userId?.toString() === userId || 
+                 product.vendor?.toString() === userId;
+  
+  if (!isOwner) {
+    throw new ApiError('You can only restore your own products', 'UNAUTHORIZED_RESTORE', 403);
+  }
+
+  // Restore: set isActive to active and update lastUpdated
+  const updatedProduct = await Product.findByIdAndUpdate(
+    productId,
+    { 
+      isActive: 'active',
+      lastUpdated: new Date()
+    },
+    { new: true }
+  ).populate('userId', 'firstName lastName companyName email');
+  
+  return updatedProduct;
 };
 
 /**
  * Get vendor's products
  * @param {string} vendorId - Vendor ID
  * @param {Object} options - Query options
+ * @param {Object} user - Current user object (to check if admin)
  * @returns {Object} Products with vendor info and pagination
  */
-const getVendorProducts = async (vendorId, options = {}) => {
+const getVendorProducts = async (vendorId, options = {}, user = null) => {
   if (!mongoose.Types.ObjectId.isValid(vendorId)) {
     throw new ApiError('Invalid vendor ID', 'INVALID_VENDOR_ID', 400);
   }
@@ -459,9 +585,73 @@ const getVendorProducts = async (vendorId, options = {}) => {
     }
   }
 
-  // Build sort object
+  // For non-admin users, force isActive to 'active' to hide inactive products
+  if (!user || user.role !== 'admin') {
+    filter.isActive = 'active';
+  }
+
+  // Build sort object - support multiple sorting criteria
   const sort = {};
-  sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+  
+  // Handle multiple sort criteria (comma-separated)
+  if (sortBy && sortBy.includes(',')) {
+    const sortCriteria = sortBy.split(',');
+    const sortOrders = sortOrder ? sortOrder.split(',') : [];
+    
+    sortCriteria.forEach((criterion, index) => {
+      const order = sortOrders[index] || 'desc';
+      const trimmedCriterion = criterion.trim();
+      
+      // Map frontend sort values to backend fields
+      switch (trimmedCriterion) {
+        case 'ratings-desc':
+          sort.avgRating = -1;
+          break;
+        case 'ratings-asc':
+          sort.avgRating = 1;
+          break;
+        case 'pricing-desc':
+          sort['pricing.price'] = -1;
+          break;
+        case 'pricing-asc':
+          sort['pricing.price'] = 1;
+          break;
+        case 'reviewCounts-desc':
+          sort.totalReviews = -1;
+          break;
+        case 'reviewCounts-asc':
+          sort.totalReviews = 1;
+          break;
+        default:
+          sort[trimmedCriterion] = order === 'desc' ? -1 : 1;
+      }
+    });
+  } else {
+    // Single sort criterion
+    const mappedSortBy = sortBy;
+    switch (sortBy) {
+      case 'ratings-desc':
+        sort.avgRating = -1;
+        break;
+      case 'ratings-asc':
+        sort.avgRating = 1;
+        break;
+      case 'pricing-desc':
+        sort['pricing.price'] = -1;
+        break;
+      case 'pricing-asc':
+        sort['pricing.price'] = 1;
+        break;
+      case 'reviewCounts-desc':
+        sort.totalReviews = -1;
+        break;
+      case 'reviewCounts-asc':
+        sort.totalReviews = 1;
+        break;
+      default:
+        sort[mappedSortBy] = sortOrder === 'desc' ? -1 : 1;
+    }
+  }
 
   // Execute query with pagination
   const skip = (page - 1) * limit;
@@ -571,9 +761,10 @@ const searchProducts = async (query, filters = {}) => {
 /**
  * Get product statistics
  * @param {string} vendorId - Vendor ID (optional, if provided returns vendor-specific stats)
+ * @param {Object} user - Current user object (to check if admin)
  * @returns {Object} Statistics
  */
-const getProductStats = async (vendorId = null) => {
+const getProductStats = async (vendorId = null, user = null) => {
   let matchFilter = {};
   
   if (vendorId) {
@@ -584,6 +775,11 @@ const getProductStats = async (vendorId = null) => {
         { vendor: new mongoose.Types.ObjectId(vendorId) }
       ]
     };
+  }
+
+  // For non-admin users, only include active products in stats
+  if (!user || user.role !== 'admin') {
+    matchFilter.isActive = 'active';
   }
 
   const stats = await Product.aggregate([
@@ -698,6 +894,7 @@ const productService = {
   getProductBySlug,
   updateProduct,
   deleteProduct,
+  restoreProduct,
   getVendorProducts,
   toggleProductLike,
   searchProducts,
