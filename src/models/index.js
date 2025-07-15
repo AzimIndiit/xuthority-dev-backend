@@ -20,6 +20,7 @@ const Dispute = require('./Dispute');
 const Favorite = require('./Favorite');
 const SubscriptionPlan = require('./SubscriptionPlan');
 const UserSubscription = require('./UserSubscription');
+const UserBadge = require('./UserBadge');
 
 module.exports = {
   User,
@@ -43,5 +44,6 @@ module.exports = {
   Dispute,
   Favorite,
   SubscriptionPlan,
-  UserSubscription
+  UserSubscription,
+  UserBadge
 };

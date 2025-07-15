@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const emailService = require('./emailService');
 const { createNotification } = require('../services/notificationService');
-const { Product } = require('../models');
+const { Product ,UserBadge} = require('../models');
 
 /**
  * Get user's own profile (full profile with sensitive data)
@@ -385,6 +385,7 @@ exports.getUserProfileStats = async (userId) => {
   // Get disputes count based on user role
   let disputesCount = 0;
   let productCount = 0;
+  let badges =[]
   if (user.role === 'user') {
     // If user role is 'user', get disputes where this user is the reviewer
     // First, get all review IDs by this user
@@ -403,6 +404,10 @@ exports.getUserProfileStats = async (userId) => {
       userId: userId,
       isActive: 'active'
     });
+
+   badges = await UserBadge.find({
+    userId: userId
+  }).populate('badgeId')
   }
 
   // Get follow statistics
@@ -411,12 +416,14 @@ exports.getUserProfileStats = async (userId) => {
     Follow.countDocuments({ follower: userId })
   ]);
 
+
   return {
     reviewsWritten: reviewsCount,
     disputes: disputesCount,
     followers: followersCount,
     following: followingCount,
-    products: productCount
+    products: productCount,
+    badges: badges
   };
 };
 
