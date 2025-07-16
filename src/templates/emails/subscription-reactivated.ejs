@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Reactivated Successfully</title>
+</head>
+<body>
+    <div style="font-family: Helvetica, Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px; line-height: 1.6; color: #333;">
+        <div style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
+            <h2 style="color: #00466a;">Xuthority</h2>
+        </div>
+
+        <p style="font-size: 1.1em;">
+            Hi <%= userName %>,
+        </p>
+
+        <p style="font-size: 1.1em; color: #28a745; font-weight: bold;">
+            🎉 Welcome Back! Your Subscription is Reactivated
+        </p>
+
+        <p style="font-size: 1em;">
+            Great news! Your <strong><%= planName %></strong> subscription has been successfully reactivated. We're thrilled to have you back and you now have full access to all your premium features again!
+        </p>
+
+        <div style="background-color: #f8f9fa; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold; color: #155724;">
+                📋 Subscription Details:
+            </p>
+            <div style="color: #666;">
+                <p style="margin: 5px 0;"><strong>Plan:</strong> <%= planName %></p>
+                <p style="margin: 5px 0;"><strong>Price:</strong> <%= planPrice %></p>
+                <p style="margin: 5px 0;"><strong>Reactivated On:</strong> <%= reactivatedDate %></p>
+                <p style="margin: 5px 0;"><strong>Next Billing Date:</strong> <%= nextBillingDate %></p>
+                <p style="margin: 5px 0;"><strong>Billing Cycle:</strong> <%= billingCycle %></p>
+            </div>
+        </div>
+
+        <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; color: #155724; font-weight: bold;">
+                ✅ All Premium Features Restored
+            </p>
+            <p style="margin: 10px 0 0 0; color: #155724;">
+                Your account has been upgraded back to premium status. All your previous settings, data, and configurations have been preserved and are immediately available.
+            </p>
+        </div>
+
+        <p style="font-size: 1em;">
+            <strong>You now have access to:</strong>
+        </p>
+        <ul style="font-size: 1em; color: #666; margin-left: 20px;">
+            <% if (features && features.length > 0) { %>
+                <% features.forEach(function(feature) { %>
+                <li><%= feature %></li>
+                <% }); %>
+            <% } else { %>
+            <li>Enhanced branding and profile customization</li>
+            <li>Advanced analytics and business insights</li>
+            <li>Priority customer support</li>
+            <li>Unlimited product listings</li>
+            <li>Lead generation and marketing tools</li>
+            <li>Advanced search and filtering options</li>
+            <li>Detailed performance reports</li>
+            <% } %>
+        </ul>
+
+        <% if (wasDowntime) { %>
+        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; color: #856404; font-weight: bold;">
+                📊 Your Data is Safe
+            </p>
+            <p style="margin: 10px 0 0 0; color: #856404;">
+                During your subscription pause, all your data, customer relationships, and account history were safely preserved. Everything is exactly as you left it!
+            </p>
+        </div>
+        <% } %>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="<%= dashboardUrl %>" 
+               style="background-color: #00466a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; margin-right: 10px;">
+                Go to Dashboard
+            </a>
+            <a href="<%= subscriptionUrl %>" 
+               style="background-color: #6c757d; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                Manage Subscription
+            </a>
+        </div>
+
+        <% if (specialWelcomeBack) { %>
+        <div style="background-color: #e7f3ff; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; color: #004085; font-weight: bold;">
+                🎁 Welcome Back Bonus!
+            </p>
+            <p style="margin: 10px 0 0 0; color: #004085;">
+                <%= specialWelcomeBack %>
+            </p>
+        </div>
+        <% } %>
+
+        <p style="font-size: 1em;">
+            <strong>What's Next?</strong>
+        </p>
+        <ul style="font-size: 1em; color: #666; margin-left: 20px;">
+            <li>Check out any new features we've added since your last visit</li>
+            <li>Review and update your business profile</li>
+            <li>Explore enhanced analytics and insights</li>
+            <li>Reconnect with your customers and leads</li>
+            <li>Take advantage of our latest marketing tools</li>
+        </ul>
+
+        <p style="font-size: 0.9em; color: #888;">
+            <strong>Need Help Getting Back Up to Speed?</strong><br>
+            Our support team is standing by to help you make the most of your reactivated subscription. We can provide a quick refresher on new features or help you optimize your account settings. Contact us at <a href="mailto:<%= supportEmail %>" style="color: #00466a;"><%= supportEmail %></a>.
+        </p>
+
+        <p style="font-size: 0.9em; color: #888;">
+            Thank you for choosing to continue your journey with Xuthority. We're committed to helping your business succeed and grow!
+        </p>
+
+        <p style="font-size: 0.9em; color: #888;">
+            Best regards,<br>
+            The Xuthority Team
+        </p>
+
+        <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 10px; font-size: 0.8em; color: #aaa;">
+            <p>&copy; <%= currentYear %> <%= companyName %>. All rights reserved.</p>
+            <p><%= companyAddress %></p>
+        </div>
+    </div>
+</body>
+</html> 

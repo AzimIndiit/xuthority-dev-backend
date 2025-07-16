@@ -26,21 +26,21 @@ const userSubscriptionSchema = new mongoose.Schema({
   stripeSubscriptionId: {
     type: String,
     required: function() {
-      return this.subscriptionPlan?.planType !== 'free';
+      // For free plans, allow null values
+      return this.priceAmount > 0;
     },
     trim: true,
   },
   stripeCustomerId: {
     type: String,
-    required: function() {
-      return this.subscriptionPlan?.planType !== 'free';
-    },
+    required: true, // Always required since we create Stripe customers for all users
     trim: true,
   },
   stripePriceId: {
     type: String,
     required: function() {
-      return this.subscriptionPlan?.planType !== 'free';
+      // For free plans, allow null values
+      return this.priceAmount > 0;
     },
     trim: true,
   },
@@ -174,7 +174,9 @@ userSubscriptionSchema.virtual('isActive').get(function() {
 });
 
 userSubscriptionSchema.virtual('isTrialing').get(function() {
-  return this.status === 'trialing';
+  return this.status === 'trialing' && 
+         this.trialEnd && 
+         new Date() < this.trialEnd;
 });
 
 userSubscriptionSchema.virtual('isCanceled').get(function() {

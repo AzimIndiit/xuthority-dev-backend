@@ -48,14 +48,14 @@ const createStripeProductAndPrice = async (planData) => {
  */
 const getSubscriptionPlansConfig = () => [
   {
-    name: 'Basic',
+    name: 'Free',
     description: 'Collaborate and optimize your team processes',
     planType: 'free',
     price: 0,
     currency: 'USD',
     billingInterval: 'month',
     billingIntervalCount: 1,
-    trialPeriodDays: 7,
+    trialPeriodDays: 0,
     features: [
       'Basic Product Listing',
       'Basic Analytics',
@@ -70,6 +70,7 @@ const getSubscriptionPlansConfig = () => [
     isActive: true,
     isPopular: false,
     sortOrder: 1,
+    planType: 'free', 
     displayOrder: 1,
     needsStripe: false, // This plan doesn't need Stripe
   },
@@ -81,7 +82,7 @@ const getSubscriptionPlansConfig = () => [
     currency: 'USD',
     billingInterval: 'month',
     billingIntervalCount: 1,
-    trialPeriodDays: 7,
+    trialPeriodDays: 0,
     features: [
       'Enhanced branding',
       'Advanced analytics.',
@@ -94,36 +95,13 @@ const getSubscriptionPlansConfig = () => [
     maxReviews: -1, // Unlimited
     maxDisputes: -1, // Unlimited
     isActive: true,
+    planType: 'standard', 
     isPopular: true,
     sortOrder: 2,
     displayOrder: 2,
     needsStripe: true, // This plan needs Stripe
   },
-  {
-    name: 'Free',
-    description: 'Basic functionality for new users',
-    planType: 'free',
-    price: 0,
-    currency: 'USD',
-    billingInterval: 'month',
-    billingIntervalCount: 1,
-    trialPeriodDays: 0, // No trial for permanent free plan
-    features: [
-      'Limited Product Listing',
-      'Basic Analytics',
-      'Standard Branding'
-    ],
-    stripePriceId: null,
-    stripeProductId: null,
-    maxProducts: 1,
-    maxReviews: 5,
-    maxDisputes: 1,
-    isActive: true,
-    isPopular: false,
-    sortOrder: 0,
-    displayOrder: 0,
-    needsStripe: false, // This plan doesn't need Stripe
-  }
+
 ];
 
 /**

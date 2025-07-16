@@ -10132,6 +10132,55 @@
         }
       }
     },
+    "/subscription/reactivate": {
+      "post": {
+        "tags": [
+          "Subscription"
+        ],
+        "summary": "Reactivate canceled subscription",
+        "description": "Reactivate a previously canceled subscription",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscription reactivated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "description": "Updated subscription object"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Subscription reactivated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Subscription is not canceled"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "404": {
+            "description": "No canceled subscription found"
+          }
+        }
+      }
+    },
     "/subscription/process-pending": {
       "post": {
         "tags": [
@@ -10450,6 +10499,96 @@
           },
           "403": {
             "description": "Admin access required"
+          }
+        }
+      }
+    },
+    "/subscription/setup-payment-method": {
+      "post": {
+        "tags": [
+          "Subscription"
+        ],
+        "summary": "Create setup intent for adding payment method",
+        "description": "Creates a Stripe setup intent for users to add a payment method for subscription reactivation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Setup intent created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "clientSecret": {
+                      "type": "string",
+                      "description": "Client secret for Stripe Elements"
+                    },
+                    "setupIntentId": {
+                      "type": "string",
+                      "description": "Setup intent ID"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - no Stripe customer found"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/subscription/test-email": {
+      "post": {
+        "tags": [
+          "Subscription"
+        ],
+        "summary": "Test email sending functionality",
+        "description": "Test endpoint to verify email service is working for subscription emails",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address to send test to",
+                    "example": "test@example.com"
+                  },
+                  "planName": {
+                    "type": "string",
+                    "description": "Plan name for testing",
+                    "example": "Standard"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Test email sent successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "500": {
+            "description": "Email sending failed"
           }
         }
       }

@@ -457,7 +457,44 @@ router.delete(
  *         description: No active subscription found
  */
 // POST /api/subscription/resume - Resume canceled subscription (authenticated)
-router.post('/resume', rateLimiter, auth, subscriptionController.resumeSubscription);
+router.post('/resume', rateLimiter, auth, subscriptionController.reactivateSubscription);
+
+/**
+ * @openapi
+ * /subscription/reactivate:
+ *   post:
+ *     tags:
+ *       - Subscription
+ *     summary: Reactivate canceled subscription
+ *     description: Reactivate a previously canceled subscription
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Subscription reactivated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   description: Updated subscription object
+ *                 message:
+ *                   type: string
+ *                   example: "Subscription reactivated successfully"
+ *       400:
+ *         description: Subscription is not canceled
+ *       401:
+ *         description: Authentication required
+ *       404:
+ *         description: No canceled subscription found
+ */
+// POST /api/subscription/reactivate - Reactivate canceled subscription (authenticated)
+router.post('/reactivate', rateLimiter, auth, subscriptionController.reactivateSubscription);
 
 /**
  * @openapi
@@ -695,5 +732,132 @@ router.post('/webhook', subscriptionController.handleWebhook);
  */
 // GET /api/subscription/analytics - Get subscription analytics (admin only)
 router.get('/analytics', rateLimiter, auth, authorize(['admin']), subscriptionController.getSubscriptionAnalytics);
+
+/**
+ * @openapi
+ * /subscription/setup-payment-method:
+ *   post:
+ *     tags: [Subscription]
+ *     summary: Create setup intent for adding payment method
+ *     description: Creates a Stripe setup intent for users to add a payment method for subscription reactivation
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Setup intent created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 clientSecret:
+ *                   type: string
+ *                   description: Client secret for Stripe Elements
+ *                 setupIntentId:
+ *                   type: string
+ *                   description: Setup intent ID
+ *       401:
+ *         description: Authentication required
+ *       400:
+ *         description: Bad request - no Stripe customer found
+ */
+// POST /api/subscription/setup-payment-method - Create payment method setup intent (authenticated)
+router.post('/setup-payment-method', rateLimiter, auth, subscriptionController.createPaymentMethodSetupIntent);
+
+// POST /api/subscription/create-free-for-user - Manually create free subscription (testing)
+router.post('/create-free-for-user', rateLimiter, auth, subscriptionController.createFreeSubscriptionManually);
+
+/**
+ * @openapi
+ * /subscription/test-email:
+ *   post:
+ *     tags:
+ *       - Subscription
+ *     summary: Test email sending functionality
+ *     description: Test endpoint to verify email service is working for subscription emails
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email address to send test to
+ *                 example: "test@example.com"
+ *               planName:
+ *                 type: string
+ *                 description: Plan name for testing
+ *                 example: "Standard"
+ *     responses:
+ *       200:
+ *         description: Test email sent successfully
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Email sending failed
+ */
+// POST /api/subscription/test-email - Test email functionality
+router.post('/test-email', auth, async (req, res, next) => {
+  try {
+    const { email, planName = 'Standard' } = req.body;
+    const emailService = require('../services/emailService');
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email address is required'
+      });
+    }
+
+    // Test subscription activation email
+    const emailData = {
+      userName: req.user.firstName || req.user.name || 'Test User',
+      planName: planName,
+      planPrice: '$12.00/month',
+      billingCycle: '1 month',
+      nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long', 
+        day: 'numeric'
+      }),
+      isTrialing: false,
+      trialDays: 0,
+      trialEndDate: null,
+      features: [
+        'Enhanced branding and profile customization',
+        'Advanced analytics and business insights',
+        'Priority customer support', 
+        'Unlimited product listings',
+        'Lead generation and marketing tools'
+      ]
+    };
+
+    const result = await emailService.sendSubscriptionActivatedEmail(email, emailData);
+    
+    res.json({
+      success: true,
+      message: 'Test email sent successfully',
+      data: {
+        email: email,
+        planName: planName,
+        messageId: result.messageId,
+        response: result.response
+      }
+    });
+
+  } catch (error) {
+    console.error('Test email error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to send test email',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
 
 module.exports = router; 

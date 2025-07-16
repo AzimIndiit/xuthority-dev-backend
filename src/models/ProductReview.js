@@ -185,7 +185,15 @@ const productReviewSchema = new mongoose.Schema({
 productReviewSchema.index({ product: 1, overallRating: -1 });
 productReviewSchema.index({ product: 1, submittedAt: -1 });
 productReviewSchema.index({ product: 1, status: 1, publishedAt: -1 });
-productReviewSchema.index({ reviewer: 1, product: 1 }, { unique: true }); // One review per user per product
+// Partial unique index for reviewer-product combination (only applies to non-deleted reviews)
+productReviewSchema.index(
+  { reviewer: 1, product: 1 }, 
+  { 
+    unique: true, 
+    partialFilterExpression: { isDeleted: false },
+    name: 'reviewer_1_product_1_partial'
+  }
+);
 productReviewSchema.index({ 'verification.isVerified': 1, status: 1 });
 productReviewSchema.index({ keywords: 1 });
 productReviewSchema.index({ mentions: 1 });

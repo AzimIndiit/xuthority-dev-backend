@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Expired</title>
+</head>
+<body>
+    <div style="font-family: Helvetica, Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px; line-height: 1.6; color: #333;">
+        <div style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
+            <h2 style="color: #00466a;">Xuthority</h2>
+        </div>
+
+        <p style="font-size: 1.1em;">
+            Hi <%= userName %>,
+        </p>
+
+        <p style="font-size: 1.1em; color: #dc3545; font-weight: bold;">
+            ⏰ Your Subscription Has Expired
+        </p>
+
+        <p style="font-size: 1em;">
+            Your <strong><%= planName %></strong> subscription expired on <strong><%= expiredDate %></strong>. We wanted to let you know about the changes to your account and how to restore your premium access.
+        </p>
+
+        <div style="background-color: #f8f9fa; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold; color: #721c24;">
+                📋 Account Status:
+            </p>
+            <div style="color: #666;">
+                <p style="margin: 5px 0;"><strong>Previous Plan:</strong> <%= planName %></p>
+                <p style="margin: 5px 0;"><strong>Expired On:</strong> <%= expiredDate %></p>
+                <p style="margin: 5px 0;"><strong>Current Status:</strong> Free Plan</p>
+                <% if (reasonForExpiry) { %>
+                <p style="margin: 5px 0;"><strong>Reason:</strong> <%= reasonForExpiry %></p>
+                <% } %>
+            </div>
+        </div>
+
+        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; color: #856404; font-weight: bold;">
+                🔄 What's Changed
+            </p>
+            <p style="margin: 10px 0 0 0; color: #856404;">
+                Your account has been automatically moved to our free plan. You can still access basic features, but some premium functionality may no longer be available.
+            </p>
+        </div>
+
+        <p style="font-size: 1em;">
+            <strong>What you still have access to:</strong>
+        </p>
+        <ul style="font-size: 1em; color: #666; margin-left: 20px;">
+            <li>Basic dashboard and account management</li>
+            <li>Limited product listings</li>
+            <li>Community access</li>
+            <li>Basic customer support</li>
+        </ul>
+
+        <p style="font-size: 1em;">
+            <strong>What you're missing out on:</strong>
+        </p>
+        <ul style="font-size: 1em; color: #dc3545; margin-left: 20px;">
+            <% if (lostFeatures && lostFeatures.length > 0) { %>
+                <% lostFeatures.forEach(function(feature) { %>
+                <li><%= feature %></li>
+                <% }); %>
+            <% } else { %>
+            <li>Enhanced branding and profile customization</li>
+            <li>Advanced analytics and insights</li>
+            <li>Priority customer support</li>
+            <li>Unlimited product listings</li>
+            <li>Lead generation tools</li>
+            <% } %>
+        </ul>
+
+        <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; color: #155724; font-weight: bold;">
+                🚀 Ready to Upgrade Again?
+            </p>
+            <p style="margin: 10px 0 0 0; color: #155724;">
+                Reactivate your subscription today and regain access to all premium features instantly! Choose from our flexible plans designed to help your business grow.
+            </p>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="<%= upgradeUrl %>" 
+               style="background-color: #28a745; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; margin-right: 10px;">
+                Reactivate Subscription
+            </a>
+            <a href="<%= dashboardUrl %>" 
+               style="background-color: #6c757d; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                View Dashboard
+            </a>
+        </div>
+
+        <% if (specialOffer) { %>
+        <div style="background-color: #e7f3ff; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; color: #004085; font-weight: bold;">
+                🎁 Special Offer Just for You!
+            </p>
+            <p style="margin: 10px 0 0 0; color: #004085;">
+                <%= specialOffer %>
+            </p>
+        </div>
+        <% } %>
+
+        <p style="font-size: 0.9em; color: #888;">
+            <strong>Need Help?</strong><br>
+            If you're experiencing payment issues or have questions about reactivating your subscription, our support team is here to help. Contact us at <a href="mailto:<%= supportEmail %>" style="color: #00466a;"><%= supportEmail %></a>.
+        </p>
+
+        <p style="font-size: 0.9em; color: #888;">
+            We value having you as part of our community and hope to continue serving your business needs.
+        </p>
+
+        <p style="font-size: 0.9em; color: #888;">
+            Best regards,<br>
+            The Xuthority Team
+        </p>
+
+        <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 10px; font-size: 0.8em; color: #aaa;">
+            <p>&copy; <%= currentYear %> <%= companyName %>. All rights reserved.</p>
+            <p><%= companyAddress %></p>
+        </div>
+    </div>
+</body>
+</html> 

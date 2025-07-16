@@ -7,6 +7,7 @@ const { logEvent } = require("../services/auditService");
 const { createNotification } = require('../services/notificationService');
 const emailService = require('../services/emailService');
 const userService = require('../services/userService');
+const logger = require('../config/logger');
 
 const SALT_ROUNDS = process.env.BCRYPT_SALT_ROUNDS ? parseInt(process.env.BCRYPT_SALT_ROUNDS) : 12;
 const TOKEN_EXPIRY = "7d";
@@ -225,6 +226,18 @@ exports.registerVendor = async (req, res, next) => {
       message: 'Welcome to XUTHORITY! Start exploring and add your products today.',
       actionUrl: '/dashboard'
     });
+
+    // Create default free plan subscription for new vendor
+    try {
+      const subscriptionService = require('../services/subscriptionService');
+      const subscriptionResult = await subscriptionService.createDefaultFreeSubscription(user._id);
+      if (subscriptionResult) {
+        logger.info(`Created free subscription for new vendor: ${user._id}`);
+      }
+    } catch (subscriptionError) {
+      logger.error('Failed to create default free subscription:', subscriptionError);
+      // Don't throw error here as registration was successful
+    }
     
     const newUser = {
       ...user.toObject(),

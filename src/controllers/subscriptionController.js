@@ -173,58 +173,33 @@ exports.updateSubscription = async (req, res, next) => {
 };
 
 /**
- * Cancel subscription
- * @route DELETE /api/subscription/cancel
- * @access Private
+ * Cancel current subscription
  */
 exports.cancelSubscription = async (req, res, next) => {
   try {
-    const userId = req.user._id;
-    // Handle undefined req.body for DELETE requests
-    const { reason } = req.body || {};
-    
-    const subscription = await subscriptionService.cancelSubscription(userId, reason || 'User requested cancellation');
-    
-    // Log the subscription cancellation
-    await require('../services/auditService').logEvent({
-      user: req.user,
-      action: 'cancel_subscription',
-      target: 'Subscription',
-      targetId: subscription._id,
-      details: { reason: reason || 'User requested cancellation' },
-      req,
-    });
-    
-    return res.json(apiResponse.success(subscription, 'Subscription canceled successfully'));
-  } catch (err) {
-    next(err);
+    const userId = req.user.id;
+    const { reason } = req.body;
+
+    const subscription = await subscriptionService.cancelSubscription(userId, reason);
+
+    res.json(apiResponse.success(subscription, 'Subscription canceled successfully'));
+  } catch (error) {
+    next(error);
   }
 };
 
 /**
- * Resume canceled subscription
- * @route POST /api/subscription/resume
- * @access Private
+ * Reactivate canceled subscription
  */
-exports.resumeSubscription = async (req, res, next) => {
+exports.reactivateSubscription = async (req, res, next) => {
   try {
-    const userId = req.user._id;
-    
-    const subscription = await subscriptionService.resumeSubscription(userId);
-    
-    // Log the subscription resumption
-    await require('../services/auditService').logEvent({
-      user: req.user,
-      action: 'resume_subscription',
-      target: 'Subscription',
-      targetId: subscription._id,
-      details: {},
-      req,
-    });
-    
-    return res.json(apiResponse.success(subscription, 'Subscription resumed successfully'));
-  } catch (err) {
-    next(err);
+    const userId = req.user.id;
+
+    const subscription = await subscriptionService.reactivateSubscription(userId);
+
+    res.json(apiResponse.success(subscription, 'Subscription reactivated successfully'));
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -341,6 +316,37 @@ const handleCheckoutSessionCompleted = async (session) => {
       const plan = await subscriptionService.getSubscriptionPlan(planId);
       
       // Create the user subscription record
+      let actualCurrentPeriodEnd;
+      
+      // For trial subscriptions, calculate the actual billing period end date
+      if (stripeSubscription.trial_end && plan.trialPeriodDays > 0) {
+        // The actual subscription billing period starts after the trial ends
+        const trialEndDate = new Date(stripeSubscription.trial_end * 1000);
+        
+        // Calculate the subscription period end based on billing interval
+        switch (plan.billingInterval) {
+          case 'day':
+            actualCurrentPeriodEnd = new Date(trialEndDate.getTime() + (plan.billingIntervalCount * 24 * 60 * 60 * 1000));
+            break;
+          case 'week':
+            actualCurrentPeriodEnd = new Date(trialEndDate.getTime() + (plan.billingIntervalCount * 7 * 24 * 60 * 60 * 1000));
+            break;
+          case 'month':
+            actualCurrentPeriodEnd = new Date(trialEndDate);
+            actualCurrentPeriodEnd.setMonth(actualCurrentPeriodEnd.getMonth() + plan.billingIntervalCount);
+            break;
+          case 'year':
+            actualCurrentPeriodEnd = new Date(trialEndDate);
+            actualCurrentPeriodEnd.setFullYear(actualCurrentPeriodEnd.getFullYear() + plan.billingIntervalCount);
+            break;
+          default:
+            actualCurrentPeriodEnd = new Date(stripeSubscription.current_period_end * 1000);
+        }
+      } else {
+        // For non-trial subscriptions, use Stripe's period end
+        actualCurrentPeriodEnd = new Date(stripeSubscription.current_period_end * 1000);
+      }
+      
       const userSubscription = new UserSubscription({
         user: userId,
         subscriptionPlan: plan._id,
@@ -349,7 +355,7 @@ const handleCheckoutSessionCompleted = async (session) => {
         stripePriceId: plan.stripePriceId,
         status: stripeSubscription.status,
         currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+        currentPeriodEnd: actualCurrentPeriodEnd,
         trialStart: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
         trialEnd: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null,
         priceAmount: plan.price,
@@ -364,6 +370,69 @@ const handleCheckoutSessionCompleted = async (session) => {
       await userSubscription.save();
       
       logger.info(`Created subscription record for user ${userId} with status: ${stripeSubscription.status}`);
+      
+      // Get user details for email
+      const { User } = require('../models');
+      const emailService = require('../services/emailService');
+      const user = await User.findById(userId);
+      
+      // Send subscription activation email (handle errors separately)
+      try {
+        if (user && user.email) {
+          logger.info(`Attempting to send subscription activation email to user ${userId} (${user.email})`);
+          
+          const planFeatures = plan.features || [
+            'Enhanced branding and profile customization',
+            'Advanced analytics and business insights',
+            'Priority customer support', 
+            'Unlimited product listings',
+            'Lead generation and marketing tools'
+          ];
+
+          const emailData = {
+            userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.name || 'User',
+            planName: plan.name,
+            planPrice: `$${(plan.price / 100).toFixed(2)}/${plan.billingInterval}`,
+            billingCycle: `${plan.billingIntervalCount} ${plan.billingInterval}${plan.billingIntervalCount > 1 ? 's' : ''}`,
+            nextBillingDate: actualCurrentPeriodEnd.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long', 
+              day: 'numeric'
+            }),
+            isTrialing: stripeSubscription.status === 'trialing',
+            trialDays: plan.trialPeriodDays,
+            trialEndDate: userSubscription.trialEnd ? userSubscription.trialEnd.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }) : null,
+            features: planFeatures
+          };
+
+          logger.info(`Email data prepared for user ${userId}:`, {
+            email: user.email,
+            planName: emailData.planName,
+            planPrice: emailData.planPrice,
+            isTrialing: emailData.isTrialing
+          });
+
+          const emailResult = await emailService.sendSubscriptionActivatedEmail(user.email, emailData);
+          logger.info(`Successfully sent subscription activation email to user ${userId}:`, {
+            messageId: emailResult.messageId,
+            response: emailResult.response
+          });
+        } else {
+          logger.warn(`Cannot send subscription activation email to user ${userId}: user not found or no email address`);
+        }
+      } catch (emailError) {
+        logger.error(`Subscription activation email error for user ${userId} (non-blocking):`, {
+          error: emailError.message,
+          stack: emailError.stack,
+          email: user?.email,
+          planName: plan?.name
+        });
+        // Continue even if email fails - subscription was created successfully
+      }
       
       // Send success notification
       await createNotification({
@@ -419,34 +488,208 @@ const handleSubscriptionCreated = async (subscription) => {
 const handleSubscriptionUpdated = async (subscription) => {
   const { UserSubscription } = require('../models');
   const { createNotification } = require('../services/notificationService');
+  const emailService = require('../services/emailService');
+  const subscriptionService = require('../services/subscriptionService');
   
   const localSubscription = await UserSubscription.findOne({
     stripeSubscriptionId: subscription.id
-  });
+  }).populate('subscriptionPlan user');
   
   if (localSubscription) {
     const oldStatus = localSubscription.status;
     
+    // Calculate the correct current period end for trial subscriptions
+    let actualCurrentPeriodEnd;
+    
+    // For trial subscriptions, calculate the actual billing period end date
+    if (subscription.trial_end && localSubscription.subscriptionPlan.trialPeriodDays > 0) {
+      // The actual subscription billing period starts after the trial ends
+      const trialEndDate = new Date(subscription.trial_end * 1000);
+      
+      // Calculate the subscription period end based on billing interval
+      switch (localSubscription.subscriptionPlan.billingInterval) {
+        case 'day':
+          actualCurrentPeriodEnd = new Date(trialEndDate.getTime() + (localSubscription.subscriptionPlan.billingIntervalCount * 24 * 60 * 60 * 1000));
+          break;
+        case 'week':
+          actualCurrentPeriodEnd = new Date(trialEndDate.getTime() + (localSubscription.subscriptionPlan.billingIntervalCount * 7 * 24 * 60 * 60 * 1000));
+          break;
+        case 'month':
+          actualCurrentPeriodEnd = new Date(trialEndDate);
+          actualCurrentPeriodEnd.setMonth(actualCurrentPeriodEnd.getMonth() + localSubscription.subscriptionPlan.billingIntervalCount);
+          break;
+        case 'year':
+          actualCurrentPeriodEnd = new Date(trialEndDate);
+          actualCurrentPeriodEnd.setFullYear(actualCurrentPeriodEnd.getFullYear() + localSubscription.subscriptionPlan.billingIntervalCount);
+          break;
+        default:
+          actualCurrentPeriodEnd = new Date(subscription.current_period_end * 1000);
+      }
+    } else {
+      actualCurrentPeriodEnd = new Date(subscription.current_period_end * 1000);
+    }
+    
+    // Update subscription data
     localSubscription.status = subscription.status;
     localSubscription.currentPeriodStart = new Date(subscription.current_period_start * 1000);
-    localSubscription.currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+    localSubscription.currentPeriodEnd = actualCurrentPeriodEnd;
+    localSubscription.trialStart = subscription.trial_start ? new Date(subscription.trial_start * 1000) : null;
+    localSubscription.trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
     localSubscription.cancelAtPeriodEnd = subscription.cancel_at_period_end;
-    localSubscription.defaultPaymentMethod = subscription.default_payment_method;
     
     await localSubscription.save();
     
-    // Send notification for status changes
+    // Handle status change notifications and emails
     if (oldStatus !== subscription.status) {
-      await createNotification({
-        userId: localSubscription.user,
-        type: 'SUBSCRIPTION_UPDATED',
-        title: 'Subscription Status Changed',
-        message: `Your subscription status has changed to ${subscription.status}`,
-        actionUrl: '/profile/my-subscription'
-      });
+      const user = localSubscription.user;
+      const plan = localSubscription.subscriptionPlan;
+      
+      try {
+        // Handle different status transitions
+        switch (subscription.status) {
+          case 'active':
+            if (oldStatus === 'trialing') {
+              // Trial ended, subscription became active
+              await createNotification({
+                userId: user._id,
+                type: 'TRIAL_ENDED',
+                title: 'Trial Period Ended',
+                message: `Your trial has ended. Your ${plan.name} subscription is now active.`,
+                actionUrl: '/subscription'
+              });
+            } else if (oldStatus === 'past_due') {
+              // Payment succeeded after being past due
+              await createNotification({
+                userId: user._id,
+                type: 'SUBSCRIPTION_REACTIVATED',
+                title: 'Subscription Reactivated',
+                message: `Your ${plan.name} subscription has been reactivated after payment.`,
+                actionUrl: '/subscription'
+              });
+              
+              // Send reactivation email
+              if (user.email) {
+                const emailData = {
+                  userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.name || 'User',
+                  planName: plan.name,
+                  planPrice: `$${(plan.price / 100).toFixed(2)}/${plan.billingInterval}`,
+                  reactivatedDate: new Date().toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }),
+                  nextBillingDate: actualCurrentPeriodEnd.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }),
+                  billingCycle: `${plan.billingIntervalCount} ${plan.billingInterval}${plan.billingIntervalCount > 1 ? 's' : ''}`,
+                  wasDowntime: true
+                };
+                
+                await emailService.sendSubscriptionReactivatedEmail(user.email, emailData);
+              }
+            }
+            break;
+            
+          case 'canceled':
+            // Subscription was canceled - downgrade to free plan
+            try {
+              await subscriptionService.downgradeToFreePlan(
+                user._id,
+                'subscription_expired',
+                localSubscription
+              );
+              
+              logger.info(`Downgraded user ${user._id} to free plan due to subscription cancellation`);
+            } catch (downgradeError) {
+              logger.error(`Failed to downgrade user ${user._id} to free plan:`, downgradeError);
+              
+              // Fallback notification if downgrade fails
+              await createNotification({
+                userId: user._id,
+                type: 'SUBSCRIPTION_CANCELED',
+                title: 'Subscription Canceled',
+                message: `Your ${plan.name} subscription has been canceled.`,
+                actionUrl: '/subscription'
+              });
+              
+              // Send cancellation email as fallback
+              if (user.email) {
+                const emailData = {
+                  userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.name || 'User',
+                  planName: plan.name,
+                  canceledDate: new Date().toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }),
+                  accessUntilDate: null, // Immediate cancellation
+                  cancelReason: subscription.metadata?.cancellation_reason || null
+                };
+                
+                await emailService.sendSubscriptionCanceledEmail(user.email, emailData);
+              }
+            }
+            break;
+            
+          case 'past_due':
+            await createNotification({
+              userId: user._id,
+              type: 'PAYMENT_FAILED',
+              title: 'Payment Failed',
+              message: `Payment for your ${plan.name} subscription failed. Please update your payment method.`,
+              actionUrl: '/subscription'
+            });
+            break;
+            
+          case 'unpaid':
+          case 'incomplete_expired':
+            // Subscription expired due to failed payment - downgrade to free plan
+            try {
+              const reason = subscription.status === 'unpaid' ? 'payment_failed' : 'subscription_expired';
+              
+              await subscriptionService.downgradeToFreePlan(
+                user._id,
+                reason,
+                localSubscription
+              );
+              
+              logger.info(`Downgraded user ${user._id} to free plan due to ${subscription.status} status`);
+            } catch (downgradeError) {
+              logger.error(`Failed to downgrade user ${user._id} to free plan:`, downgradeError);
+              
+              // Fallback notification if downgrade fails
+              await createNotification({
+                userId: user._id,
+                type: 'SUBSCRIPTION_EXPIRED',
+                title: 'Subscription Expired',
+                message: `Your ${plan.name} subscription has expired due to payment issues.`,
+                actionUrl: '/subscription'
+              });
+              
+              // Send expiration email as fallback
+              if (user.email) {
+                const emailData = {
+                  userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.name || 'User',
+                  planName: plan.name,
+                  expiredDate: new Date().toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }),
+                  reasonForExpiry: subscription.status === 'unpaid' ? 'Payment failure' : 'Incomplete payment setup'
+                };
+                
+                await emailService.sendSubscriptionExpiredEmail(user.email, emailData);
+              }
+            }
+            break;
+        }
+      } catch (notificationError) {
+        console.error('Subscription status change notification/email error (non-blocking):', notificationError);
+      }
     }
-    
-    logger.info(`Updated subscription ${subscription.id} status to ${subscription.status}`);
   }
 };
 
@@ -455,31 +698,30 @@ const handleSubscriptionUpdated = async (subscription) => {
  */
 const handleSubscriptionDeleted = async (subscription) => {
   const { UserSubscription } = require('../models');
-  const { createNotification } = require('../services/notificationService');
+  const subscriptionService = require('../services/subscriptionService');
   
   const localSubscription = await UserSubscription.findOne({
     stripeSubscriptionId: subscription.id
-  });
+  }).populate(['subscriptionPlan', 'user']);
   
   if (localSubscription) {
+    // Mark local subscription as canceled
     localSubscription.status = 'canceled';
     localSubscription.canceledAt = new Date();
-    
     await localSubscription.save();
     
-    // Create default free subscription for the user
-    await subscriptionService.createDefaultFreeSubscription(localSubscription.user);
-    
-    // Send notification
-    await createNotification({
-      userId: localSubscription.user,
-      type: 'SUBSCRIPTION_ENDED',
-      title: 'Subscription Ended',
-      message: 'Your subscription has ended. You have been moved to the free plan.',
-      actionUrl: '/profile/my-subscription'
-    });
-    
-    logger.info(`Subscription ${subscription.id} has been canceled and user moved to free plan`);
+    // Downgrade to free plan with email notification
+    try {
+      await subscriptionService.downgradeToFreePlan(
+        localSubscription.user._id,
+        'subscription_expired',
+        localSubscription
+      );
+      
+      logger.info(`Subscription ${subscription.id} deleted - user ${localSubscription.user._id} downgraded to free plan`);
+    } catch (downgradeError) {
+      logger.error(`Failed to downgrade user ${localSubscription.user._id} after subscription deletion:`, downgradeError);
+    }
   }
 };
 
@@ -521,27 +763,54 @@ const handlePaymentSucceeded = async (invoice) => {
 const handlePaymentFailed = async (invoice) => {
   const { UserSubscription } = require('../models');
   const { createNotification } = require('../services/notificationService');
+  const subscriptionService = require('../services/subscriptionService');
   
   if (invoice.subscription) {
     const localSubscription = await UserSubscription.findOne({
       stripeSubscriptionId: invoice.subscription
-    });
+    }).populate(['subscriptionPlan', 'user']);
     
     if (localSubscription) {
       localSubscription.notifications.paymentFailed = true;
+      
+      // Track payment failure attempts
+      if (!localSubscription.metadata) {
+        localSubscription.metadata = new Map();
+      }
+      
+      const failureCount = parseInt(localSubscription.metadata.get('payment_failure_count') || '0') + 1;
+      localSubscription.metadata.set('payment_failure_count', failureCount.toString());
+      localSubscription.metadata.set('last_payment_failure', new Date().toISOString());
       
       await localSubscription.save();
       
       // Send payment failed notification
       await createNotification({
-        userId: localSubscription.user,
+        userId: localSubscription.user._id,
         type: 'PAYMENT_FAILED',
         title: 'Payment Failed',
         message: 'Your subscription payment failed. Please update your payment method.',
         actionUrl: '/profile/my-subscription'
       });
       
-      logger.info(`Payment failed for subscription ${invoice.subscription}`);
+      logger.info(`Payment failed for subscription ${invoice.subscription} (attempt ${failureCount})`);
+      
+      // After 3 failed payment attempts, downgrade to free plan
+      if (failureCount >= 3) {
+        try {
+          logger.info(`Downgrading subscription ${invoice.subscription} to free plan after ${failureCount} failed payment attempts`);
+          
+          await subscriptionService.downgradeToFreePlan(
+            localSubscription.user._id,
+            'payment_failed',
+            localSubscription
+          );
+          
+          logger.info(`Successfully downgraded user ${localSubscription.user._id} to free plan due to payment failures`);
+        } catch (downgradeError) {
+          logger.error(`Failed to downgrade user ${localSubscription.user._id} to free plan:`, downgradeError);
+        }
+      }
     }
   }
 };
@@ -639,6 +908,37 @@ exports.processPendingCheckouts = async (req, res, next) => {
         const plan = await subscriptionService.getSubscriptionPlan(planId);
 
         // Create local subscription record
+        let actualCurrentPeriodEnd;
+        
+        // For trial subscriptions, calculate the actual billing period end date
+        if (stripeSubscription.trial_end && plan.trialPeriodDays > 0) {
+          // The actual subscription billing period starts after the trial ends
+          const trialEndDate = new Date(stripeSubscription.trial_end * 1000);
+          
+          // Calculate the subscription period end based on billing interval
+          switch (plan.billingInterval) {
+            case 'day':
+              actualCurrentPeriodEnd = new Date(trialEndDate.getTime() + (plan.billingIntervalCount * 24 * 60 * 60 * 1000));
+              break;
+            case 'week':
+              actualCurrentPeriodEnd = new Date(trialEndDate.getTime() + (plan.billingIntervalCount * 7 * 24 * 60 * 60 * 1000));
+              break;
+            case 'month':
+              actualCurrentPeriodEnd = new Date(trialEndDate);
+              actualCurrentPeriodEnd.setMonth(actualCurrentPeriodEnd.getMonth() + plan.billingIntervalCount);
+              break;
+            case 'year':
+              actualCurrentPeriodEnd = new Date(trialEndDate);
+              actualCurrentPeriodEnd.setFullYear(actualCurrentPeriodEnd.getFullYear() + plan.billingIntervalCount);
+              break;
+            default:
+              actualCurrentPeriodEnd = new Date(stripeSubscription.current_period_end * 1000);
+          }
+        } else {
+          // For non-trial subscriptions, use Stripe's period end
+          actualCurrentPeriodEnd = new Date(stripeSubscription.current_period_end * 1000);
+        }
+        
         const subscription = new UserSubscription({
           user: userId,
           subscriptionPlan: plan._id,
@@ -647,7 +947,7 @@ exports.processPendingCheckouts = async (req, res, next) => {
           stripePriceId: plan.stripePriceId,
           status: stripeSubscription.status,
           currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+          currentPeriodEnd: actualCurrentPeriodEnd,
           trialStart: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
           trialEnd: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null,
           priceAmount: plan.price,
@@ -841,4 +1141,43 @@ exports.getSubscriptionAnalytics = async (req, res, next) => {
   }
 };
 
-module.exports = exports; 
+/**
+ * Create setup intent for adding payment method
+ * @route POST /api/subscription/setup-payment-method
+ * @access Private
+ */
+exports.createPaymentMethodSetupIntent = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    const setupIntent = await subscriptionService.createPaymentMethodSetupIntent(userId);
+
+    return res.json(apiResponse.success(setupIntent, 'Payment method setup intent created successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Manually create free subscription for testing
+ * @route POST /api/subscription/create-free-for-user
+ * @access Private
+ */
+exports.createFreeSubscriptionManually = async (req, res, next) => {
+  try {
+    const { userId } = req.body;
+    const targetUserId = userId || req.user.id;
+
+    logger.info(`[DEBUG] Manual free subscription creation requested for user: ${targetUserId}`);
+
+    const subscriptionResult = await subscriptionService.createDefaultFreeSubscription(targetUserId);
+
+    if (subscriptionResult) {
+      return res.json(apiResponse.success(subscriptionResult, 'Free subscription created successfully'));
+    } else {
+      return res.json(apiResponse.success(null, 'Free subscription creation was skipped (user not vendor or already has subscription)'));
+    }
+  } catch (err) {
+    next(err);
+  }
+}; 

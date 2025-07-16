@@ -204,8 +204,8 @@ class EmailService {
       const templateData = {
         userName: userName || 'User',
         message: 'Welcome to our platform! We\'re excited to have you on board.',
-        loginUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/login`,
-        dashboardUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/dashboard`,
+        loginUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/`,
+        dashboardUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/`,
         currentYear: new Date().getFullYear()
       };
 
@@ -285,6 +285,326 @@ class EmailService {
     } catch (error) {
       logger.error('Error sending dispute explanation email:', error);
       throw new Error('Failed to send dispute explanation email');
+    }
+  }
+
+  /**
+   * Send subscription activated email
+   * @param {string} email - User email
+   * @param {object} subscriptionData - Subscription data
+   * @returns {Promise<object>} - Email send result
+   */
+  async sendSubscriptionActivatedEmail(email, subscriptionData) {
+    try {
+      const {
+        userName,
+        planName,
+        planPrice,
+        billingCycle,
+        nextBillingDate,
+        isTrialing,
+        trialDays,
+        trialEndDate,
+        features
+      } = subscriptionData;
+
+      const templateData = {
+        userName: userName || 'User',
+        planName,
+        planPrice,
+        billingCycle,
+        nextBillingDate,
+        isTrialing: isTrialing || false,
+        trialDays: trialDays || 0,
+        trialEndDate,
+        features: features || [
+          'Enhanced branding and profile customization',
+          'Advanced analytics and business insights', 
+          'Priority customer support',
+          'Unlimited product listings',
+          'Lead generation and marketing tools'
+        ],
+        dashboardUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/`,
+        subscriptionUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/profile/my-subscription`,
+        currentYear: new Date().getFullYear()
+      };
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `Subscription Activated - Welcome to ${planName}! - ${config?.app?.name || 'Xuthority'}`,
+        template: 'subscription-activated.ejs',
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending subscription activated email:', error);
+      throw new Error('Failed to send subscription activated email');
+    }
+  }
+
+  /**
+   * Send subscription canceled email
+   * @param {string} email - User email
+   * @param {object} subscriptionData - Subscription data
+   * @returns {Promise<object>} - Email send result
+   */
+  async sendSubscriptionCanceledEmail(email, subscriptionData) {
+    try {
+      const {
+        userName,
+        planName,
+        canceledDate,
+        accessUntilDate,
+        cancelReason
+      } = subscriptionData;
+
+      const templateData = {
+        userName: userName || 'User',
+        planName,
+        canceledDate,
+        accessUntilDate,
+        cancelReason,
+        dashboardUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/`,
+        reactivateUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/profile/my-subscription`,
+        currentYear: new Date().getFullYear()
+      };
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `Subscription Canceled - ${config?.app?.name || 'Xuthority'}`,
+        template: 'subscription-canceled.ejs',
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending subscription canceled email:', error);
+      throw new Error('Failed to send subscription canceled email');
+    }
+  }
+
+  /**
+   * Send subscription expired email
+   * @param {string} email - User email
+   * @param {object} subscriptionData - Subscription data
+   * @returns {Promise<object>} - Email send result
+   */
+  async sendSubscriptionExpiredEmail(email, subscriptionData) {
+    try {
+      const {
+        userName,
+        planName,
+        expiredDate,
+        reasonForExpiry,
+        lostFeatures,
+        specialOffer
+      } = subscriptionData;
+
+      const templateData = {
+        userName: userName || 'User',
+        planName,
+        expiredDate,
+        reasonForExpiry,
+        lostFeatures: lostFeatures || [
+          'Enhanced branding and profile customization',
+          'Advanced analytics and insights',
+          'Priority customer support',
+          'Unlimited product listings',
+          'Lead generation tools'
+        ],
+        specialOffer,
+        dashboardUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/`,
+        upgradeUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/profile/my-subscription`,
+        currentYear: new Date().getFullYear()
+      };
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `Subscription Expired - Reactivate Your Premium Access - ${config?.app?.name || 'Xuthority'}`,
+        template: 'subscription-expired.ejs',
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending subscription expired email:', error);
+      throw new Error('Failed to send subscription expired email');
+    }
+  }
+
+  /**
+   * Send subscription reactivated email
+   * @param {string} email - User email
+   * @param {object} subscriptionData - Subscription data
+   * @returns {Promise<object>} - Email send result
+   */
+  async sendSubscriptionReactivatedEmail(email, subscriptionData) {
+    try {
+      const {
+        userName,
+        planName,
+        planPrice,
+        reactivatedDate,
+        nextBillingDate,
+        billingCycle,
+        features,
+        wasDowntime,
+        specialWelcomeBack
+      } = subscriptionData;
+
+      const templateData = {
+        userName: userName || 'User',
+        planName,
+        planPrice,
+        reactivatedDate,
+        nextBillingDate,
+        billingCycle,
+        features: features || [
+          'Enhanced branding and profile customization',
+          'Advanced analytics and business insights',
+          'Priority customer support',
+          'Unlimited product listings',
+          'Lead generation and marketing tools',
+          'Advanced search and filtering options',
+          'Detailed performance reports'
+        ],
+        wasDowntime: wasDowntime || false,
+        specialWelcomeBack,
+        dashboardUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/`,
+        subscriptionUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/profile/my-subscription`,
+        currentYear: new Date().getFullYear()
+      };
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `Welcome Back! Subscription Reactivated - ${config?.app?.name || 'Xuthority'}`,
+        template: 'subscription-reactivated.ejs',
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending subscription reactivated email:', error);
+      throw new Error('Failed to send subscription reactivated email');
+    }
+  }
+
+  /**
+   * Send subscription downgrade email
+   * @param {string} email - User email
+   * @param {object} downgradeData - Downgrade data
+   * @returns {Promise<object>} - Email send result
+   */
+  async sendSubscriptionDowngradeEmail(email, downgradeData) {
+    try {
+      const {
+        userName,
+        reason,
+        originalPlanName,
+        downgradedDate,
+        freePlanFeatures,
+        supportEmail
+      } = downgradeData;
+
+      const reasonMessages = {
+        'payment_failed': 'due to a payment failure',
+        'subscription_expired': 'because your subscription has expired',
+        'manual': 'as requested'
+      };
+
+      const templateData = {
+        userName: userName || 'User',
+        reason: reasonMessages[reason] || reasonMessages['subscription_expired'],
+        originalPlanName: originalPlanName || 'Standard',
+        downgradedDate,
+        freePlanFeatures: freePlanFeatures || [
+          'Basic Product Listing',
+          'Basic Analytics', 
+          'Standard Branding'
+        ],
+        supportEmail: supportEmail || 'support@xuthority.com',
+        upgradeUrl: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/subscription` : 'https://xuthority.com/subscription',
+        loginUrl: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/login` : 'https://xuthority.com/login'
+      };
+
+      // For now, send a simple email (you can create an EJS template later)
+      const subject = `Your Subscription Has Been Downgraded - XUTHORITY`;
+      
+      const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Subscription Downgraded</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">XUTHORITY</h1>
+        <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Subscription Update</p>
+    </div>
+    
+    <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef;">
+        
+        <h2 style="color: #333; margin-bottom: 20px;">Hi ${templateData.userName},</h2>
+        
+        <p style="font-size: 16px; margin-bottom: 20px;">
+            We're writing to inform you that your <strong>${templateData.originalPlanName}</strong> subscription has been downgraded to our Free plan ${templateData.reason}.
+        </p>
+        
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <h3 style="color: #856404; margin-top: 0;">📅 Downgrade Details</h3>
+            <p style="margin: 5px 0;"><strong>Date:</strong> ${templateData.downgradedDate}</p>
+            <p style="margin: 5px 0;"><strong>Previous Plan:</strong> ${templateData.originalPlanName}</p>
+            <p style="margin: 5px 0;"><strong>Current Plan:</strong> Free Plan</p>
+        </div>
+        
+        <h3 style="color: #333; margin-top: 30px;">✨ Your Free Plan Includes:</h3>
+        <ul style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 15px 0;">
+            ${templateData.freePlanFeatures.map(feature => `<li style="margin: 8px 0;">${feature}</li>`).join('')}
+        </ul>
+        
+        <p style="font-size: 16px; margin: 25px 0;">
+            Don't worry - you can upgrade back to a paid plan at any time to restore all your premium features.
+        </p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="${templateData.upgradeUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
+                Upgrade Your Plan
+            </a>
+        </div>
+        
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+        
+        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
+            <strong>Need help?</strong> Our support team is here to assist you.
+        </p>
+        
+        <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+            Contact us at <a href="mailto:${templateData.supportEmail}" style="color: #667eea;">${templateData.supportEmail}</a>
+        </p>
+        
+        <div style="border-top: 1px solid #eee; padding-top: 20px; text-align: center;">
+            <p style="font-size: 12px; color: #999; margin: 0;">
+                © ${new Date().getFullYear()} XUTHORITY. All rights reserved.
+            </p>
+            <p style="font-size: 12px; color: #999; margin: 5px 0 0 0;">
+                <a href="${templateData.loginUrl}" style="color: #667eea;">Visit Your Dashboard</a>
+            </p>
+        </div>
+        
+    </div>
+    
+</body>
+</html>`;
+
+      return await this.sendEmail({
+        to: email,
+        subject,
+        html: htmlContent,
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending subscription downgrade email:', error);
+      throw new Error('Failed to send subscription downgrade email');
     }
   }
 }
