@@ -16,11 +16,13 @@ const createProductReview = async (reviewData, userId) => {
       throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
     }
 
-    // Check if user already reviewed this product
-    const existingReview = await ProductReview.findOne({
+    // Check if user already reviewed this product (excluding soft-deleted)
+    const existingReviews = await ProductReview.findActive({
       product: reviewData.product,
       reviewer: userId
-    });
+    }).limit(1);
+    
+    const existingReview = existingReviews[0];
 
     if (existingReview) {
       throw new ApiError('You have already reviewed this product', 'REVIEW_ALREADY_EXISTS', 409);
@@ -131,16 +133,15 @@ const getAllProductReviews = async (queryParams) => {
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-    const reviews = await ProductReview.find(filter)
-      .populate([
-        { path: 'reviewer', select: 'name email' },
-        { path: 'product', select: 'name slug avgRating totalReviews' }
-      ])
+    const reviews = await ProductReview.findActiveWithPopulate(filter, [
+      { path: 'reviewer', select: 'name email' },
+      { path: 'product', select: 'name slug avgRating totalReviews brandColors' }
+    ])
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit));
 
-    const total = await ProductReview.countDocuments(filter);
+    const total = await ProductReview.countActive(filter);
 
     const pagination = {
       currentPage: parseInt(page),
@@ -234,16 +235,15 @@ const getProductReviews = async (productId, queryParams) => {
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-    const reviews = await ProductReview.find(filter)
-      .populate([
-        { path: 'reviewer', select: 'email isVerified avatar firstName lastName title companyName companySize industry slug ' },
-        { path: 'product', select: 'name slug userId' }
-      ])
+    const reviews = await ProductReview.findActiveWithPopulate(filter, [
+      { path: 'reviewer', select: 'email isVerified avatar firstName lastName title companyName companySize industry slug ' },
+      { path: 'product', select: 'name slug userId brandColors' }
+    ])
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit));
 
-    const total = await ProductReview.countDocuments(filter);
+    const total = await ProductReview.countActive(filter);
 
     // Get rating distribution for this product
     const ratingStats = await ProductReview.aggregate([
@@ -251,7 +251,8 @@ const getProductReviews = async (productId, queryParams) => {
         $match: {
           product: product._id,
           status: 'approved',
-          publishedAt: { $ne: null }
+          publishedAt: { $ne: null },
+          isDeleted: false
         }
       },
       {
@@ -308,10 +309,10 @@ const getProductReviews = async (productId, queryParams) => {
  */
 const getProductReviewById = async (reviewId) => {
   try {
-    const review = await ProductReview.findById(reviewId)
+    const review = await ProductReview.findByIdActive(reviewId)
       .populate([
         { path: 'reviewer', select: 'name email' },
-        { path: 'product', select: 'name slug avgRating totalReviews' }
+        { path: 'product', select: 'name slug avgRating totalReviews brandColors' }
       ]);
 
     if (!review) {
@@ -330,7 +331,7 @@ const getProductReviewById = async (reviewId) => {
  */
 const updateProductReview = async (reviewId, updateData, userId) => {
   try {
-    const review = await ProductReview.findById(reviewId);
+    const review = await ProductReview.findByIdActive(reviewId);
 
     if (!review) {
       throw new ApiError('Product review not found', 'REVIEW_NOT_FOUND', 404);
@@ -366,7 +367,7 @@ const updateProductReview = async (reviewId, updateData, userId) => {
  */
 const deleteProductReview = async (reviewId, userId, userRole) => {
   try {
-    const review = await ProductReview.findById(reviewId);
+    const review = await ProductReview.findByIdActive(reviewId);
 
     if (!review) {
       throw new ApiError('Product review not found', 'REVIEW_NOT_FOUND', 404);
@@ -377,7 +378,8 @@ const deleteProductReview = async (reviewId, userId, userRole) => {
       throw new ApiError('You can only delete your own reviews', 'UNAUTHORIZED_DELETE', 403);
     }
 
-    await ProductReview.findByIdAndDelete(reviewId);
+    // Soft delete the review
+    await review.softDelete(userId);
 
     return ApiResponse.success(null, 'Product review deleted successfully');
   } catch (error) {
@@ -472,7 +474,7 @@ const removeHelpfulVote = async (reviewId, userId) => {
  */
 const moderateReview = async (reviewId, moderationData) => {
   try {
-    const review = await ProductReview.findById(reviewId);
+    const review = await ProductReview.findByIdActive(reviewId);
 
     if (!review) {
       throw new ApiError('Product review not found', 'REVIEW_NOT_FOUND', 404);
@@ -547,13 +549,15 @@ const getUserReviewForProduct = async (productId, userId) => {
     }
 
     // Find user's review for this product
-    const review = await ProductReview.findOne({
+    const reviews = await ProductReview.findActive({
       product: productId,
       reviewer: userId
     }).populate([
       { path: 'reviewer', select: 'name email avatar slug ' },
-      { path: 'product', select: 'name slug' }
-    ]);
+      { path: 'product', select: 'name, slug, brandColors' }
+    ]).limit(1);
+    
+    const review = reviews[0];
 
     if (!review) {
       throw new ApiError('Review not found', 'REVIEW_NOT_FOUND', 404);
@@ -566,6 +570,81 @@ const getUserReviewForProduct = async (productId, userId) => {
   }
 };
 
+/**
+ * Restore a soft-deleted review (admin only)
+ */
+const restoreProductReview = async (reviewId) => {
+  try {
+    const review = await ProductReview.findOne({ _id: reviewId, isDeleted: true });
+
+    if (!review) {
+      throw new ApiError('Deleted review not found', 'REVIEW_NOT_FOUND', 404);
+    }
+
+    // Restore the review
+    await review.restore();
+
+    await review.populate([
+      { path: 'reviewer', select: 'name email avatar slug' },
+      { path: 'product', select: 'name slug' }
+    ]);
+
+    return ApiResponse.success(review, 'Product review restored successfully');
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError('Error restoring product review', 'REVIEW_RESTORE_ERROR', 500, { originalError: error.message });
+  }
+};
+
+/**
+ * Get soft-deleted reviews (admin only)
+ */
+const getDeletedProductReviews = async (queryParams) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = 'deletedAt',
+      sortOrder = 'desc'
+    } = queryParams;
+
+    const filter = { isDeleted: true };
+
+    const skip = (page - 1) * limit;
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    const reviews = await ProductReview.find(filter)
+      .populate([
+        { path: 'reviewer', select: 'name email avatar slug' },
+        { path: 'product', select: 'name slug' },
+        { path: 'deletedBy', select: 'name email' }
+      ])
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await ProductReview.countDocuments(filter);
+
+    const pagination = {
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+      itemsPerPage: parseInt(limit),
+      hasNext: page < Math.ceil(total / limit),
+      hasPrev: page > 1
+    };
+
+    return ApiResponse.success(
+      reviews,
+      'Deleted reviews retrieved successfully',
+      { pagination, total }
+    );
+  } catch (error) {
+    throw new ApiError('Error retrieving deleted reviews', 'DELETED_REVIEWS_FETCH_ERROR', 500, { originalError: error.message });
+  }
+};
+
 module.exports = {
   createProductReview,
   getAllProductReviews,
@@ -573,6 +652,8 @@ module.exports = {
   getProductReviewById,
   updateProductReview,
   deleteProductReview,
+  restoreProductReview,
+  getDeletedProductReviews,
   voteHelpful,
   removeHelpfulVote,
   moderateReview,

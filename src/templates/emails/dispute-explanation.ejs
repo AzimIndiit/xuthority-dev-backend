@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Explanation Added to Dispute</title>
+</head>
+<body>
+    <div style="font-family: Helvetica, Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px; line-height: 1.6; color: #333;">
+        <div style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
+            <h2 style="color: #00466a;">Xuthority</h2>
+        </div>
+
+        <p style="font-size: 1.1em;">
+            Hi <%= userName %>,
+        </p>
+
+        <p style="font-size: 1.1em; color: #00466a; font-weight: bold;">
+            📝 New Explanation Added to Dispute
+        </p>
+
+        <p style="font-size: 1em;">
+            A new explanation has been added to a dispute you are involved in regarding the review: <strong>"<%= reviewTitle %>"</strong> for the product <strong><%= productName %></strong>.
+        </p>
+
+        <div style="background-color: #f8f9fa; border-left: 4px solid #00466a; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold; color: #00466a;">
+                Explanation from <%= authorName %>:
+            </p>
+            <p style="margin: 0; color: #666; font-style: italic;">
+                "<%= explanationContent %>"
+            </p>
+        </div>
+
+        <p style="font-size: 1em;">
+            You can view the full dispute details and respond by clicking the button below:
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="<%= disputeUrl %>" 
+               style="background-color: #00466a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                View Dispute Details
+            </a>
+        </div>
+
+        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; color: #856404; font-size: 0.9em;">
+                <strong>Note:</strong> Dispute resolution helps maintain the quality and integrity of our review system. Please respond thoughtfully to help us resolve this matter fairly.
+            </p>
+        </div>
+
+        <p style="font-size: 0.9em; color: #888;">
+            <strong>Dispute Details:</strong><br>
+            • Dispute ID: #<%= disputeId %><br>
+            • Product: <%= productName %><br>
+            • Review: "<%= reviewTitle %>"<br>
+            • Date: <%= currentDate %>
+        </p>
+
+        <p style="font-size: 0.9em; color: #888;">
+            If you have any questions about this dispute, please contact our support team at <a href="mailto:<%= supportEmail %>" style="color: #00466a;"><%= supportEmail %></a>.
+        </p>
+
+        <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 10px; font-size: 0.8em; color: #aaa;">
+            <p>&copy; <%= currentYear %> <%= companyName %>. All rights reserved.</p>
+            <p><%= companyAddress %></p>
+        </div>
+    </div>
+</body>
+</html> 

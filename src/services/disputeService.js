@@ -1,19 +1,25 @@
 const Dispute = require('../models/Dispute');
 const ProductReview = require('../models/ProductReview');
 const Product = require('../models/Product');
+const User = require('../models/User');
 const ApiError = require('../utils/apiError');
 const { createNotification } = require('../services/notificationService');
+const emailService = require('../services/emailService');
+const config = require('../config');
 
 /**
  * Create a new dispute on a product review
  */
 const createDispute = async (reviewId, vendorId, disputeData) => {
   try {
-    // Check if review exists
-    const review = await ProductReview.findById(reviewId).populate('product');
+    // Check if review exists and is not soft-deleted
+    const review = await ProductReview.findByIdActive(reviewId);
     if (!review) {
-      throw new ApiError('Product review not found', 'REVIEW_NOT_FOUND', 404);
+      throw new ApiError('Product review not found or has been deleted', 'REVIEW_NOT_FOUND', 404);
     }
+
+    // Populate the product for the review
+    await review.populate('product');
 
     // Check if vendor owns the product
     if (review.product.userId.toString() !== vendorId.toString()) {
@@ -95,7 +101,7 @@ const getDisputeById = async (disputeId, vendorId) => {
   try {
     const dispute = await Dispute.findOne({ _id: disputeId, vendor: vendorId })
       .populate([
-        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName' } },
+        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title slug role  ' } },
         { path: 'product', select: 'name slug isActive' },
         { path: 'vendor', select: 'firstName lastName email' },
         { path: 'explanations.author', select: 'firstName lastName avatar' }
@@ -157,7 +163,7 @@ const updateDispute = async (disputeId, vendorId, updateData) => {
       });
       // Also notify the review author (user)
       if (dispute.review) {
-        const review = await ProductReview.findById(dispute.review);
+        const review = await ProductReview.findByIdActive(dispute.review);
         if (review && review.reviewer) {
           await createNotification({
             userId: review.reviewer,
@@ -206,22 +212,21 @@ const deleteDispute = async (disputeId, vendorId) => {
  */
 const addExplanation = async (disputeId, userId, explanation) => {
   try {
-    console.log('Adding explanation - disputeId:', disputeId, 'userId:', userId, 'explanation:', explanation);
-    
     const dispute = await Dispute.findById(disputeId);
-    console.log('Found dispute:', dispute ? 'Yes' : 'No');
     
     if (!dispute) {
       throw new ApiError('Dispute not found', 'NOT_FOUND', 404);
     }
 
-    // Check if user is involved in the dispute (either vendor or review author)
-    const review = await ProductReview.findById(dispute.review);
-    console.log('Found review:', review ? 'Yes' : 'No');
+    // Check if review exists and is not soft-deleted
+    const review = await ProductReview.findByIdActive(dispute.review);
+    
+    if (!review) {
+      throw new ApiError('Related review not found or has been deleted', 'REVIEW_NOT_FOUND', 404);
+    }
     
     const isVendor = dispute.vendor.toString() === userId.toString();
     const isReviewAuthor = review && review.reviewer.toString() === userId.toString();
-    console.log('User authorization - isVendor:', isVendor, 'isReviewAuthor:', isReviewAuthor);
     
     if (!isVendor && !isReviewAuthor) {
       throw new ApiError('You are not authorized to add explanations to this dispute', 'UNAUTHORIZED', 403);
@@ -239,25 +244,27 @@ const addExplanation = async (disputeId, userId, explanation) => {
       createdAt: new Date()
     });
 
-    console.log('Saving dispute with explanation...');
     await dispute.save();
-    console.log('Dispute saved successfully');
 
     // Populate the updated dispute
-    console.log('Populating updated dispute...');
     const updatedDispute = await Dispute.findById(disputeId)
       .populate([
-        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title' } },
+        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title slug' } },
         { path: 'product', select: 'name slug' },
         { path: 'vendor', select: 'firstName lastName email' },
         { path: 'explanations.author', select: 'firstName lastName avatar' }
       ]);
-    console.log('Dispute populated successfully');
 
-    // Send notification to the other party
-    console.log('Sending notification...');
+    // Send notification and email to the other party
     const otherPartyId = isVendor ? review.reviewer : dispute.vendor;
     if (otherPartyId) {
+      // Get user data for email (do this first)
+      const [otherPartyUser, authorUser] = await Promise.all([
+        User.findById(otherPartyId).select('firstName lastName email'),
+        User.findById(userId).select('firstName lastName')
+      ]);
+
+      // Send notification (handle errors separately)
       try {
         await createNotification({
           userId: otherPartyId,
@@ -265,16 +272,36 @@ const addExplanation = async (disputeId, userId, explanation) => {
           title: 'New Explanation Added to Dispute',
           message: 'A new explanation has been added to a dispute you are involved in.',
           meta: { disputeId },
-          actionUrl: `/disputes/${disputeId}`
+          actionUrl: `/product-detail/${review.product.slug}/disputes/${disputeId}`
         });
-        console.log('Notification sent successfully');
       } catch (notificationError) {
         console.error('Notification error (non-blocking):', notificationError);
-        // Don't throw error for notification failure
+        // Continue to email sending even if notification fails
+      }
+
+      // Send email (handle errors separately)
+      try {
+        if (otherPartyUser && otherPartyUser.email) {
+          const disputeUrl = `${config?.app?.frontendUrl || 'http://localhost:3001'}/disputes/${disputeId}`;
+          
+          const emailData = {
+            userName: `${otherPartyUser.firstName || ''} ${otherPartyUser.lastName || ''}`.trim() || 'User',
+            authorName: `${authorUser?.firstName || ''} ${authorUser?.lastName || ''}`.trim() || 'Someone',
+            explanationContent: explanation,
+            reviewTitle: review.title || review.content?.substring(0, 100) + '...' || 'Review',
+            productName: updatedDispute.product?.name || 'Product',
+            disputeId,
+            disputeUrl
+          };
+
+          await emailService.sendDisputeExplanationEmail(otherPartyUser.email, emailData);
+        }
+      } catch (emailError) {
+        console.error('Email error (non-blocking):', emailError);
+        // Don't throw error for email failure
       }
     }
 
-    console.log('Returning updated dispute');
     return updatedDispute;
   } catch (error) {
     console.error('Error in addExplanation:', error);
@@ -297,6 +324,12 @@ const updateExplanation = async (disputeId, explanationId, userId, explanation) 
     
     if (!dispute) {
       throw new ApiError('Dispute not found', 'NOT_FOUND', 404);
+    }
+
+    // Check if review exists and is not soft-deleted
+    const review = await ProductReview.findByIdActive(dispute.review);
+    if (!review) {
+      throw new ApiError('Related review not found or has been deleted', 'REVIEW_NOT_FOUND', 404);
     }
 
     // Find the explanation to update
@@ -327,7 +360,7 @@ const updateExplanation = async (disputeId, explanationId, userId, explanation) 
     console.log('Populating updated dispute...');
     const updatedDispute = await Dispute.findById(disputeId)
       .populate([
-        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title' } },
+        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title slug' } },
         { path: 'product', select: 'name slug' },
         { path: 'vendor', select: 'firstName lastName email' },
         { path: 'explanations.author', select: 'firstName lastName avatar' }
@@ -336,7 +369,6 @@ const updateExplanation = async (disputeId, explanationId, userId, explanation) 
 
     // Send notification to the other party
     console.log('Sending notification...');
-    const review = await ProductReview.findById(dispute.review);
     const isVendor = dispute.vendor.toString() === userId.toString();
     const otherPartyId = isVendor ? review.reviewer : dispute.vendor;
     
@@ -373,27 +405,44 @@ const updateExplanation = async (disputeId, explanationId, userId, explanation) 
  */
 const getAllDisputes = async (options = {}) => {
   try {
+    console.log('getAllDisputes called with options:', options);
+    
     const {
       page = 1,
       limit = 10,
       status,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      productSlug
     } = options;
 
     const filter = {};
     if (status) {
       filter.status = status;
     }
+    if (productSlug) {
+      console.log('Looking up product with slug:', productSlug);
+      const product = await Product.findOne({ slug: productSlug });
+      if (!product) {
+        console.log('Product not found for slug:', productSlug);
+        throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
+      }
+      console.log('Product found:', product._id);
+      filter.product = product._id;
+    }
 
     const sort = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const skip = (page - 1) * limit;
+    
+    console.log('Query filter:', filter);
+    console.log('Sort:', sort);
+    console.log('Skip:', skip, 'Limit:', limit);
 
     const disputes = await Dispute.find(filter)
       .populate([
-        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title' } },
+        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title slug' } },
         { path: 'product', select: 'name slug isActive' },
         { path: 'vendor', select: 'firstName lastName email' },
         { path: 'explanations.author', select: 'firstName lastName avatar' }
@@ -402,7 +451,10 @@ const getAllDisputes = async (options = {}) => {
       .skip(skip)
       .limit(parseInt(limit));
 
+    console.log('Found disputes count:', disputes.length);
+
     const total = await Dispute.countDocuments(filter);
+    console.log('Total disputes count:', total);
 
     return {
       disputes,
@@ -416,7 +468,23 @@ const getAllDisputes = async (options = {}) => {
       }
     };
   } catch (error) {
-    throw new ApiError('Failed to fetch disputes', 'FETCH_FAILED', 500);
+    console.error('Error in getAllDisputes:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      statusCode: error.statusCode,
+      options: options
+    });
+    
+    // If it's already an ApiError, re-throw it
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    
+    // For other errors, log the original error and throw a generic one
+    throw new ApiError(`Failed to fetch disputes: ${error.message}`, 'FETCH_FAILED', 500);
   }
 };
 

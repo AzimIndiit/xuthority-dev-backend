@@ -483,9 +483,12 @@ describe('Product Review API', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
 
-      // Verify review is deleted
+      // Verify review is soft deleted
       const deletedReview = await ProductReview.findById(testReview._id);
-      expect(deletedReview).toBeNull();
+      expect(deletedReview).not.toBeNull();
+      expect(deletedReview.isDeleted).toBe(true);
+      expect(deletedReview.deletedAt).not.toBeNull();
+      expect(deletedReview.deletedBy.toString()).toBe(regularUser._id.toString());
     });
 
     it('should delete review when admin makes request', async () => {
@@ -495,6 +498,13 @@ describe('Product Review API', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
+
+      // Verify review is soft deleted by admin
+      const deletedReview = await ProductReview.findById(testReview._id);
+      expect(deletedReview).not.toBeNull();
+      expect(deletedReview.isDeleted).toBe(true);
+      expect(deletedReview.deletedAt).not.toBeNull();
+      expect(deletedReview.deletedBy.toString()).toBe(adminUser._id.toString());
     });
 
     it('should fail when non-owner non-admin tries to delete', async () => {
@@ -673,6 +683,73 @@ describe('Product Review API', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.totalReviews).toBe(2);
       expect(response.body.data.avgRating).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Product Statistics Update on Soft Delete', () => {
+    let testProduct2, testReview1, testReview2;
+
+    beforeEach(async () => {
+      // Create a new product for testing product statistics
+      testProduct2 = await Product.create({
+        name: 'Test Product for Stats',
+        description: 'Test product for statistics testing',
+        userId: adminUser._id,
+        slug: 'test-product-stats',
+        status: 'approved',
+        isActive: 'active'
+      });
+
+      // Create two reviews for the product
+      testReview1 = await ProductReview.create({
+        product: testProduct2._id,
+        reviewer: regularUser._id,
+        overallRating: 5,
+        title: 'Excellent product',
+        content: 'Really love this product',
+        status: 'approved',
+        publishedAt: new Date()
+      });
+
+      testReview2 = await ProductReview.create({
+        product: testProduct2._id,
+        reviewer: regularUser2._id,
+        overallRating: 3,
+        title: 'Average product',
+        content: 'Product is okay',
+        status: 'approved',
+        publishedAt: new Date()
+      });
+
+      // Wait for product statistics to be updated
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
+
+    it('should update product avgRating and totalReviews when review is soft deleted', async () => {
+      // Get initial product statistics
+      const initialProduct = await Product.findById(testProduct2._id);
+      expect(initialProduct.totalReviews).toBe(2);
+      expect(initialProduct.avgRating).toBe(4.0); // (5 + 3) / 2 = 4
+
+      // Soft delete one review
+      await request(app)
+        .delete(`/api/v1/product-reviews/${testReview1._id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(200);
+
+      // Wait for statistics to be updated
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check updated product statistics
+      const updatedProduct = await Product.findById(testProduct2._id);
+      expect(updatedProduct.totalReviews).toBe(1);
+      expect(updatedProduct.avgRating).toBe(3.0); // Only the 3-star review remains
+    });
+
+    afterEach(async () => {
+      if (testProduct2) {
+        await Product.findByIdAndDelete(testProduct2._id);
+      }
     });
   });
 }); 

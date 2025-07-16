@@ -48,7 +48,8 @@ const getVendorDisputes = async (req, res, next) => {
       limit = 10,
       status,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      productSlug
     } = req.query;
 
     const options = {
@@ -56,7 +57,8 @@ const getVendorDisputes = async (req, res, next) => {
       limit: parseInt(limit),
       status,
       sortBy,
-      sortOrder
+      sortOrder,
+      productSlug
     };
 
     const result = await disputeService.getVendorDisputes(vendorId, options);
@@ -84,7 +86,8 @@ const getAllDisputes = async (req, res, next) => {
       limit = 10,
       status,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      productSlug
     } = req.query;
 
     const options = {
@@ -92,7 +95,8 @@ const getAllDisputes = async (req, res, next) => {
       limit: parseInt(limit),
       status,
       sortBy,
-      sortOrder
+      sortOrder,
+      productSlug
     };
 
     const result = await disputeService.getAllDisputes(options);

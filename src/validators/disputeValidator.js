@@ -71,6 +71,11 @@ const getDisputesValidator = [
     .isIn(['active', 'resolved'])
     .withMessage('Status must be either active or resolved'),
 
+  query('productSlug')
+    .optional()
+    .isString()
+    .withMessage('Invalid product slug'),
+
   query('sortBy')
     .optional()
     .isIn(['createdAt', 'updatedAt', 'status'])

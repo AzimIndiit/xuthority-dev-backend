@@ -159,7 +159,7 @@ reviewReplySchema.statics.getRepliesForReview = async function(reviewId, options
     .populate([
       { 
         path: 'author', 
-        select: 'firstName lastName email  avatar' 
+        select: 'firstName lastName email  avatar slug ' 
       }
     ])
     .sort(sortOptions)

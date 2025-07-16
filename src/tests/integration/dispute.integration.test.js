@@ -5,6 +5,10 @@ const jwt = require('jsonwebtoken');
 const app = require('../../../app');
 const { Dispute, ProductReview, Product, User } = require('../../models');
 const Notification = require('../../models/Notification');
+const emailService = require('../../services/emailService');
+
+// Mock the email service
+jest.mock('../../services/emailService');
 
 describe('Dispute API Integration Tests', () => {
   let vendorToken, adminToken;
@@ -128,6 +132,26 @@ describe('Dispute API Integration Tests', () => {
       expect(userNotif).toBeTruthy();
       expect(userNotif.title).toBe('Your Review is Under Dispute');
       expect(userNotif.message).toContain('disputed your review');
+    });
+
+    it('should not allow creating dispute for soft-deleted review', async () => {
+      // Soft delete the review first
+      await testReview.softDelete(testUser._id);
+
+      const disputeData = {
+        reviewId: testReview._id,
+        reason: 'false-or-misleading-information',
+        description: 'This review contains false information about our product.'
+      };
+
+      const response = await request(app)
+        .post('/api/v1/disputes')
+        .set('Authorization', `Bearer ${vendorToken}`)
+        .send(disputeData)
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe('Product review not found or has been deleted');
     });
 
     it('should require authentication', async () => {
@@ -309,6 +333,127 @@ describe('Dispute API Integration Tests', () => {
     it('should require authentication', async () => {
       await request(app)
         .delete(`/api/v1/disputes/${testDispute._id}`)
+        .expect(401);
+    });
+  });
+
+  describe('POST /api/v1/disputes/:id/explanation', () => {
+    let testDispute;
+
+    beforeEach(async () => {
+      // Clear email service mock calls
+      jest.clearAllMocks();
+      
+      testDispute = await Dispute.create({
+        review: testReview._id,
+        vendor: vendorUser._id,
+        product: testProduct._id,
+        reason: 'false-or-misleading-information',
+        description: 'Test description'
+      });
+
+      // Mock email service
+      emailService.sendDisputeExplanationEmail.mockResolvedValue({
+        success: true,
+        messageId: 'test-message-id'
+      });
+    });
+
+    it('should add explanation and send email notification', async () => {
+      const explanationData = {
+        explanation: 'This is a detailed explanation from the vendor about the dispute.'
+      };
+
+      const response = await request(app)
+        .post(`/api/v1/disputes/${testDispute._id}/explanation`)
+        .set('Authorization', `Bearer ${vendorToken}`)
+        .send(explanationData)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.explanations).toHaveLength(1);
+      expect(response.body.data.explanations[0].content).toBe(explanationData.explanation);
+
+      // Verify notification was created
+      const notification = await Notification.findOne({
+        userId: testUser._id,
+        type: 'DISPUTE_EXPLANATION',
+        isRead: false
+      });
+      expect(notification).toBeTruthy();
+      expect(notification.title).toBe('New Explanation Added to Dispute');
+
+      // Verify email was sent
+      expect(emailService.sendDisputeExplanationEmail).toHaveBeenCalledTimes(1);
+      expect(emailService.sendDisputeExplanationEmail).toHaveBeenCalledWith(
+        testUser.email,
+        expect.objectContaining({
+          explanationContent: explanationData.explanation,
+          disputeId: testDispute._id.toString(),
+          authorName: expect.any(String),
+          userName: expect.any(String),
+          productName: expect.any(String),
+          disputeUrl: expect.stringContaining('/disputes/')
+        })
+      );
+    });
+
+    it('should add explanation from review author and send email to vendor', async () => {
+      const explanationData = {
+        explanation: 'This is the review author response to the dispute.'
+      };
+
+      // Test user (review author) adds explanation
+      const userToken = jwt.sign(
+        { id: testUser._id, email: testUser.email, role: testUser.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      const response = await request(app)
+        .post(`/api/v1/disputes/${testDispute._id}/explanation`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(explanationData)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+
+      // Verify email was sent to vendor
+      expect(emailService.sendDisputeExplanationEmail).toHaveBeenCalledWith(
+        vendorUser.email,
+        expect.objectContaining({
+          explanationContent: explanationData.explanation,
+          disputeId: testDispute._id.toString()
+        })
+      );
+    });
+
+    it('should handle email sending failure gracefully', async () => {
+      // Mock email service to fail
+      emailService.sendDisputeExplanationEmail.mockRejectedValue(new Error('Email service unavailable'));
+
+      const explanationData = {
+        explanation: 'Test explanation'
+      };
+
+      // Should still succeed even if email fails
+      const response = await request(app)
+        .post(`/api/v1/disputes/${testDispute._id}/explanation`)
+        .set('Authorization', `Bearer ${vendorToken}`)
+        .send(explanationData)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.explanations).toHaveLength(1);
+
+      // Verify email was attempted
+      expect(emailService.sendDisputeExplanationEmail).toHaveBeenCalledTimes(1);
+    });
+
+    it('should require authentication', async () => {
+      await request(app)
+        .post(`/api/v1/disputes/${testDispute._id}/explanation`)
+        .send({ explanation: 'Test' })
         .expect(401);
     });
   });

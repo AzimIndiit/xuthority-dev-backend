@@ -237,6 +237,56 @@ class EmailService {
       throw new Error('Failed to send review verification OTP email');
     }
   }
+
+  /**
+   * Send dispute explanation email
+   * @param {string} email - Recipient email
+   * @param {object} disputeData - Dispute data
+   * @returns {Promise<object>} - Email send result
+   */
+  async sendDisputeExplanationEmail(email, disputeData) {
+    try {
+      const {
+        userName,
+        authorName,
+        explanationContent,
+        reviewTitle,
+        productName,
+        disputeId,
+        disputeUrl
+      } = disputeData;
+
+      const templateData = {
+        userName: userName || 'User',
+        authorName: authorName || 'Someone',
+        explanationContent,
+        reviewTitle: reviewTitle || 'Review',
+        productName: productName || 'Product',
+        disputeId,
+        disputeUrl,
+        currentDate: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZoneName: 'short'
+        }),
+        currentYear: new Date().getFullYear()
+      };
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `New Explanation Added to Dispute #${disputeId} - ${config?.app?.name || 'Xuthority'}`,
+        template: 'dispute-explanation.ejs',
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending dispute explanation email:', error);
+      throw new Error('Failed to send dispute explanation email');
+    }
+  }
 }
 
 module.exports = new EmailService();

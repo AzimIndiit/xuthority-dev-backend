@@ -332,15 +332,14 @@ exports.getUserReviews = async (userId, options = {}) => {
   };
 
   const [reviews, total] = await Promise.all([
-    ProductReview.find(filter)
-      .populate([
-        { path: 'product', select: 'name slug logo avgRating totalReviews brandColor logoUrl userId isActive status' },
-        { path: 'reviewer', select: 'firstName lastName avatar isVerified' }
-      ])
+    ProductReview.findActiveWithPopulate(filter, [
+      { path: 'product', select: 'name slug logo avgRating totalReviews brandColors logoUrl userId isActive status' },
+      { path: 'reviewer', select: 'firstName lastName avatar isVerified' }
+    ])
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit)),
-    ProductReview.countDocuments(filter)
+    ProductReview.countActive(filter)
   ]);
 
   const pagination = {
@@ -375,8 +374,8 @@ exports.getUserProfileStats = async (userId) => {
     throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
   }
 
-  // Get reviews count
-  const reviewsCount = await ProductReview.countDocuments({
+  // Get reviews count (excluding soft-deleted)
+  const reviewsCount = await ProductReview.countActive({
     reviewer: userId,
     status: 'approved',
     publishedAt: { $ne: null }
@@ -388,8 +387,8 @@ exports.getUserProfileStats = async (userId) => {
   let badges =[]
   if (user.role === 'user') {
     // If user role is 'user', get disputes where this user is the reviewer
-    // First, get all review IDs by this user
-    const reviewIds = await ProductReview.find({ reviewer: userId }).distinct('_id');
+    // First, get all review IDs by this user (excluding soft-deleted)
+    const reviewIds = await ProductReview.findActive({ reviewer: userId }).distinct('_id');
     // Then count disputes for those reviews
     disputesCount = await Dispute.countDocuments({
       review: { $in: reviewIds }
@@ -398,7 +397,7 @@ exports.getUserProfileStats = async (userId) => {
     // If user role is 'vendor', get disputes where this user is the vendor
     
     disputesCount = await Dispute.countDocuments({
-      vendor: userId
+      vendor: userId,
     });
     productCount = await Product.countDocuments({
       userId: userId,
@@ -453,15 +452,14 @@ exports.getUserReviewsBySlug = async (slug, options = {}) => {
   };
 
   const [reviews, total] = await Promise.all([
-    ProductReview.find(filter)
-      .populate([
-        { path: 'product', select: 'name slug logo avgRating totalReviews' },
-        { path: 'reviewer', select: 'firstName lastName avatar isVerified' }
-      ])
+    ProductReview.findActiveWithPopulate(filter, [
+      { path: 'product', select: 'name slug logo avgRating totalReviews brandColors' },
+      { path: 'reviewer', select: 'firstName lastName avatar isVerified' }
+    ])
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit)),
-    ProductReview.countDocuments(filter)
+    ProductReview.countActive(filter)
   ]);
 
   const pagination = {
@@ -494,8 +492,8 @@ exports.getUserProfileStatsBySlug = async (slug) => {
   const userProfile = await exports.getPublicUserProfileBySlug(slug);
   const userId = userProfile._id;
 
-  // Get reviews count
-  const reviewsCount = await ProductReview.countDocuments({
+  // Get reviews count (excluding soft-deleted)
+  const reviewsCount = await ProductReview.countActive({
     reviewer: userId,
     status: 'approved',
     publishedAt: { $ne: null }

@@ -32,7 +32,7 @@ const updateProductReview = asyncHandler(async (req, res) => {
 });
 
 const deleteProductReview = asyncHandler(async (req, res) => {
-  const result = await productReviewService.deleteProductReview(req.params.id, req.user.id);
+  const result = await productReviewService.deleteProductReview(req.params.id, req.user.id, req.user.role);
   res.json(result);
 });
 

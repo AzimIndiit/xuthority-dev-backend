@@ -114,7 +114,8 @@ const getUserFavoriteLists = async (userId, options = {}) => {
             totalReviews: '$product.totalReviews',
             addedAt: '$createdAt',
             notes: '$notes',
-            brandColors: '$product.brandColors'
+            brandColors: '$product.brandColors',
+            isActive: '$product.isActive'
           }
         },
         totalProducts: { $sum: 1 },

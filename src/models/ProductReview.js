@@ -147,6 +147,23 @@ const productReviewSchema = new mongoose.Schema({
     trim: true
   }],
 
+  // Soft Delete Fields
+  isDeleted: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  deletedAt: {
+    type: Date,
+    default: null,
+    index: true
+  },
+  deletedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+
   // Timestamps
   submittedAt: {
     type: Date,
@@ -174,6 +191,9 @@ productReviewSchema.index({ keywords: 1 });
 productReviewSchema.index({ mentions: 1 });
 productReviewSchema.index({ product: 1, keywords: 1 });
 productReviewSchema.index({ product: 1, mentions: 1 });
+// Soft delete indexes
+productReviewSchema.index({ isDeleted: 1, status: 1, publishedAt: -1 });
+productReviewSchema.index({ product: 1, isDeleted: 1, status: 1 });
 
 // Virtual for calculated average of sub-ratings
 productReviewSchema.virtual('subRatingsAverage').get(function() {
@@ -226,7 +246,8 @@ async function updateProductAggregateRatings(productId) {
       $match: {
         product: productId,
         status: 'approved',
-        publishedAt: { $ne: null }
+        publishedAt: { $ne: null },
+        isDeleted: false // Exclude soft-deleted reviews
       }
     },
     {
@@ -253,7 +274,7 @@ async function updateProductAggregateRatings(productId) {
   });
 
   await Product.findByIdAndUpdate(productId, {
-    avgRating: Math.round(result.avgRating * 10) / 10, // Round to 1 decimal
+    avgRating: Math.round((result.avgRating || 0) * 10) / 10, // Round to 1 decimal, handle null
     totalReviews: result.totalReviews,
     ratingDistribution: distribution
   });
@@ -306,7 +327,8 @@ productReviewSchema.statics.getPopularMentions = async function(productId, limit
       $match: {
         product: new mongoose.Types.ObjectId(productId),
         status: 'approved',
-        publishedAt: { $ne: null }
+        publishedAt: { $ne: null },
+        isDeleted: false
       }
     },
     {
@@ -350,7 +372,8 @@ productReviewSchema.statics.getReviewStats = async function(productId) {
       $match: {
         product: new mongoose.Types.ObjectId(productId),
         status: 'approved',
-        publishedAt: { $ne: null }
+        publishedAt: { $ne: null },
+        isDeleted: false
       }
     },
     {
@@ -405,6 +428,61 @@ productReviewSchema.statics.getReviewStats = async function(productId) {
       }
     }
   ]);
+};
+
+// Static methods for soft delete handling
+productReviewSchema.statics.findActive = function(filter = {}) {
+  return this.find({ ...filter, isDeleted: false });
+};
+
+productReviewSchema.statics.findActiveWithPopulate = function(filter = {}, populateOptions = []) {
+  let query = this.find({ ...filter, isDeleted: false });
+  if (populateOptions.length > 0) {
+    query = query.populate(populateOptions);
+  }
+  return query;
+};
+
+productReviewSchema.statics.countActive = function(filter = {}) {
+  return this.countDocuments({ ...filter, isDeleted: false });
+};
+
+productReviewSchema.statics.findByIdActive = function(id) {
+  return this.findOne({ _id: id, isDeleted: false });
+};
+
+// Instance method for soft delete
+productReviewSchema.methods.softDelete = async function(deletedByUserId) {
+  this.isDeleted = true;
+  this.deletedAt = new Date();
+  this.deletedBy = deletedByUserId;
+  
+  // Save the review first
+  await this.save();
+  
+  // Update product statistics only if the review was approved and published
+  if (this.status === 'approved' && this.publishedAt) {
+    await updateProductAggregateRatings(this.product);
+  }
+  
+  return this;
+};
+
+// Instance method to restore soft deleted review
+productReviewSchema.methods.restore = async function() {
+  this.isDeleted = false;
+  this.deletedAt = null;
+  this.deletedBy = null;
+  
+  // Save the review first
+  await this.save();
+  
+  // Update product statistics only if the review is approved and published
+  if (this.status === 'approved' && this.publishedAt) {
+    await updateProductAggregateRatings(this.product);
+  }
+  
+  return this;
 };
 
 module.exports = mongoose.model('ProductReview', productReviewSchema); 
