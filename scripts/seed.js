@@ -42,6 +42,7 @@ const { seedResourceCategories } = require('../src/database/seeds/resourceCatego
 const { seedBlogs } = require('../src/database/seeds/blogSeeder');
 const seedNotifications = require('../src/database/seeds/notificationSeeder');
 const { seedSubscriptionPlans } = require('../src/database/seeds/subscriptionPlanSeeder');
+const { seedBadges } = require('../src/database/seeds/badgeSeeder');
 
 // Configuration
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/xuthority-dev';
@@ -111,7 +112,9 @@ const clearDatabase = async () => {
       'blogs',
       'notifications',
       'subscriptionplans',
-      'usersubscriptions'
+      'usersubscriptions',
+      'badges',
+      'userbadges'
     ];
     
     for (const collection of collections) {
@@ -145,7 +148,8 @@ const seedAllModules = async (adminUserId, specificModule = null) => {
     { name: 'resource-categories', fn: seedResourceCategories },
     { name: 'blogs', fn: seedBlogs },
     { name: 'notifications', fn: seedNotifications },
-    { name: 'subscription-plans', fn: seedSubscriptionPlans }
+    { name: 'subscription-plans', fn: seedSubscriptionPlans },
+    { name: 'badges', fn: seedBadges }
   ];
   
   const results = {};

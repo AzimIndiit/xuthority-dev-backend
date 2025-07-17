@@ -80,7 +80,7 @@ exports.register = async (req, res, next) => {
       userId: user._id,
       type: 'WELCOME',
       title: 'Welcome to XUTHORITY!',
-      message: 'Welcome to XUTHORITY! Start exploring and add your products today.',
+      message: user.role === 'vendor' ? 'Welcome to XUTHORITY! Start exploring and add your products today.' : 'Welcome to XUTHORITY! Start exploring and add your reviews today.',
       actionUrl: '/'
     });
     const newUser = {
@@ -223,7 +223,7 @@ exports.registerVendor = async (req, res, next) => {
       userId: user._id,
       type: 'WELCOME',
       title: 'Welcome to XUTHORITY!',
-      message: 'Welcome to XUTHORITY! Start exploring and add your products today.',
+      message: user.role === 'vendor' ? 'Welcome to XUTHORITY! Start exploring and add your products today.' : 'Welcome to XUTHORITY! Start exploring and add your reviews today.',
       actionUrl: '/dashboard'
     });
 

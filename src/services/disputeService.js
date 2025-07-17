@@ -101,7 +101,7 @@ const getDisputeById = async (disputeId, vendorId) => {
   try {
     const dispute = await Dispute.findOne({ _id: disputeId, vendor: vendorId })
       .populate([
-        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title slug role  ' } },
+        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title slug role title  ' } },
         { path: 'product', select: 'name slug isActive' },
         { path: 'vendor', select: 'firstName lastName email' },
         { path: 'explanations.author', select: 'firstName lastName avatar' }
@@ -442,8 +442,8 @@ const getAllDisputes = async (options = {}) => {
 
     const disputes = await Dispute.find(filter)
       .populate([
-        { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title slug' } },
-        { path: 'product', select: 'name slug isActive' },
+        { path: 'review', select: 'title content overallRating reviewer createdAt', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title slug' } },
+        { path: 'product', select: 'name slug isActive logoUrl createdAt' },
         { path: 'vendor', select: 'firstName lastName email' },
         { path: 'explanations.author', select: 'firstName lastName avatar' }
       ])
