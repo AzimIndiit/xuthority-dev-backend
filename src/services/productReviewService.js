@@ -311,7 +311,7 @@ const getProductReviewById = async (reviewId) => {
   try {
     const review = await ProductReview.findByIdActive(reviewId)
       .populate([
-        { path: 'reviewer', select: 'name email' },
+        { path: 'reviewer', select: 'name email avatar firstName lastName title companyName companySize industry slug isVerified' },
         { path: 'product', select: 'name slug avgRating totalReviews brandColors' }
       ]);
 

@@ -525,7 +525,7 @@ exports.getProductStats = async (req, res, next) => {
 exports.getTopRatedProducts = async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
-    const products = await productService.getTopRatedProducts(limit);
+    const products = await productService.getTopRatedProducts(limit, req.user);
 
     return res.json(
       ApiResponse.success(
@@ -541,7 +541,7 @@ exports.getTopRatedProducts = async (req, res, next) => {
 exports.getFeaturedProducts = async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
-    const products = await productService.getFeaturedProducts(limit);
+    const products = await productService.getFeaturedProducts(limit, req.user);
 
     return res.json(
       ApiResponse.success(

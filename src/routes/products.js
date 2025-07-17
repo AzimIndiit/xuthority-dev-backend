@@ -181,6 +181,7 @@ router.post('/',
  */
 // Get all products (with filtering)
 router.get('/', 
+  auth.optionalAuth, // Optional authentication - works with and without auth
   productValidator.query,
   validate(productValidator.query, 'query'),
   productController.getProducts
@@ -229,6 +230,7 @@ router.get('/',
  */
 // Get all active products (published/approved and active)
 router.get('/active', 
+  auth.optionalAuth, // Optional authentication - works with and without auth
   productValidator.query,
   validate(productValidator.query, 'query'),
   productController.getActiveProducts
@@ -327,7 +329,10 @@ router.get('/stats', productController.getProductStats);
  *         description: Top rated products retrieved successfully
  */
 // Get top rated products
-router.get('/top-rated', productController.getTopRatedProducts);
+router.get('/top-rated', 
+  auth.optionalAuth, // Optional authentication - works with and without auth
+  productController.getTopRatedProducts
+);
 
 /**
  * @openapi
@@ -349,7 +354,10 @@ router.get('/top-rated', productController.getTopRatedProducts);
  *         description: Featured products retrieved successfully
  */
 // Get featured products
-router.get('/featured', productController.getFeaturedProducts);
+router.get('/featured', 
+  auth.optionalAuth, // Optional authentication - works with and without auth
+  productController.getFeaturedProducts
+);
 
 /**
  * @openapi
@@ -373,6 +381,7 @@ router.get('/featured', productController.getFeaturedProducts);
  */
 // Get product by slug
 router.get('/slug/:slug', 
+  auth.optionalAuth, // Optional authentication - works with and without auth
   productValidator.getBySlug,
   validate(productValidator.getBySlug, 'params'),
   productController.getProductBySlug
@@ -406,6 +415,7 @@ router.get('/slug/:slug',
  */
 // Get product by ID
 router.get('/:id', 
+  auth.optionalAuth, // Optional authentication - works with and without auth
   productValidator.getById,
   validate(productValidator.getById, 'params'),
   productController.getProductById
@@ -830,6 +840,7 @@ router.get('/my/deleted',
  */
 // Get products by user/vendor
 router.get('/user/:userId', 
+  auth.optionalAuth, // Optional authentication - works with and without auth
   productValidator.query,
   validate(productValidator.query, 'query'),
   productController.getProductsByUser
@@ -919,6 +930,7 @@ router.get('/user/:userId',
  */
 // Get products by category and subcategory
 router.get('/category/:category/:subCategory', 
+  auth.optionalAuth, // Optional authentication - works with and without auth
   productValidator.query,
   validate(productValidator.query, 'query'),
   productController.getProductsByCategory

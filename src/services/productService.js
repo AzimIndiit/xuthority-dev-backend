@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const { Product, User } = require('../models');
+const { Product, User, ProductReview } = require('../models');
 const ApiError = require('../utils/apiError');
 const { ObjectId } = require('mongoose').Types;
 
@@ -299,8 +299,51 @@ const getProducts = async (options = {}, user = null) => {
     Product.countDocuments(filter)
   ]);
 
+  // Add hasUserReviewed flag to each product
+  let productsWithReviewFlag = products;
+  if (user && user._id && products.length > 0) {
+    try {
+      // Get all product IDs from the current page
+      const productIds = products.map(product => product._id);
+      
+      // Find all reviews by this user for these products in a single query
+      const userReviews = await ProductReview.find({
+        product: { $in: productIds },
+        reviewer: user._id,
+        isDeleted: { $ne: true }
+      }).select('product');
+      
+      // Create a Set of product IDs that the user has reviewed for fast lookup
+      const reviewedProductIds = new Set(
+        userReviews.map(review => review.product.toString())
+      );
+      
+      // Add hasUserReviewed flag to each product
+      productsWithReviewFlag = products.map(product => {
+        const productObj = product.toObject();
+        productObj.hasUserReviewed = reviewedProductIds.has(product._id.toString());
+        return productObj;
+      });
+    } catch (error) {
+      console.error('Error checking user review status for products:', error);
+      // If error occurs, just return products without the flag (don't fail the whole request)
+      productsWithReviewFlag = products.map(product => {
+        const productObj = product.toObject();
+        productObj.hasUserReviewed = false;
+        return productObj;
+      });
+    }
+  } else {
+    // If no user or no products, set hasUserReviewed to false for all products
+    productsWithReviewFlag = products.map(product => {
+      const productObj = product.toObject();
+      productObj.hasUserReviewed = false;
+      return productObj;
+    });
+  }
+
   return {
-    products,
+    products: productsWithReviewFlag,
     pagination: {
       page,
       limit,
@@ -341,12 +384,33 @@ const getProductById = async (productId, incrementViews = false, user = null) =>
     throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
   }
 
+  // Check if current user has reviewed this product
+  let hasUserReviewed = false;
+  if (user && user._id) {
+    try {
+      const existingReview = await ProductReview.findOne({
+        product: product._id,
+        reviewer: user._id,
+        isDeleted: { $ne: true } // Only count non-deleted reviews
+      });
+      hasUserReviewed = !!existingReview;
+    } catch (error) {
+      console.error('Error checking user review status:', error);
+      // Don't throw error, just set flag to false
+      hasUserReviewed = false;
+    }
+  }
+
   // Increment views if requested
   if (incrementViews) {
     await product.incrementViews();
   }
 
-  return product;
+  // Convert to plain object and add the flag
+  const productObj = product.toObject();
+  productObj.hasUserReviewed = hasUserReviewed;
+
+  return productObj;
 };
 
 /**
@@ -378,12 +442,34 @@ const getProductBySlug = async (slug, incrementViews = false, user = null) => {
     throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
   }
 
+  // Check if current user has reviewed this product
+  let hasUserReviewed = false;
+  console.log(user,"user",product._id,"productId");
+  if (user && user._id) {
+    try {
+      const existingReview = await ProductReview.findOne({
+        product: product._id,
+        reviewer: user._id,
+        isDeleted: { $ne: true } // Only count non-deleted reviews
+      });
+      hasUserReviewed = !!existingReview;
+    } catch (error) {
+      console.error('Error checking user review status:', error);
+      // Don't throw error, just set flag to false
+      hasUserReviewed = false;
+    }
+  }
+
   // Increment views if requested
   if (incrementViews) {
     await product.incrementViews();
   }
 
-  return product;
+  // Convert to plain object and add the flag
+  const productObj = product.toObject();
+  productObj.hasUserReviewed = hasUserReviewed;
+
+  return productObj;
 };
 
 /**
@@ -887,6 +973,42 @@ const addToFavorites = async (productId, userId) => {
   };
 };
 
+/**
+ * Get top rated products
+ * @param {number} limit - Number of products to return
+ * @param {Object} user - Current user object (to check if admin)
+ * @returns {Array} Top rated products
+ */
+const getTopRatedProducts = async (limit = 10, user = null) => {
+  const options = {
+    limit,
+    sortBy: 'avgRating',
+    sortOrder: 'desc',
+    minRating: 1 // Only include products with at least 1 rating
+  };
+
+  const result = await getProducts(options, user);
+  return result.products;
+};
+
+/**
+ * Get featured products
+ * @param {number} limit - Number of products to return
+ * @param {Object} user - Current user object (to check if admin)
+ * @returns {Array} Featured products
+ */
+const getFeaturedProducts = async (limit = 10, user = null) => {
+  const options = {
+    limit,
+    isFeatured: true,
+    sortBy: 'createdAt',
+    sortOrder: 'desc'
+  };
+
+  const result = await getProducts(options, user);
+  return result.products;
+};
+
 const productService = {
   createProduct,
   getProducts,
@@ -900,7 +1022,9 @@ const productService = {
   searchProducts,
   getProductStats,
   updateProductRating,
-  addToFavorites
+  addToFavorites,
+  getTopRatedProducts,
+  getFeaturedProducts
 };
 
 module.exports = productService; 
