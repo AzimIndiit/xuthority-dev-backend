@@ -154,31 +154,57 @@ const getProducts = async (options = {}, user = null) => {
 
   // Segment filter (market segment)
   if (segment && segment !== 'all') {
-    // Find market segment by name or slug
     const { MarketSegment } = require('../models');
-    const segmentDoc = await MarketSegment.findOne({
-      $or: [
-        { name: { $regex: segment, $options: 'i' } },
-        { slug: segment }
-      ]
-    });
-    if (segmentDoc) {
-      filter.marketSegment = segmentDoc._id;
+    const mongoose = require('mongoose');
+    
+    // Check if segment is a valid ObjectId (frontend sends ObjectId)
+    if (mongoose.Types.ObjectId.isValid(segment)) {
+      // If it's a valid ObjectId, use it directly
+      filter.marketSegment = segment;
+    } else {
+      // If it's not an ObjectId, find market segment by name or slug
+      const segmentDoc = await MarketSegment.findOne({
+        $or: [
+          { name: { $regex: segment, $options: 'i' } },
+          { slug: segment }
+        ]
+      });
+      if (segmentDoc) {
+        filter.marketSegment = segmentDoc._id;
+      }
     }
   }
 
   // Categories filter (software/solution categories)
   if (categories && categories.length > 0) {
     const { Software, Solution } = require('../models');
+    const mongoose = require('mongoose');
     
-    // Find software/solution IDs by category names
-    const softwareIds = await Software.find({
-      name: { $in: categories }
-    }).distinct('_id');
+    // Check if categories contain ObjectIds (frontend sends ObjectIds)
+    const areObjectIds = categories.every(cat => mongoose.Types.ObjectId.isValid(cat));
     
-    const solutionIds = await Solution.find({
-      name: { $in: categories }
-    }).distinct('_id');
+    let softwareIds = [];
+    let solutionIds = [];
+    
+    if (areObjectIds) {
+      // If categories are ObjectIds, use them directly to find software/solutions
+      softwareIds = await Software.find({
+        _id: { $in: categories }
+      }).distinct('_id');
+      
+      solutionIds = await Solution.find({
+        _id: { $in: categories }
+      }).distinct('_id');
+    } else {
+      // If categories are names, find by name (backward compatibility)
+      softwareIds = await Software.find({
+        name: { $in: categories }
+      }).distinct('_id');
+      
+      solutionIds = await Solution.find({
+        name: { $in: categories }
+      }).distinct('_id');
+    }
     
     if (softwareIds.length > 0 || solutionIds.length > 0) {
       filter.$or = [];
@@ -194,14 +220,23 @@ const getProducts = async (options = {}, user = null) => {
   // Industries filter
   if (industries && industries.length > 0) {
     const { Industry } = require('../models');
+    const mongoose = require('mongoose');
     
-    // Find industry IDs by industry names
-    const industryIds = await Industry.find({
-      name: { $in: industries }
-    }).distinct('_id');
+    // Check if industries contain ObjectIds (frontend sends ObjectIds)
+    const areObjectIds = industries.every(ind => mongoose.Types.ObjectId.isValid(ind));
     
-    if (industryIds.length > 0) {
-      filter.industries = { $in: industryIds };
+    if (areObjectIds) {
+      // If industries are ObjectIds, use them directly
+      filter.industries = { $in: industries };
+    } else {
+      // If industries are names, find by name (backward compatibility)
+      const industryIds = await Industry.find({
+        name: { $in: industries }
+      }).distinct('_id');
+      
+      if (industryIds.length > 0) {
+        filter.industries = { $in: industryIds };
+      }
     }
   }
 

@@ -276,7 +276,7 @@ const getAnswers = async (req, res, next) => {
 
     const [answers, totalCount] = await Promise.all([
       CommunityAnswer.find({ question: questionId, status })
-        .populate('author', 'firstName lastName avatar email')
+        .populate('author', 'firstName lastName avatar email slug')
         .sort(sortOptions)
         .skip(skip)
         .limit(parseInt(limit)),
@@ -315,7 +315,7 @@ const getAnswer = async (req, res, next) => {
     const { id } = req.params;
     
     const answer = await CommunityAnswer.findById(id)
-      .populate('author', 'firstName lastName avatar email')
+      .populate('author', 'firstName lastName avatar email slug')
       .populate('question', 'title');
 
     if (!answer) {
@@ -364,7 +364,7 @@ const createAnswer = async (req, res, next) => {
     await answer.save();
 
     const populatedAnswer = await CommunityAnswer.findById(answer._id)
-      .populate('author', 'firstName lastName avatar email');
+      .populate('author', 'firstName lastName avatar email slug');
 
     return res.status(201).json(apiResponse.success(populatedAnswer, 'Answer created successfully'));
 
@@ -404,7 +404,7 @@ const updateAnswer = async (req, res, next) => {
     await answer.save();
 
     const updatedAnswer = await CommunityAnswer.findById(id)
-      .populate('author', 'firstName lastName avatar email');
+      .populate('author', 'firstName lastName avatar email slug');
 
     return res.status(200).json(apiResponse.success(updatedAnswer, 'Answer updated successfully'));
 
@@ -472,7 +472,7 @@ const search = async (req, res, next) => {
         title: { $regex: searchQuery, $options: 'i' },
         status: 'approved'
       })
-      .populate('author', 'firstName lastName avatar')
+      .populate('author', 'firstName lastName avatar slug')
       .populate('product', 'name logoUrl')
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -486,7 +486,7 @@ const search = async (req, res, next) => {
         content: { $regex: searchQuery, $options: 'i' },
         status: 'approved'
       })
-      .populate('author', 'firstName lastName avatar')
+      .populate('author', 'firstName lastName avatar slug')
       .populate('question', 'title')
       .sort({ createdAt: -1 })
       .skip(skip)
