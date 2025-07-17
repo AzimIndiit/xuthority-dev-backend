@@ -47,7 +47,19 @@ const userSchema = new mongoose.Schema({
   industry: { type: String, trim: false },
   title: { type: String, trim: false },
   companyName: { type: String, trim: false },
-  companySize: { type: String, enum: COMPANY_SIZES, required: false },
+  companySize: { 
+    type: String, 
+    required: false,
+    validate: {
+      validator: function(value) {
+        // Allow empty string or null/undefined
+        if (!value || value === '') return true;
+        // If value is provided, it must be in the allowed sizes
+        return COMPANY_SIZES.includes(value);
+      },
+      message: 'Company size must be one of the predefined options'
+    }
+  },
   companyEmail: { type: String, trim: true, default: '' },
   // Additional vendor-specific fields
   companyAvatar: { type: String, trim: true, default: '' },
