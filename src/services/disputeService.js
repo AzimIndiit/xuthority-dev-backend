@@ -151,28 +151,89 @@ const updateDispute = async (disputeId, vendorId, updateData) => {
       { path: 'vendor', select: 'firstName lastName email' }
     ]);
 
-    // Send notification to vendor on status update
+    // Send notification and email on status update
     if (updates.status) {
-      await createNotification({
-        userId: vendorId,
-        type: 'DISPUTE_STATUS_UPDATE',
-        title: 'Review Dispute Status Update',
-        message: 'Your review dispute status has been updated. Click here for details.',
-        meta: { disputeId, status: updates.status },
-        actionUrl: `/disputes/${disputeId}`
-      });
-      // Also notify the review author (user)
-      if (dispute.review) {
-        const review = await ProductReview.findByIdActive(dispute.review);
-        if (review && review.reviewer) {
+      // Get the review to access reviewer information
+      const review = dispute.review ? await ProductReview.findByIdActive(dispute.review) : null;
+      
+      // Get user data for emails
+      const [vendorUser, reviewerUser, updaterUser] = await Promise.all([
+        User.findById(vendorId).select('firstName lastName email'),
+        review && review.reviewer ? User.findById(review.reviewer).select('firstName lastName email') : null,
+        User.findById(vendorId).select('firstName lastName') // Assuming vendor is updating
+      ]);
+
+      const disputeUrl = `${config?.app?.frontendUrl || 'http://localhost:3001'}/product-detail/${updatedDispute.product.slug}/disputes`;
+      
+      // Send notification and email to vendor
+      try {
+        await createNotification({
+          userId: vendorId,
+          type: 'DISPUTE_STATUS_UPDATE',
+          title: 'Review Dispute Status Update',
+          message: 'Your review dispute status has been updated. Click here for details.',
+          meta: { disputeId, status: updates.status },
+          actionUrl: `/product-detail/${updatedDispute.product.slug}/disputes`
+        });
+
+        // Send email to vendor
+        if (vendorUser && vendorUser.email) {
+          const emailData = {
+            userName: `${vendorUser.firstName || ''} ${vendorUser.lastName || ''}`.trim() || 'User',
+            disputeId,
+            productName: updatedDispute.product?.name || 'Product',
+            reviewTitle: review?.title || review?.content?.substring(0, 100) + '...' || 'Review',
+            oldStatus: dispute.status || 'Unknown',
+            newStatus: updates.status,
+            updatedBy: `${updaterUser?.firstName || ''} ${updaterUser?.lastName || ''}`.trim() || 'System',
+            createdDate: dispute.createdAt ? dispute.createdAt.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }) : 'Unknown',
+            disputeUrl
+          };
+
+          await emailService.sendDisputeStatusUpdateEmail(vendorUser.email, emailData);
+        }
+      } catch (error) {
+        console.error('Error sending vendor notification/email (non-blocking):', error);
+      }
+
+      // Also notify and email the review author (user)
+      if (review && review.reviewer && reviewerUser) {
+        try {
           await createNotification({
             userId: review.reviewer,
             type: 'DISPUTE_STATUS_UPDATE',
             title: 'Dispute Status Update on Your Review',
             message: 'A dispute involving your review has been updated. Click here for details.',
             meta: { disputeId, status: updates.status },
-            actionUrl: `/disputes/${disputeId}`
+            actionUrl: `/product-detail/${updatedDispute.product.slug}/disputes`
           });
+
+          // Send email to reviewer
+          if (reviewerUser.email) {
+            const emailData = {
+              userName: `${reviewerUser.firstName || ''} ${reviewerUser.lastName || ''}`.trim() || 'User',
+              disputeId,
+              productName: updatedDispute.product?.name || 'Product',
+              reviewTitle: review.title || review.content?.substring(0, 100) + '...' || 'Review',
+              oldStatus: dispute.status || 'Unknown',
+              newStatus: updates.status,
+              updatedBy: `${updaterUser?.firstName || ''} ${updaterUser?.lastName || ''}`.trim() || 'System',
+              createdDate: dispute.createdAt ? dispute.createdAt.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              }) : 'Unknown',
+              disputeUrl
+            };
+
+            await emailService.sendDisputeStatusUpdateEmail(reviewerUser.email, emailData);
+          }
+        } catch (error) {
+          console.error('Error sending reviewer notification/email (non-blocking):', error);
         }
       }
     }
@@ -272,7 +333,7 @@ const addExplanation = async (disputeId, userId, explanation) => {
           title: 'New Explanation Added to Dispute',
           message: 'A new explanation has been added to a dispute you are involved in.',
           meta: { disputeId },
-          actionUrl: `/product-detail/${review.product.slug}/disputes/${disputeId}`
+          actionUrl: `/product-detail/${updatedDispute.product.slug}/disputes`
         });
       } catch (notificationError) {
         console.error('Notification error (non-blocking):', notificationError);
@@ -282,7 +343,7 @@ const addExplanation = async (disputeId, userId, explanation) => {
       // Send email (handle errors separately)
       try {
         if (otherPartyUser && otherPartyUser.email) {
-          const disputeUrl = `${config?.app?.frontendUrl || 'http://localhost:3001'}/disputes/${disputeId}`;
+          const disputeUrl = `${config?.app?.frontendUrl || 'http://localhost:3001'}/profile/dispute-management/${disputeId}`;
           
           const emailData = {
             userName: `${otherPartyUser.firstName || ''} ${otherPartyUser.lastName || ''}`.trim() || 'User',
@@ -367,12 +428,19 @@ const updateExplanation = async (disputeId, explanationId, userId, explanation) 
       ]);
     console.log('Dispute populated successfully');
 
-    // Send notification to the other party
-    console.log('Sending notification...');
+    // Send notification and email to the other party
+    console.log('Sending notification and email...');
     const isVendor = dispute.vendor.toString() === userId.toString();
     const otherPartyId = isVendor ? review.reviewer : dispute.vendor;
     
     if (otherPartyId) {
+      // Get user data for email
+      const [otherPartyUser, authorUser] = await Promise.all([
+        User.findById(otherPartyId).select('firstName lastName email'),
+        User.findById(userId).select('firstName lastName')
+      ]);
+
+      // Send notification (handle errors separately)
       try {
         await createNotification({
           userId: otherPartyId,
@@ -380,12 +448,35 @@ const updateExplanation = async (disputeId, explanationId, userId, explanation) 
           title: 'Explanation Updated in Dispute',
           message: 'An explanation has been updated in a dispute you are involved in.',
           meta: { disputeId },
-          actionUrl: `/disputes/${disputeId}`
+          actionUrl: `/product-detail/${updatedDispute.product.slug}/disputes`
         });
         console.log('Notification sent successfully');
       } catch (notificationError) {
         console.error('Notification error (non-blocking):', notificationError);
-        // Don't throw error for notification failure
+        // Continue to email sending even if notification fails
+      }
+
+      // Send email (handle errors separately)
+      try {
+        if (otherPartyUser && otherPartyUser.email) {
+          const disputeUrl = `${config?.app?.frontendUrl || 'http://localhost:3001'}/product-detail/${updatedDispute.product.slug}/disputes`;
+          
+          const emailData = {
+            userName: `${otherPartyUser.firstName || ''} ${otherPartyUser.lastName || ''}`.trim() || 'User',
+            authorName: `${authorUser?.firstName || ''} ${authorUser?.lastName || ''}`.trim() || 'Someone',
+            explanationContent: existingExplanation.content, // Use updated explanation content
+            reviewTitle: review.title || review.content?.substring(0, 100) + '...' || 'Review',
+            productName: updatedDispute.product?.name || 'Product',
+            disputeId,
+            disputeUrl
+          };
+
+          await emailService.sendDisputeExplanationUpdateEmail(otherPartyUser.email, emailData);
+          console.log('Email sent successfully');
+        }
+      } catch (emailError) {
+        console.error('Email error (non-blocking):', emailError);
+        // Don't throw error for email failure
       }
     }
 

@@ -34,7 +34,7 @@ exports.requestBadge = async (req, res, next) => {
       title: 'Badge Request Submitted',
       message: `Your request for the badge "${badge.title}" has been submitted. We will notify you once it is reviewed.`,
       meta: { badgeId },
-      actionUrl: '/badges'
+      actionUrl: '/profile/my-badges'
     });
     return res.status(201).json(ApiResponse.success(userBadge, 'Badge request submitted'));
   } catch (err) {
@@ -79,7 +79,7 @@ exports.approveBadgeRequest = async (req, res, next) => {
       title: 'New Badge Approved!',
       message: `Congratulations! You've earned the "${userBadge.badgeId.title}" badge for your contributions.`,
       meta: { badgeId: userBadge.badgeId._id },
-      actionUrl: '/badges'
+      actionUrl: '/profile/my-badges'
     });
     return res.json(ApiResponse.success(userBadge, 'Badge request approved'));
   } catch (err) {

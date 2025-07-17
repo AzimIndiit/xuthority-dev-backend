@@ -289,6 +289,142 @@ class EmailService {
   }
 
   /**
+   * Send dispute explanation update email
+   * @param {string} email - Recipient email
+   * @param {object} disputeData - Dispute data
+   * @returns {Promise<object>} - Email send result
+   */
+  async sendDisputeExplanationUpdateEmail(email, disputeData) {
+    try {
+      const {
+        userName,
+        authorName,
+        explanationContent,
+        reviewTitle,
+        productName,
+        disputeId,
+        disputeUrl
+      } = disputeData;
+
+      const templateData = {
+        userName: userName || 'User',
+        authorName: authorName || 'Someone',
+        explanationContent,
+        reviewTitle: reviewTitle || 'Review',
+        productName: productName || 'Product',
+        disputeId,
+        disputeUrl,
+        currentDate: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZoneName: 'short'
+        }),
+        currentYear: new Date().getFullYear()
+      };
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `Explanation Updated in Dispute #${disputeId} - ${config?.app?.name || 'Xuthority'}`,
+        template: 'dispute-explanation.ejs',
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending dispute explanation update email:', error);
+      throw new Error('Failed to send dispute explanation update email');
+    }
+  }
+
+  /**
+   * Send dispute status update email
+   * @param {string} email - Recipient email
+   * @param {object} disputeData - Dispute status update data
+   * @returns {Promise<object>} - Email send result
+   */
+  async sendDisputeStatusUpdateEmail(email, disputeData) {
+    try {
+      const {
+        userName,
+        disputeId,
+        productName,
+        reviewTitle,
+        oldStatus,
+        newStatus,
+        updatedBy,
+        createdDate,
+        disputeUrl
+      } = disputeData;
+
+      // Define status-specific styling and messages
+      const statusConfig = {
+        'active': {
+          color: '#28a745',
+          backgroundColor: '#d4edda',
+          textColor: '#155724',
+          icon: '🔍',
+          message: 'Dispute is now under active review and investigation.'
+        },
+        'resolved': {
+          color: '#007bff',
+          backgroundColor: '#d1ecf1',
+          textColor: '#0c5460',
+          icon: '✅',
+          message: 'Dispute has been resolved. Thank you for your patience.'
+        },
+        'pending': {
+          color: '#ffc107',
+          backgroundColor: '#fff3cd',
+          textColor: '#856404',
+          icon: '⏳',
+          message: 'Dispute is pending review and will be addressed soon.'
+        }
+      };
+
+      const config = statusConfig[newStatus] || statusConfig['pending'];
+
+      const templateData = {
+        userName: userName || 'User',
+        disputeId,
+        productName: productName || 'Product',
+        reviewTitle: reviewTitle || 'Review',
+        oldStatus: oldStatus || 'Unknown',
+        newStatus,
+        updatedBy,
+        createdDate,
+        updatedDate: new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZoneName: 'short'
+        }),
+        disputeUrl,
+        statusColor: config.color,
+        statusBackgroundColor: config.backgroundColor,
+        statusTextColor: config.textColor,
+        statusIcon: config.icon,
+        statusMessage: config.message,
+        currentYear: new Date().getFullYear()
+      };
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `Dispute Status Update #${disputeId} - ${config.icon} ${newStatus.toUpperCase()} - ${config?.app?.name || 'Xuthority'}`,
+        template: 'dispute-status-update.ejs',
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending dispute status update email:', error);
+      throw new Error('Failed to send dispute status update email');
+    }
+  }
+
+  /**
    * Send subscription activated email
    * @param {string} email - User email
    * @param {object} subscriptionData - Subscription data

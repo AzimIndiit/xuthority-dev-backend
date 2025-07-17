@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispute Status Update</title>
+</head>
+<body>
+    <div style="font-family: Helvetica, Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px; line-height: 1.6; color: #333;">
+        <div style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
+            <h2 style="color: #00466a;">Xuthority</h2>
+        </div>
+
+        <p style="font-size: 1.1em;">
+            Hi <%= userName %>,
+        </p>
+
+        <p style="font-size: 1.1em; color: #00466a; font-weight: bold;">
+            📋 Dispute Status Update
+        </p>
+
+        <p style="font-size: 1em;">
+            We're writing to inform you that the status of dispute #<%= disputeId %> has been updated.
+        </p>
+
+        <div style="background-color: #f8f9fa; border-left: 4px solid #00466a; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold; color: #00466a;">
+                📊 Dispute Details:
+            </p>
+            <div style="color: #666;">
+                <p style="margin: 5px 0;"><strong>Dispute ID:</strong> #<%= disputeId %></p>
+                <p style="margin: 5px 0;"><strong>Product:</strong> <%= productName %></p>
+                <p style="margin: 5px 0;"><strong>Review:</strong> "<%= reviewTitle %>"</p>
+                <p style="margin: 5px 0;"><strong>Previous Status:</strong> <%= oldStatus %></p>
+                <p style="margin: 5px 0;"><strong>New Status:</strong> <span style="color: <%= statusColor %>; font-weight: bold; text-transform: uppercase;"><%= newStatus %></span></p>
+                <% if (updatedBy) { %>
+                <p style="margin: 5px 0;"><strong>Updated By:</strong> <%= updatedBy %></p>
+                <% } %>
+            </div>
+        </div>
+
+        <% if (statusMessage) { %>
+        <div style="background-color: <%= statusBackgroundColor %>; border-left: 4px solid <%= statusColor %>; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; color: <%= statusTextColor %>; font-weight: bold;">
+                <%= statusIcon %> <%= statusMessage %>
+            </p>
+        </div>
+        <% } %>
+
+        <% if (newStatus === 'resolved') { %>
+        <p style="font-size: 1em;">
+            <strong>What this means:</strong>
+        </p>
+        <ul style="font-size: 1em; color: #666; margin-left: 20px;">
+            <li>The dispute has been reviewed and a resolution has been reached</li>
+            <li>All parties have been notified of the outcome</li>
+            <li>No further action is required unless otherwise specified</li>
+            <li>The case is now considered closed</li>
+        </ul>
+        <% } else if (newStatus === 'active') { %>
+        <p style="font-size: 1em;">
+            <strong>Next Steps:</strong>
+        </p>
+        <ul style="font-size: 1em; color: #666; margin-left: 20px;">
+            <li>The dispute is now under active review</li>
+            <li>You may be contacted for additional information</li>
+            <li>Please monitor your notifications for updates</li>
+            <li>Response time for resolution is typically 3-5 business days</li>
+        </ul>
+        <% } %>
+
+        <p style="font-size: 1em;">
+            You can view the full dispute details and any new explanations by clicking the button below:
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="<%= disputeUrl %>" 
+               style="background-color: #00466a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                View Dispute Details
+            </a>
+        </div>
+
+        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; color: #856404; font-weight: bold;">
+                💡 Need Help?
+            </p>
+            <p style="margin: 10px 0 0 0; color: #856404;">
+                If you have questions about this dispute or need clarification on the process, our support team is here to help. You can also respond with additional explanations through the dispute interface.
+            </p>
+        </div>
+
+        <p style="font-size: 0.9em; color: #888;">
+            <strong>Dispute Timeline:</strong><br>
+            • Created: <%= createdDate %><br>
+            • Last Updated: <%= updatedDate %><br>
+            • Status: <%= newStatus %>
+        </p>
+
+        <p style="font-size: 0.9em; color: #888;">
+            If you have any questions about this dispute status update, please contact our support team at <a href="mailto:<%= supportEmail %>" style="color: #00466a;"><%= supportEmail %></a>.
+        </p>
+
+        <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 10px; font-size: 0.8em; color: #aaa;">
+            <p>&copy; <%= currentYear %> <%= companyName %>. All rights reserved.</p>
+            <p><%= companyAddress %></p>
+        </div>
+    </div>
+</body>
+</html> 
