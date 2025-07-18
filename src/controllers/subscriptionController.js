@@ -392,6 +392,7 @@ const handleCheckoutSessionCompleted = async (session) => {
           const emailData = {
             userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.name || 'User',
             planName: plan.name,
+            planType: plan.planType,
             planPrice: `$${(plan.price / 100).toFixed(2)}/${plan.billingInterval}`,
             billingCycle: `${plan.billingIntervalCount} ${plan.billingInterval}${plan.billingIntervalCount > 1 ? 's' : ''}`,
             nextBillingDate: actualCurrentPeriodEnd.toLocaleDateString('en-US', {

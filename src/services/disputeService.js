@@ -343,7 +343,7 @@ const addExplanation = async (disputeId, userId, explanation) => {
       // Send email (handle errors separately)
       try {
         if (otherPartyUser && otherPartyUser.email) {
-          const disputeUrl = `${config?.app?.frontendUrl || 'http://localhost:3001'}/profile/dispute-management/${disputeId}`;
+          const disputeUrl = `${config?.app?.frontendUrl || 'http://localhost:3001'}/profile/dispute-management`;
           
           const emailData = {
             userName: `${otherPartyUser.firstName || ''} ${otherPartyUser.lastName || ''}`.trim() || 'User',

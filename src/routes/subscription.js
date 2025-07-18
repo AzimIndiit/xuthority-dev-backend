@@ -818,6 +818,7 @@ router.post('/test-email', auth, async (req, res, next) => {
     const emailData = {
       userName: req.user.firstName || req.user.name || 'Test User',
       planName: planName,
+      planType: 'standard',
       planPrice: '$12.00/month',
       billingCycle: '1 month',
       nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {

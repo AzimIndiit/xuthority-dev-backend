@@ -228,6 +228,7 @@ exports.createStripeSubscription = async (userId, plan, options = {}) => {
         const emailData = {
           userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.name || 'User',
           planName: plan.name,
+          planType: plan.planType,
           planPrice: `$${(plan.price / 100).toFixed(2)}/${plan.billingInterval}`,
           billingCycle: `${plan.billingIntervalCount} ${plan.billingInterval}${plan.billingIntervalCount > 1 ? 's' : ''}`,
           nextBillingDate: actualCurrentPeriodEnd.toLocaleDateString('en-US', {
@@ -962,6 +963,7 @@ exports.createDefaultFreeSubscription = async (userId) => {
         firstName: user.firstName,
         lastName: user.lastName,
         planName: freePlan.name,
+        planType: freePlan.planType,
         planPrice: freePlan.formattedPrice,
         planFeatures: freePlan.features,
         currentPeriodStart: subscription.currentPeriodStart.toLocaleDateString('en-US', {

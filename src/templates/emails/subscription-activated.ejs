@@ -34,8 +34,10 @@
                 <p style="margin: 5px 0;"><strong>Trial Period:</strong> <%= trialDays %> days</p>
                 <p style="margin: 5px 0;"><strong>Trial Ends:</strong> <%= trialEndDate %></p>
                 <% } %>
+                <% if (planType !== 'free') { %>
                 <p style="margin: 5px 0;"><strong>Next Billing Date:</strong> <%= nextBillingDate %></p>
                 <p style="margin: 5px 0;"><strong>Billing Cycle:</strong> <%= billingCycle %></p>
+                <% } %>
             </div>
         </div>
 
