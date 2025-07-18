@@ -162,6 +162,13 @@ const productSchema = new mongoose.Schema(
       default: [],
     },
 
+    // Product pricing availability
+    isFree: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
     // Review metrics (from old schema)
     totalReviews: {
       type: Number,

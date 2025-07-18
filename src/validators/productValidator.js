@@ -136,7 +136,12 @@ const productValidator = {
     body('isFeatured')
       .optional()
       .isBoolean()
-      .withMessage('Featured status must be boolean')
+      .withMessage('Featured status must be boolean'),
+
+    body('isFree')
+      .optional()
+      .isBoolean()
+      .withMessage('Free availability must be boolean')
   ],
 
   // Update product validation
@@ -264,7 +269,12 @@ const productValidator = {
     body('isFeatured')
       .optional()
       .isBoolean()
-      .withMessage('Featured status must be boolean')
+      .withMessage('Featured status must be boolean'),
+
+    body('isFree')
+      .optional()
+      .isBoolean()
+      .withMessage('Free availability must be boolean')
   ],
 
   // Get product by ID validation
