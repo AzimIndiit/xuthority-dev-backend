@@ -103,43 +103,380 @@ const createAdmin = async (adminData) => {
 };
 
 /**
- * Get admin dashboard analytics
+ * Get admin dashboard analytics with time filtering
+ * @param {string} period - Time period: 'weekly', 'monthly', 'yearly'
  * @returns {Promise<Object>} Analytics data
  */
-const getDashboardAnalytics = async () => {
+const getDashboardAnalytics = async (period = 'weekly') => {
   try {
+    // Calculate date ranges based on period
+    const { dateFilter, groupFormat, periods } = getDateRangeAndFormat(period);
+
+    // Run all analytics queries in parallel for better performance
     const [
-      totalUsers,
-      totalVendors,
-      totalProducts,
-      totalReviews,
-      pendingVendors,
-      recentUsers
+      statsData,
+      userGrowthData,
+      reviewTrendsData,
+      recentReviewsData
     ] = await Promise.all([
-      User.countDocuments({ role: 'user' }),
-      User.countDocuments({ role: 'vendor' }),
-      Product.countDocuments(),
-      ProductReview.countDocuments(),
-      User.countDocuments({ role: 'vendor', isVerified: false }),
-      User.find()
-        .sort({ createdAt: -1 })
-        .limit(10)
-        .select('-password -accessToken')
+      getStatsData(dateFilter),
+      getUserGrowthData(dateFilter, groupFormat, periods),
+      getReviewTrendsData(dateFilter, groupFormat, periods),
+      getRecentReviewsData(dateFilter)
     ]);
 
     return {
-      overview: {
-        totalUsers,
-        totalVendors,
-        totalProducts,
-        totalReviews,
-        pendingVendors
+      stats: statsData,
+      charts: {
+        userGrowth: userGrowthData,
+        reviewTrends: reviewTrendsData
       },
-      recentUsers
+      recentReviews: recentReviewsData
     };
   } catch (error) {
     throw error;
   }
+};
+
+/**
+ * Helper function to calculate date ranges and formats based on period
+ * @param {string} period - Time period
+ * @returns {Object} Date filter, group format, and periods
+ */
+const getDateRangeAndFormat = (period) => {
+  const now = new Date();
+  let dateFilter, groupFormat, periods;
+
+  switch (period) {
+    case 'yearly':
+      // Last 5 years
+      dateFilter = new Date(now.getFullYear() - 5, 0, 1);
+      groupFormat = { year: '$year' };
+      periods = 5;
+      break;
+    case 'monthly':
+      // Last 12 months
+      dateFilter = new Date(now.getFullYear(), now.getMonth() - 12, 1);
+      groupFormat = { year: '$year', month: '$month' };
+      periods = 12;
+      break;
+    case 'weekly':
+    default:
+      // Last 12 weeks
+      dateFilter = new Date(now.getTime() - (12 * 7 * 24 * 60 * 60 * 1000));
+      groupFormat = { year: '$year', week: '$week' };
+      periods = 12;
+      break;
+  }
+
+  return { dateFilter, groupFormat, periods };
+};
+
+/**
+ * Get basic stats data
+ * @param {Date} dateFilter - Date filter for time period
+ * @returns {Promise<Object>} Stats data
+ */
+const getStatsData = async (dateFilter) => {
+  const [
+    totalUsers,
+    totalVendors,
+    totalReviews,
+    pendingVendors
+  ] = await Promise.all([
+    User.countDocuments({ 
+      role: 'user',
+      createdAt: { $gte: dateFilter }
+    }),
+    User.countDocuments({ 
+      role: 'vendor',
+      createdAt: { $gte: dateFilter }
+    }),
+    ProductReview.countDocuments({
+      submittedAt: { $gte: dateFilter },
+      isDeleted: false
+    }),
+    User.countDocuments({ 
+      role: 'vendor', 
+      isVerified: false,
+      createdAt: { $gte: dateFilter }
+    })
+  ]);
+
+  return {
+    totalUsers,
+    totalVendors,
+    totalReviews,
+    pendingVendors
+  };
+};
+
+/**
+ * Get user growth data for charts
+ * @param {Date} dateFilter - Date filter
+ * @param {Object} groupFormat - MongoDB group format
+ * @param {number} periods - Number of periods
+ * @returns {Promise<Array>} User growth data
+ */
+const getUserGrowthData = async (dateFilter, groupFormat, periods) => {
+  const userGrowthPipeline = [
+    {
+      $match: {
+        createdAt: { $gte: dateFilter }
+      }
+    },
+    {
+      $addFields: {
+        year: { $year: '$createdAt' },
+        month: { $month: '$createdAt' },
+        week: { $week: '$createdAt' }
+      }
+    },
+    {
+      $group: {
+        _id: groupFormat,
+        totalUsers: {
+          $sum: {
+            $cond: [{ $eq: ['$role', 'user'] }, 1, 0]
+          }
+        },
+        totalVendors: {
+          $sum: {
+            $cond: [{ $eq: ['$role', 'vendor'] }, 1, 0]
+          }
+        }
+      }
+    },
+    {
+      $sort: { '_id.year': 1, '_id.month': 1, '_id.week': 1 }
+    }
+  ];
+
+  const results = await User.aggregate(userGrowthPipeline);
+  return formatChartData(results, groupFormat, periods);
+};
+
+/**
+ * Get review trends data for charts
+ * @param {Date} dateFilter - Date filter
+ * @param {Object} groupFormat - MongoDB group format
+ * @param {number} periods - Number of periods
+ * @returns {Promise<Array>} Review trends data
+ */
+const getReviewTrendsData = async (dateFilter, groupFormat, periods) => {
+  const reviewTrendsPipeline = [
+    {
+      $match: {
+        submittedAt: { $gte: dateFilter },
+        isDeleted: false
+      }
+    },
+    {
+      $addFields: {
+        year: { $year: '$submittedAt' },
+        month: { $month: '$submittedAt' },
+        week: { $week: '$submittedAt' }
+      }
+    },
+    {
+      $group: {
+        _id: groupFormat,
+        total: { $sum: 1 },
+        approved: {
+          $sum: {
+            $cond: [{ $eq: ['$status', 'approved'] }, 1, 0]
+          }
+        },
+        pending: {
+          $sum: {
+            $cond: [{ $eq: ['$status', 'pending'] }, 1, 0]
+          }
+        },
+        rejected: {
+          $sum: {
+            $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0]
+          }
+        },
+        flagged: {
+          $sum: {
+            $cond: [{ $eq: ['$status', 'flagged'] }, 1, 0]
+          }
+        }
+      }
+    },
+    {
+      $sort: { '_id.year': 1, '_id.month': 1, '_id.week': 1 }
+    }
+  ];
+
+  const results = await ProductReview.aggregate(reviewTrendsPipeline);
+  return formatChartData(results, groupFormat, periods, true);
+};
+
+/**
+ * Get recent reviews data
+ * @param {Date} dateFilter - Date filter
+ * @returns {Promise<Array>} Recent reviews data
+ */
+const getRecentReviewsData = async (dateFilter) => {
+  const recentReviewsPipeline = [
+    {
+      $match: {
+        submittedAt: { $gte: dateFilter },
+        isDeleted: false
+      }
+    },
+    {
+      $sort: { submittedAt: -1 }
+    },
+    {
+      $limit: 10
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'reviewer',
+        foreignField: '_id',
+        as: 'reviewerData',
+        pipeline: [
+          {
+            $project: {
+              firstName: 1,
+              lastName: 1,
+              avatar: 1,
+              email: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $lookup: {
+        from: 'products',
+        localField: 'product',
+        foreignField: '_id',
+        as: 'productData',
+        pipeline: [
+          {
+            $project: {
+              name: 1,
+              slug: 1,
+              logoUrl: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        title: 1,
+        content: 1,
+        overallRating: 1,
+        status: 1,
+        submittedAt: 1,
+        reviewer: {
+          $let: {
+            vars: { reviewer: { $arrayElemAt: ['$reviewerData', 0] } },
+            in: {
+              name: { $concat: ['$$reviewer.firstName', ' ', '$$reviewer.lastName'] },
+              avatar: '$$reviewer.avatar',
+              email: '$$reviewer.email'
+            }
+          }
+        },
+        product: {
+          $let: {
+            vars: { product: { $arrayElemAt: ['$productData', 0] } },
+            in: {
+              name: '$$product.name',
+              slug: '$$product.slug',
+              logoUrl: '$$product.logoUrl'
+            }
+          }
+        }
+      }
+    }
+  ];
+
+  return await ProductReview.aggregate(recentReviewsPipeline);
+};
+
+/**
+ * Format chart data for consistent frontend consumption
+ * @param {Array} results - Raw aggregation results
+ * @param {Object} groupFormat - Group format used
+ * @param {number} periods - Number of periods
+ * @param {boolean} isReviewData - Whether this is review trend data
+ * @returns {Array} Formatted chart data
+ */
+const formatChartData = (results, groupFormat, periods, isReviewData = false) => {
+  const formattedData = [];
+  const now = new Date();
+  
+  // Generate period labels based on groupFormat
+  for (let i = periods - 1; i >= 0; i--) {
+    let periodLabel, periodId;
+    
+    if (groupFormat.year && groupFormat.month) {
+      // Monthly
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      periodLabel = date.toISOString().substr(0, 7); // YYYY-MM
+      periodId = { year: date.getFullYear(), month: date.getMonth() + 1 };
+    } else if (groupFormat.year && groupFormat.week) {
+      // Weekly
+      const date = new Date(now.getTime() - (i * 7 * 24 * 60 * 60 * 1000));
+      periodLabel = date.toISOString().substr(0, 10); // YYYY-MM-DD
+      const week = getWeekNumber(date);
+      periodId = { year: date.getFullYear(), week };
+    } else {
+      // Yearly
+      const year = now.getFullYear() - i;
+      periodLabel = year.toString();
+      periodId = { year };
+    }
+    
+    // Find matching result
+    const matchingResult = results.find(r => {
+      if (groupFormat.year && groupFormat.month) {
+        return r._id.year === periodId.year && r._id.month === periodId.month;
+      } else if (groupFormat.year && groupFormat.week) {
+        return r._id.year === periodId.year && r._id.week === periodId.week;
+      } else {
+        return r._id.year === periodId.year;
+      }
+    });
+    
+    if (isReviewData) {
+      formattedData.push({
+        period: periodLabel,
+        total: matchingResult?.total || 0,
+        approved: matchingResult?.approved || 0,
+        pending: matchingResult?.pending || 0,
+        rejected: matchingResult?.rejected || 0,
+        flagged: matchingResult?.flagged || 0
+      });
+    } else {
+      formattedData.push({
+        period: periodLabel,
+        users: matchingResult?.totalUsers || 0,
+        vendors: matchingResult?.totalVendors || 0
+      });
+    }
+  }
+  
+  return formattedData;
+};
+
+/**
+ * Get week number of the year
+ * @param {Date} date - Date object
+ * @returns {number} Week number
+ */
+const getWeekNumber = (date) => {
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+  const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
 };
 
 /**
@@ -154,9 +491,13 @@ const getUsers = async (options = {}) => {
       limit = 20,
       role,
       isVerified,
+      status,
       search,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      period,
+      dateFrom,
+      dateTo
     } = options;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -164,6 +505,13 @@ const getUsers = async (options = {}) => {
 
     if (role) query.role = role;
     if (isVerified !== undefined) query.isVerified = isVerified;
+    
+    // Handle status filtering (supports comma-separated values like "approved,blocked")
+    if (status) {
+      const statusArray = status.split(',').map(s => s.trim());
+      query.status = { $in: statusArray };
+    }
+    
     if (search) {
       query.$or = [
         { firstName: { $regex: search, $options: 'i' } },
@@ -171,6 +519,36 @@ const getUsers = async (options = {}) => {
         { email: { $regex: search, $options: 'i' } },
         { companyName: { $regex: search, $options: 'i' } }
       ];
+    }
+
+    // Handle date filtering
+    if (period || dateFrom || dateTo) {
+      const now = new Date();
+      let startDate, endDate;
+
+      if (period) {
+        switch (period) {
+          case 'weekly':
+            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case 'monthly':
+            startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            break;
+          case 'yearly':
+            startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+            break;
+        }
+        endDate = now;
+      } else {
+        if (dateFrom) startDate = new Date(dateFrom);
+        if (dateTo) endDate = new Date(dateTo);
+      }
+
+      if (startDate || endDate) {
+        query.createdAt = {};
+        if (startDate) query.createdAt.$gte = startDate;
+        if (endDate) query.createdAt.$lte = endDate;
+      }
     }
 
     const [users, total] = await Promise.all([
@@ -214,6 +592,7 @@ const verifyVendorProfile = async (userId, admin) => {
     }
 
     user.isVerified = true;
+    user.status = 'approved'; // Update status field as well
     await user.save();
 
     // Log audit event
@@ -226,6 +605,231 @@ const verifyVendorProfile = async (userId, admin) => {
     });
 
     return user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Approve vendor profile
+ * @param {string} userId - User ID
+ * @param {Object} admin - Admin user object
+ * @returns {Promise<Object>} Updated user object
+ */
+const approveVendor = async (userId, admin) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+
+    if (user.role !== 'vendor') {
+      throw new ApiError('User is not a vendor', 'NOT_VENDOR', 400);
+    }
+
+    // Update both status and isVerified for consistency
+    user.status = 'approved';
+    user.isVerified = true;
+    await user.save();
+
+    // Log audit event
+    await logEvent({
+      user: admin,
+      action: 'VENDOR_APPROVAL',
+      target: 'User',
+      targetId: userId,
+      details: { 
+        approvedUser: user.email,
+        previousStatus: user.status,
+        newStatus: 'approved'
+      }
+    });
+
+    return user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Reject vendor profile and delete user from database
+ * @param {string} userId - User ID
+ * @param {Object} admin - Admin user object
+ * @param {string} reason - Optional reason for rejection
+ * @returns {Promise<Object>} Deleted user object
+ */
+const rejectVendor = async (userId, admin, reason = null) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+
+    if (user.role !== 'vendor') {
+      throw new ApiError('User is not a vendor', 'NOT_VENDOR', 400);
+    }
+
+    const previousStatus = user.status;
+    const userEmail = user.email;
+    const userName = `${user.firstName} ${user.lastName}`;
+    
+    // Delete the user from database
+    await User.findByIdAndDelete(userId);
+
+    // Log audit event
+    await logEvent({
+      user: admin,
+      action: 'VENDOR_REJECTION_DELETE',
+      target: 'User',
+      targetId: userId,
+      details: { 
+        deletedUser: userEmail,
+        userName: userName,
+        previousStatus: previousStatus,
+        reason: reason || 'No reason provided',
+        action: 'User permanently deleted from database'
+      }
+    });
+
+    return { 
+      _id: userId,
+      email: userEmail,
+      name: userName,
+      deleted: true 
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Block vendor profile
+ * @param {string} userId - User ID
+ * @param {Object} admin - Admin user object
+ * @returns {Promise<Object>} Updated user object
+ */
+const blockVendor = async (userId, admin) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+
+    if (user.role !== 'vendor') {
+      throw new ApiError('User is not a vendor', 'NOT_VENDOR', 400);
+    }
+
+    const previousStatus = user.status;
+    
+    // Set status to blocked
+    user.status = 'blocked';
+    await user.save();
+
+    // Log audit event
+    await logEvent({
+      user: admin,
+      action: 'VENDOR_BLOCK',
+      target: 'User',
+      targetId: userId,
+      details: { 
+        blockedUser: user.email,
+        previousStatus: previousStatus,
+        newStatus: 'blocked'
+      }
+    });
+
+    return user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Unblock vendor profile
+ * @param {string} userId - User ID
+ * @param {Object} admin - Admin user object
+ * @returns {Promise<Object>} Updated user object
+ */
+const unblockVendor = async (userId, admin) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+
+    if (user.role !== 'vendor') {
+      throw new ApiError('User is not a vendor', 'NOT_VENDOR', 400);
+    }
+
+    const previousStatus = user.status;
+    
+    // Set status back to approved if they were verified, otherwise pending
+    user.status = user.isVerified ? 'approved' : 'pending';
+    await user.save();
+
+    // Log audit event
+    await logEvent({
+      user: admin,
+      action: 'VENDOR_UNBLOCK',
+      target: 'User',
+      targetId: userId,
+      details: { 
+        unblockedUser: user.email,
+        previousStatus: previousStatus,
+        newStatus: user.status
+      }
+    });
+
+    return user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Delete vendor profile
+ * @param {string} userId - User ID
+ * @param {Object} admin - Admin user object
+ * @returns {Promise<Object>} Deleted user object
+ */
+const deleteVendor = async (userId, admin) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+
+    if (user.role !== 'vendor') {
+      throw new ApiError('User is not a vendor', 'NOT_VENDOR', 400);
+    }
+
+    const previousStatus = user.status;
+    const userEmail = user.email;
+    const userName = `${user.firstName} ${user.lastName}`;
+    
+    // Delete the user from database
+    await User.findByIdAndDelete(userId);
+
+    // Log audit event
+    await logEvent({
+      user: admin,
+      action: 'VENDOR_DELETE',
+      target: 'User',
+      targetId: userId,
+      details: { 
+        deletedUser: userEmail,
+        userName: userName,
+        previousStatus: previousStatus,
+        action: 'User permanently deleted from database'
+      }
+    });
+
+    return { 
+      _id: userId,
+      email: userEmail,
+      name: userName,
+      deleted: true 
+    };
   } catch (error) {
     throw error;
   }
@@ -259,7 +863,7 @@ const updateAdminProfile = async (adminId, updateData) => {
   try {
     // Only allow specific fields to be updated
     const allowedFields = [
-      'firstName', 'lastName', 'notes'
+      'firstName', 'lastName', 'notes', 'avatar'
     ];
     const update = {};
     for (const key of allowedFields) {
@@ -372,7 +976,8 @@ const forgotAdminPassword = async (email) => {
       await emailService.sendPasswordResetEmail(
         admin.email, 
         resetToken, 
-        admin.firstName || 'Admin'
+        admin.firstName || 'Admin',
+        'admin'
       );
       
       // Log password reset request
@@ -496,6 +1101,11 @@ module.exports = {
   getDashboardAnalytics,
   getUsers,
   verifyVendorProfile,
+  approveVendor,
+  rejectVendor,
+  blockVendor,
+  unblockVendor,
+  deleteVendor,
   getAdminProfile,
   updateAdminProfile,
   changeAdminPassword,

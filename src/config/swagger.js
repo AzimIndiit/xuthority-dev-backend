@@ -40,7 +40,225 @@ const swaggerDefinition = {
           scheme: 'bearer',
           bearerFormat: 'JWT',
         },
+        AdminBearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Admin JWT token',
+        },
       },
+      schemas: {
+        Admin: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Admin unique identifier',
+              example: '60d21b4667d0d8992e610c85'
+            },
+            _id: {
+              type: 'string',
+              description: 'MongoDB ObjectId',
+              example: '60d21b4667d0d8992e610c85'
+            },
+            firstName: {
+              type: 'string',
+              description: 'Admin first name',
+              example: 'John'
+            },
+            lastName: {
+              type: 'string',
+              description: 'Admin last name',
+              example: 'Doe'
+            },
+            email: {
+              type: 'string',
+              format: 'email',
+              description: 'Admin email address',
+              example: 'admin@xuthority.com'
+            },
+            role: {
+              type: 'string',
+              enum: ['admin'],
+              description: 'Admin role',
+              example: 'admin'
+            },
+            isActive: {
+              type: 'boolean',
+              description: 'Whether admin account is active',
+              example: true
+            },
+            lastLogin: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last login timestamp',
+              example: '2023-12-01T10:30:00.000Z'
+            },
+            notes: {
+              type: 'string',
+              description: 'Admin notes',
+              example: 'Senior administrator for platform management'
+            },
+            avatar: {
+              type: 'string',
+              format: 'uri',
+              description: 'Admin profile avatar URL',
+              example: 'https://xuthority.s3.amazonaws.com/uploads/avatars/admin-123.jpg'
+            },
+            fullName: {
+              type: 'string',
+              description: 'Full name computed from first and last name',
+              example: 'John Doe'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Admin creation timestamp',
+              example: '2023-01-01T00:00:00.000Z'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Admin last update timestamp',
+              example: '2023-12-01T10:30:00.000Z'
+            }
+          }
+        },
+        User: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'User unique identifier',
+              example: '60d21b4667d0d8992e610c85'
+            },
+            _id: {
+              type: 'string',
+              description: 'MongoDB ObjectId',
+              example: '60d21b4667d0d8992e610c85'
+            },
+            firstName: {
+              type: 'string',
+              description: 'User first name',
+              example: 'Jane'
+            },
+            lastName: {
+              type: 'string',
+              description: 'User last name',
+              example: 'Smith'
+            },
+            email: {
+              type: 'string',
+              format: 'email',
+              description: 'User email address',
+              example: 'jane.smith@example.com'
+            },
+            role: {
+              type: 'string',
+              enum: ['user', 'vendor'],
+              description: 'User role',
+              example: 'vendor'
+            },
+            isVerified: {
+              type: 'boolean',
+              description: 'Whether user is verified',
+              example: true
+            },
+            avatar: {
+              type: 'string',
+              format: 'uri',
+              description: 'User profile avatar URL',
+              example: 'https://xuthority.s3.amazonaws.com/uploads/avatars/user-123.jpg'
+            },
+            companyName: {
+              type: 'string',
+              description: 'Company name (for vendors)',
+              example: 'TechCorp Inc.'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'User creation timestamp',
+              example: '2023-01-01T00:00:00.000Z'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'User last update timestamp',
+              example: '2023-12-01T10:30:00.000Z'
+            }
+          }
+        },
+        ErrorResponse: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: false
+            },
+            error: {
+              type: 'object',
+              properties: {
+                message: {
+                  type: 'string',
+                  description: 'Error message',
+                  example: 'Invalid credentials'
+                },
+                code: {
+                  type: 'string',
+                  description: 'Error code',
+                  example: 'INVALID_CREDENTIALS'
+                },
+                statusCode: {
+                  type: 'integer',
+                  description: 'HTTP status code',
+                  example: 401
+                },
+                details: {
+                  type: 'object',
+                  description: 'Additional error details',
+                  example: {}
+                }
+              }
+            }
+          }
+        },
+        Pagination: {
+          type: 'object',
+          properties: {
+            currentPage: {
+              type: 'integer',
+              description: 'Current page number',
+              example: 1
+            },
+            totalPages: {
+              type: 'integer',
+              description: 'Total number of pages',
+              example: 10
+            },
+            totalItems: {
+              type: 'integer',
+              description: 'Total number of items',
+              example: 100
+            },
+            itemsPerPage: {
+              type: 'integer',
+              description: 'Number of items per page',
+              example: 10
+            },
+            hasNext: {
+              type: 'boolean',
+              description: 'Whether there is a next page',
+              example: true
+            },
+            hasPrev: {
+              type: 'boolean',
+              description: 'Whether there is a previous page',
+              example: false
+            }
+          }
+        }
+      }
     },
     security: [{ bearerAuth: [] }],
   },

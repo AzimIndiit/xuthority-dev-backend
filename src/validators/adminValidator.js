@@ -55,13 +55,80 @@ const validateUserQuery = [
   query('sortOrder')
     .optional()
     .isIn(['asc', 'desc'])
-    .withMessage('sortOrder must be either asc or desc')
+    .withMessage('sortOrder must be either asc or desc'),
+    
+  query('period')
+    .optional()
+    .isIn(['weekly', 'monthly', 'yearly'])
+    .withMessage('Period must be weekly, monthly, or yearly'),
+    
+  query('dateFrom')
+    .optional()
+    .isISO8601()
+    .withMessage('dateFrom must be a valid ISO 8601 date'),
+    
+  query('dateTo')
+    .optional()
+    .isISO8601()
+    .withMessage('dateTo must be a valid ISO 8601 date')
 ];
 
 /**
  * Validation for verify vendor profile
  */
 const validateVerifyVendor = [
+  param('id')
+    .isMongoId()
+    .withMessage('User ID must be a valid MongoDB ObjectId')
+];
+
+/**
+ * Validation for approve vendor profile
+ */
+const validateApproveVendor = [
+  param('id')
+    .isMongoId()
+    .withMessage('User ID must be a valid MongoDB ObjectId')
+];
+
+/**
+ * Validation for reject vendor profile
+ */
+const validateRejectVendor = [
+  param('id')
+    .isMongoId()
+    .withMessage('User ID must be a valid MongoDB ObjectId'),
+  
+  body('reason')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('Rejection reason must be between 1 and 500 characters')
+    .escape()
+];
+
+/**
+ * Validation for block vendor profile
+ */
+const validateBlockVendor = [
+  param('id')
+    .isMongoId()
+    .withMessage('User ID must be a valid MongoDB ObjectId')
+];
+
+/**
+ * Validation for unblock vendor profile
+ */
+const validateUnblockVendor = [
+  param('id')
+    .isMongoId()
+    .withMessage('User ID must be a valid MongoDB ObjectId')
+];
+
+/**
+ * Validation for delete vendor profile
+ */
+const validateDeleteVendor = [
   param('id')
     .isMongoId()
     .withMessage('User ID must be a valid MongoDB ObjectId')
@@ -181,6 +248,11 @@ module.exports = {
   validateAdminLogin,
   validateUserQuery,
   validateVerifyVendor,
+  validateApproveVendor,
+  validateRejectVendor,
+  validateBlockVendor,
+  validateUnblockVendor,
+  validateDeleteVendor,
   validateAdminProfileUpdate,
   validateAdminPasswordChange,
   validateAdminForgotPassword,

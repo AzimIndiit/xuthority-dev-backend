@@ -136,8 +136,115 @@ const getDisputeById = async (req, res, next) => {
 };
 
 /**
- * Update dispute
- * PUT /api/v1/disputes/:id
+ * @openapi
+ * /disputes/{id}:
+ *   put:
+ *     tags:
+ *       - Disputes
+ *     summary: Update dispute
+ *     description: |
+ *       Update dispute information including status. 
+ *       **Important**: When dispute status is changed to 'resolved', the associated product review will be automatically published (status set to 'approved' and publishedAt timestamp set).
+ *       This triggers notifications and emails to both the reviewer and vendor.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: ^[0-9a-fA-F]{24}$
+ *         description: MongoDB ObjectId of the dispute
+ *         example: 60d21b4667d0d8992e610c85
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 enum: [false-or-misleading-information, spam-or-fake-review, inappropriate-content, conflict-of-interest, other]
+ *                 description: Reason for the dispute
+ *                 example: false-or-misleading-information
+ *               description:
+ *                 type: string
+ *                 minLength: 10
+ *                 maxLength: 2000
+ *                 description: Detailed description of the dispute
+ *                 example: This review contains false information about our product features
+ *               status:
+ *                 type: string
+ *                 enum: [active, resolved]
+ *                 description: |
+ *                   Dispute status. When set to 'resolved', the associated review will be automatically published.
+ *                 example: resolved
+ *     responses:
+ *       200:
+ *         description: Dispute updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       description: Dispute ID
+ *                       example: 60d21b4667d0d8992e610c85
+ *                     review:
+ *                       type: object
+ *                       description: Associated review details
+ *                     vendor:
+ *                       type: object
+ *                       description: Vendor details
+ *                     product:
+ *                       type: object
+ *                       description: Product details
+ *                     reason:
+ *                       type: string
+ *                       example: false-or-misleading-information
+ *                     description:
+ *                       type: string
+ *                       example: This review contains false information
+ *                     status:
+ *                       type: string
+ *                       enum: [active, resolved]
+ *                       example: resolved
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                 message:
+ *                   type: string
+ *                   example: Dispute updated successfully
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Dispute not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 const updateDispute = async (req, res, next) => {
   try {

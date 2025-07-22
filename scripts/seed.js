@@ -43,6 +43,7 @@ const { seedBlogs } = require('../src/database/seeds/blogSeeder');
 const seedNotifications = require('../src/database/seeds/notificationSeeder');
 const { seedSubscriptionPlans } = require('../src/database/seeds/subscriptionPlanSeeder');
 const { seedBadges } = require('../src/database/seeds/badgeSeeder');
+const { seedProducts } = require('../src/database/seeds/productSeeder');
 
 // Configuration
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/xuthority-dev';
@@ -143,7 +144,8 @@ const seedAllModules = async (adminUserId, specificModule = null) => {
     { name: 'blogs', fn: seedBlogs },
     { name: 'notifications', fn: seedNotifications },
     { name: 'subscription-plans', fn: seedSubscriptionPlans },
-    { name: 'badges', fn: seedBadges }
+    { name: 'badges', fn: seedBadges },
+    { name: 'products', fn: seedProducts }
   ];
   
   const results = {};

@@ -13,7 +13,7 @@ const config = require('../config');
 const createDispute = async (reviewId, vendorId, disputeData) => {
   try {
     // Check if review exists and is not soft-deleted
-    const review = await ProductReview.findByIdActive(reviewId);
+    var review = await ProductReview.findByIdActive(reviewId);
     if (!review) {
       throw new ApiError('Product review not found or has been deleted', 'REVIEW_NOT_FOUND', 404);
     }
@@ -45,7 +45,8 @@ const createDispute = async (reviewId, vendorId, disputeData) => {
     });
 
     await dispute.save();
-
+    review.status = 'dispute';
+    await review.save();
     // Send notification to vendor
     await createNotification({
       userId: vendorId,
@@ -150,6 +151,72 @@ const updateDispute = async (disputeId, vendorId, updateData) => {
       { path: 'product', select: 'name slug isActive' },
       { path: 'vendor', select: 'firstName lastName email' }
     ]);
+
+    // Handle review publishing when dispute is resolved
+    if (updates.status === 'resolved' && dispute.review) {
+      try {
+        // Get the review with populated data
+        const review = await ProductReview.findByIdActive(dispute.review)
+          .populate('reviewer', 'firstName lastName email')
+          .populate('product', 'name slug');
+        
+        if (review) {
+          // Publish the review by setting status to approved and publishedAt
+          await ProductReview.findByIdAndUpdate(
+            dispute.review,
+            {
+              status: 'approved',
+              publishedAt: new Date()
+            },
+            { runValidators: true }
+          );
+          
+          console.log(`Review ${dispute.review} published after dispute resolution`);
+          
+          // Send notification to reviewer about review being published
+          if (review.reviewer) {
+            try {
+              await createNotification({
+                userId: review.reviewer._id,
+                type: 'PRODUCT_REVIEW',
+                title: 'Your Review Has Been Published',
+                message: 'Your disputed review has been resolved and is now published. Thank you for your feedback.',
+                meta: { 
+                  reviewId: review._id,
+                  productId: review.product._id,
+                  disputeId: disputeId,
+                  publishedAfterDispute: true
+                },
+                actionUrl: `/product-detail/${review.product.slug}`
+              });
+              
+              // Send email notification to reviewer
+              if (review.reviewer.email) {
+                const emailData = {
+                  userName: `${review.reviewer.firstName || ''} ${review.reviewer.lastName || ''}`.trim() || 'User',
+                  productName: review.product?.name || 'Product',
+                  reviewTitle: review.title || review.content?.substring(0, 100) + '...' || 'Review',
+                  disputeId,
+                  resolvedDate: new Date().toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }),
+                  productUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/product-detail/${review.product.slug}`,
+                  reviewContent: review.content?.substring(0, 200) + (review.content?.length > 200 ? '...' : '') || ''
+                };
+                
+                await emailService.sendReviewPublishedAfterDisputeEmail(review.reviewer.email, emailData);
+              }
+            } catch (notificationError) {
+              console.error('Error sending reviewer notification after review publication (non-blocking):', notificationError);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error publishing review after dispute resolution (non-blocking):', error);
+      }
+    }
 
     // Send notification and email on status update
     if (updates.status) {

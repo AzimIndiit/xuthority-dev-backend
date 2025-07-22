@@ -46,6 +46,11 @@ const adminSchema = new mongoose.Schema({
     type: String, 
     default: '',
     trim: true 
+  },
+  // Profile avatar
+  avatar: { 
+    type: String, 
+    default: '' 
   }
 }, {
   timestamps: true,

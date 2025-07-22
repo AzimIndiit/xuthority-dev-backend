@@ -126,12 +126,20 @@ class EmailService {
    * @param {string} email - User email
    * @param {string} resetToken - Password reset token
    * @param {string} userName - User's name
+   * @param {string} role - User role ('user' or 'admin')
    * @returns {Promise<object>} - Email send result
    */
-  async sendPasswordResetEmail(email, resetToken, userName) {
+  async sendPasswordResetEmail(email, resetToken, userName, role = 'user') {
     try {
       const frontendUrl = config?.app?.frontendUrl || 'http://localhost:3001';
-      const resetUrl = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
+      
+      // Build appropriate reset URL based on role
+      let resetUrl;
+      if (role === 'admin') {
+        resetUrl = `${frontendUrl}/admin/reset-password?token=${resetToken}`;
+      } else {
+        resetUrl = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
+      }
 
       const templateData = {
         userName: userName || 'User',
@@ -741,6 +749,51 @@ class EmailService {
     } catch (error) {
       logger.error('Error sending subscription downgrade email:', error);
       throw new Error('Failed to send subscription downgrade email');
+    }
+  }
+
+  /**
+   * Send review published after dispute resolution email
+   * @param {string} email - Reviewer email
+   * @param {object} emailData - Email template data
+   * @returns {Promise<object>} - Email send result
+   */
+  async sendReviewPublishedAfterDisputeEmail(email, emailData) {
+    try {
+      const {
+        userName,
+        productName,
+        reviewTitle,
+        disputeId,
+        resolvedDate,
+        productUrl,
+        reviewContent
+      } = emailData;
+
+      const templateData = {
+        userName: userName || 'User',
+        productName,
+        reviewTitle,
+        disputeId,
+        resolvedDate,
+        productUrl,
+        reviewContent,
+        currentYear: new Date().getFullYear(),
+        appName: config?.app?.name || 'Xuthority',
+        supportEmail: config?.email?.supportEmail || 'support@xuthority.com',
+        message: `Great news! The dispute regarding your review for ${productName} has been resolved in your favor. Your review is now published and visible to other users.`
+      };
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `Your Review Has Been Published - ${config?.app?.name || 'Xuthority'}`,
+        template: 'review-published-after-dispute.ejs',
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending review published after dispute email:', error);
+      throw new Error('Failed to send review published after dispute email');
     }
   }
 }

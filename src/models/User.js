@@ -6,6 +6,7 @@ const SOCIAL_LINKS_SCHEMA = {
 };
 
 const USER_ROLES = ['user', 'vendor'];
+const USER_STATUS = ['approved', 'pending', 'blocked'];
 const COMPANY_SIZES = [
   '1-10 Employees',
   '11-50 Employees',
@@ -93,6 +94,15 @@ const userSchema = new mongoose.Schema({
     min: 0
   },
   role: { type: String, enum: USER_ROLES, default: 'user' },
+  status: { 
+    type: String, 
+    enum: USER_STATUS, 
+    default: function() {
+      // Default status based on role
+      return this.role === 'vendor' ? 'pending' : 'approved';
+    },
+    index: true // Add index for faster filtering
+  },
   authProvider: { type: String, enum: ['email', 'google', 'linkedin'], default: 'email' },
   acceptedTerms: { type: Boolean, required: true },
   acceptedMarketing: { type: Boolean, default: false },
@@ -112,6 +122,10 @@ const userSchema = new mongoose.Schema({
   passwordResetAttempts: { type: Number, default: 0 },
   passwordResetLastAttempt: { type: Date },
   isVerified: { type: Boolean, default: false },
+  
+  // Vendor rejection fields
+  rejectionReason: { type: String, trim: true },
+  rejectionDate: { type: Date },
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

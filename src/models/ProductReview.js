@@ -98,7 +98,7 @@ const productReviewSchema = new mongoose.Schema({
   // Review Status & Moderation
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected', 'flagged'],
+    enum: ['pending', 'approved', 'dispute'],
     default: 'approved',
     index: true
   },
