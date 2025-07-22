@@ -5,7 +5,7 @@ const SOCIAL_LINKS_SCHEMA = {
   twitter: { type: String, trim: true, default: '' },
 };
 
-const USER_ROLES = ['user', 'vendor', 'admin'];
+const USER_ROLES = ['user', 'vendor'];
 const COMPANY_SIZES = [
   '1-10 Employees',
   '11-50 Employees',

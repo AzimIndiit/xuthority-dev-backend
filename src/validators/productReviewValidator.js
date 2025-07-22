@@ -58,7 +58,47 @@ const productReviewValidator = {
       .optional()
       .isString()
       .withMessage('Review source must be a string')
-      .trim()
+      .trim(),
+    // Metadata validation
+    body('metaData')
+      .optional()
+      .isObject()
+      .withMessage('Metadata must be an object'),
+    body('metaData.attachments')
+      .optional()
+      .isArray()
+      .withMessage('Attachments must be an array'),
+    body('metaData.attachments.*.fileName')
+      .optional()
+      .isString()
+      .isLength({ max: 255 })
+      .withMessage('File name must be a string with max 255 characters')
+      .trim(),
+    body('metaData.attachments.*.fileUrl')
+      .optional()
+      .isString()
+      .isLength({ max: 500 })
+      .withMessage('File URL must be a string with max 500 characters')
+      .trim(),
+    body('metaData.attachments.*.fileType')
+      .optional()
+      .isString()
+      .isLength({ max: 50 })
+      .withMessage('File type must be a string with max 50 characters')
+      .trim(),
+    body('metaData.attachments.*.fileSize')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('File size must be a positive integer'),
+    body('metaData.reviewVersion')
+      .optional()
+      .isString()
+      .withMessage('Review version must be a string')
+      .trim(),
+    body('metaData.sourceInfo')
+      .optional(),
+    body('metaData.customFields')
+      .optional()
   ],
 
   // Update review validation
@@ -114,7 +154,47 @@ const productReviewValidator = {
       .optional()
       .isString()
       .withMessage('Review source must be a string')
-      .trim()
+      .trim(),
+    // Metadata validation
+    body('metaData')
+      .optional()
+      .isObject()
+      .withMessage('Metadata must be an object'),
+    body('metaData.attachments')
+      .optional()
+      .isArray()
+      .withMessage('Attachments must be an array'),
+    body('metaData.attachments.*.fileName')
+      .optional()
+      .isString()
+      .isLength({ max: 255 })
+      .withMessage('File name must be a string with max 255 characters')
+      .trim(),
+    body('metaData.attachments.*.fileUrl')
+      .optional()
+      .isString()
+      .isLength({ max: 500 })
+      .withMessage('File URL must be a string with max 500 characters')
+      .trim(),
+    body('metaData.attachments.*.fileType')
+      .optional()
+      .isString()
+      .isLength({ max: 50 })
+      .withMessage('File type must be a string with max 50 characters')
+      .trim(),
+    body('metaData.attachments.*.fileSize')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('File size must be a positive integer'),
+    body('metaData.reviewVersion')
+      .optional()
+      .isString()
+      .withMessage('Review version must be a string')
+      .trim(),
+    body('metaData.sourceInfo')
+      .optional(),
+    body('metaData.customFields')
+      .optional()
   ],
 
   // Get by ID validation

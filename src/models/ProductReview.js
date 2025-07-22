@@ -147,6 +147,49 @@ const productReviewSchema = new mongoose.Schema({
     trim: true
   }],
 
+  // Metadata for file attachments and additional review data
+  metaData: {
+    // File attachment information
+    attachments: [{
+      fileName: {
+        type: String,
+        trim: true,
+        maxLength: 255
+      },
+      fileUrl: {
+        type: String,
+        trim: true,
+        maxLength: 500
+      },
+      fileType: {
+        type: String,
+        trim: true,
+        maxLength: 50
+      },
+      fileSize: {
+        type: Number,
+        min: 0
+      },
+      uploadedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }],
+    // Additional metadata
+    reviewVersion: {
+      type: String,
+      default: '1.0'
+    },
+    sourceInfo: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    },
+    customFields: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    }
+  },
+
   // Soft Delete Fields
   isDeleted: {
     type: Boolean,

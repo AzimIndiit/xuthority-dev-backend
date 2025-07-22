@@ -1,4 +1,5 @@
 const User = require('./User');
+const Admin = require('./Admin');
 const File = require('./File');
 const AuditLog = require('./AuditLog');
 const Follow = require('./Follow');
@@ -24,6 +25,7 @@ const UserBadge = require('./UserBadge');
 
 module.exports = {
   User,
+  Admin,
   File,
   AuditLog,
   Follow,

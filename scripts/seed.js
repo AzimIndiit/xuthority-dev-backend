@@ -28,7 +28,7 @@ const path = require('path');
 require('dotenv').config();
 
 // Import models
-const { User } = require('../src/models');
+const { User, Admin } = require('../src/models');
 
 // Import seeders
 const { seedLanguages } = require('../src/database/seeds/languageSeeder');
@@ -49,14 +49,8 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/xuthor
 const ADMIN_USER = {
   firstName: 'Admin',
   lastName: 'User',
-  name: 'Admin User',
   email: 'admin@xuthority.com',
-  password: 'Admin123!@#',
-  role: 'vendor', // Using vendor role as it has more privileges than user
-  acceptedTerms: true,
-  acceptedMarketing: false,
-  authProvider: 'email',
-  status: 'active'
+  password: 'Admin123!@#'
 };
 
 /**
@@ -67,7 +61,7 @@ const createAdminUser = async () => {
     console.log('👤 Setting up admin user...');
     
     // Check if admin user already exists
-    let adminUser = await User.findOne({ email: ADMIN_USER.email });
+    let adminUser = await Admin.findOne({ email: ADMIN_USER.email });
     
     if (adminUser) {
       console.log('✅ Admin user already exists');
@@ -76,7 +70,7 @@ const createAdminUser = async () => {
     
     // Create new admin user
     const hashedPassword = await bcrypt.hash(ADMIN_USER.password, 12);
-    adminUser = new User({
+    adminUser = new Admin({
       ...ADMIN_USER,
       password: hashedPassword
     });
