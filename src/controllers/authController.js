@@ -228,16 +228,16 @@ exports.registerVendor = async (req, res, next) => {
     });
 
     // Create default free plan subscription for new vendor
-    try {
-      const subscriptionService = require('../services/subscriptionService');
-      const subscriptionResult = await subscriptionService.createDefaultFreeSubscription(user._id);
-      if (subscriptionResult) {
-        logger.info(`Created free subscription for new vendor: ${user._id}`);
-      }
-    } catch (subscriptionError) {
-      logger.error('Failed to create default free subscription:', subscriptionError);
-      // Don't throw error here as registration was successful
-    }
+    // try {
+    //   const subscriptionService = require('../services/subscriptionService');
+    //   const subscriptionResult = await subscriptionService.createDefaultFreeSubscription(user._id);
+    //   if (subscriptionResult) {
+    //     logger.info(`Created free subscription for new vendor: ${user._id}`);
+    //   }
+    // } catch (subscriptionError) {
+    //   logger.error('Failed to create default free subscription:', subscriptionError);
+    //   // Don't throw error here as registration was successful
+    // }
     
     const newUser = {
       ...user.toObject(),

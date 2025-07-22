@@ -28,15 +28,15 @@ passport.use(new GoogleStrategy({
       });
 
       // Create default free plan subscription for new vendors
-      if (role === 'vendor') {
-        try {
-          const subscriptionService = require('../services/subscriptionService');
-          await subscriptionService.createDefaultFreeSubscription(user._id);
-        } catch (subscriptionError) {
-          console.error('Failed to create default free subscription for Google OAuth vendor:', subscriptionError);
-          // Don't throw error here as registration was successful
-        }
-      }
+      // if (role === 'vendor') {
+      //   try {
+      //     const subscriptionService = require('../services/subscriptionService');
+      //     await subscriptionService.createDefaultFreeSubscription(user._id);
+      //   } catch (subscriptionError) {
+      //     console.error('Failed to create default free subscription for Google OAuth vendor:', subscriptionError);
+      //     // Don't throw error here as registration was successful
+      //   }
+      // }
       
       // Clear the session role after user creation
       if (req.session) {
@@ -87,15 +87,15 @@ passport.use('linkedin', new LinkedInStrategy({
       });
 
       // Create default free plan subscription for new vendors
-      if (role === 'vendor') {
-        try {
-          const subscriptionService = require('../services/subscriptionService');
-          await subscriptionService.createDefaultFreeSubscription(user._id);
-        } catch (subscriptionError) {
-          console.error('Failed to create default free subscription for LinkedIn OAuth vendor:', subscriptionError);
-          // Don't throw error here as registration was successful
-        }
-      }
+      // if (role === 'vendor') {
+      //   try {
+      //     const subscriptionService = require('../services/subscriptionService');
+      //     await subscriptionService.createDefaultFreeSubscription(user._id);
+      //   } catch (subscriptionError) {
+      //     console.error('Failed to create default free subscription for LinkedIn OAuth vendor:', subscriptionError);
+      //     // Don't throw error here as registration was successful
+      //   }
+      // }
       
       // Clear the session role after user creation
       if (req.session) {
