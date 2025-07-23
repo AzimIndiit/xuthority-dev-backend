@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 const { Admin, User, Product, ProductReview } = require('../models');
 const ApiError = require('../utils/apiError');
 const { logEvent } = require('./auditService');
@@ -575,6 +576,288 @@ const getUsers = async (options = {}) => {
 };
 
 /**
+ * Get user by slug
+ * @param {string} slug - User slug
+ * @returns {Promise<Object>} User object
+ */
+const getUserBySlug = async (slug) => {
+  try {
+    const user = await User.findOne({ slug })
+      .select('-password -accessToken');
+    
+    return user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get user profile statistics by slug
+ * @param {string} slug - User slug
+ * @returns {Promise<Object>} User profile statistics
+ */
+const getUserProfileStatsBySlug = async (slug) => {
+  try {
+    const user = await User.findOne({ slug });
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+    
+    // If user is a vendor, return vendor-specific stats
+    if (user.role === 'vendor') {
+      return await getVendorProfileStatsBySlug(slug);
+    }
+    
+    // Otherwise return regular user stats
+    return await getUserProfileStats(user._id);
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get user reviews by slug with pagination
+ * @param {string} slug - User slug
+ * @param {Object} options - Query options
+ * @returns {Promise<Object>} User reviews with pagination
+ */
+const getUserReviewsBySlug = async (slug, options = {}) => {
+  try {
+    const user = await User.findOne({ slug });
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+    
+    return await getUserReviews(user._id, options);
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get user by ID
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>} User object
+ */
+const getUserById = async (userId) => {
+  try {
+    const user = await User.findById(userId)
+      .select('-password -accessToken');
+    
+    return user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get user profile statistics
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>} User profile statistics
+ */
+const getUserProfileStats = async (userId) => {
+  try {
+    const Follow = require('../models/Follow');
+    const UserBadge = require('../models/UserBadge');
+
+    // Get user to ensure it exists
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+
+    // Get review statistics
+    const reviewStats = await ProductReview.aggregate([
+      { $match: { reviewer: new mongoose.Types.ObjectId(userId), isDeleted: { $ne: true } } },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const totalReviews = reviewStats.reduce((sum, stat) => sum + stat.count, 0);
+    const approved = reviewStats.find(stat => stat._id === 'approved')?.count || 0;
+    const pending = reviewStats.find(stat => stat._id === 'pending')?.count || 0;
+    const disputed = reviewStats.find(stat => stat._id === 'dispute')?.count || 0;
+
+    // Get followers and following count (Follow model doesn't have status field)
+    const [followersCount, followingCount] = await Promise.all([
+      Follow.countDocuments({ following: userId }),
+      Follow.countDocuments({ follower: userId })
+    ]);
+
+    // Get user badges
+    const userBadges = await UserBadge.find({ userId, status: 'accepted' })
+      .populate('badgeId', 'name description icon')
+      .sort({ earnedAt: -1 });
+
+    const badges = userBadges
+      .filter(ub => ub.badgeId) // Filter out badges where badgeId is null
+      .map(ub => ({
+        id: ub.badgeId._id,
+        name: ub.badgeId.name,
+        description: ub.badgeId.description,
+        icon: ub.badgeId.icon,
+        earnedDate: ub.earnedAt
+      }));
+
+    return {
+      reviewsWritten: totalReviews,
+      totalReviews,
+      approved,
+      pending,
+      disputed,
+      followers: followersCount,
+      following: followingCount,
+      badges
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get user reviews with pagination
+ * @param {string} userId - User ID
+ * @param {Object} options - Query options
+ * @returns {Promise<Object>} User reviews with pagination
+ */
+const getUserReviews = async (userId, options = {}) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      status = 'all',
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = options;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const query = { 
+      reviewer: new mongoose.Types.ObjectId(userId),
+      isDeleted: { $ne: true }
+    };
+
+    // Filter by status if not 'all'
+    if (status !== 'all') {
+      query.status = status;
+    }
+
+    const [reviews, total] = await Promise.all([
+      ProductReview.find(query)
+        .populate('product', 'name slug logoUrl')
+        .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      ProductReview.countDocuments(query)
+    ]);
+
+    return {
+      reviews,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        totalPages: Math.ceil(total / parseInt(limit))
+      }
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get vendor profile statistics by slug
+ * @param {string} slug - User slug
+ * @returns {Promise<Object>} Vendor profile statistics
+ */
+const getVendorProfileStatsBySlug = async (slug) => {
+  const ProductReview = require('../models/ProductReview');
+  const Dispute = require('../models/Dispute');
+  const Follow = require('../models/Follow');
+  const { Product, UserBadge } = require('../models');
+  
+  try {
+    // Get user first
+    const user = await User.findOne({ slug }).select('-password -accessToken');
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+
+    const userId = user._id;
+
+    // Get reviews count and average rating
+    const reviewStats = await ProductReview.aggregate([
+      {
+        $match: {
+          reviewer: userId,
+          status: 'approved',
+          publishedAt: { $ne: null },
+          deletedAt: null
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalReviews: { $sum: 1 },
+          averageRating: { $avg: '$overallRating' }
+        }
+      }
+    ]);
+
+    const totalReviews = reviewStats.length > 0 ? reviewStats[0].totalReviews : 0;
+    const averageRating = reviewStats.length > 0 ? reviewStats[0].averageRating : 0;
+
+    // Get disputes count
+    const disputesCount = await Dispute.countDocuments({
+      vendor: userId
+    });
+
+    // Get products count
+    const productCount = await Product.countDocuments({
+      userId: userId,
+      isActive: 'active'
+    });
+
+    // Get badges
+    const badges = await UserBadge.find({
+      userId: userId,
+      status: 'approved'
+    }).populate('badgeId').sort({ createdAt: -1 });
+
+    // Get follow statistics
+    const [followersCount, followingCount] = await Promise.all([
+      Follow.countDocuments({ following: userId }),
+      Follow.countDocuments({ follower: userId })
+    ]);
+
+    return {
+      totalReviews,
+      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+      disputes: disputesCount,
+      totalProducts: productCount,
+      followers: followersCount,
+      following: followingCount,
+      badges: badges
+        .filter(userBadge => userBadge.badgeId) // Filter out badges where badgeId is null
+        .map(userBadge => ({
+          id: userBadge._id,
+          name: userBadge.badgeId.title,
+          description: userBadge.badgeId.description,
+          icon: userBadge.badgeId.icon,
+          earnedDate: userBadge.createdAt
+        }))
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+
+/**
  * Verify vendor profile
  * @param {string} userId - User ID to verify
  * @param {Object} admin - Admin performing the action
@@ -703,20 +986,16 @@ const rejectVendor = async (userId, admin, reason = null) => {
 };
 
 /**
- * Block vendor profile
+ * Block user (works for both users and vendors)
  * @param {string} userId - User ID
  * @param {Object} admin - Admin user object
  * @returns {Promise<Object>} Updated user object
  */
-const blockVendor = async (userId, admin) => {
+const blockUser = async (userId, admin) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
       throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
-    }
-
-    if (user.role !== 'vendor') {
-      throw new ApiError('User is not a vendor', 'NOT_VENDOR', 400);
     }
 
     const previousStatus = user.status;
@@ -725,14 +1004,16 @@ const blockVendor = async (userId, admin) => {
     user.status = 'blocked';
     await user.save();
 
-    // Log audit event
+    // Log audit event with appropriate action based on user role
+    const action = user.role === 'vendor' ? 'VENDOR_BLOCK' : 'USER_BLOCK';
     await logEvent({
       user: admin,
-      action: 'VENDOR_BLOCK',
+      action: action,
       target: 'User',
       targetId: userId,
       details: { 
         blockedUser: user.email,
+        userRole: user.role,
         previousStatus: previousStatus,
         newStatus: 'blocked'
       }
@@ -745,36 +1026,44 @@ const blockVendor = async (userId, admin) => {
 };
 
 /**
- * Unblock vendor profile
+ * Block vendor profile (legacy function for backward compatibility)
  * @param {string} userId - User ID
  * @param {Object} admin - Admin user object
  * @returns {Promise<Object>} Updated user object
  */
-const unblockVendor = async (userId, admin) => {
+const blockVendor = async (userId, admin) => {
+  return await blockUser(userId, admin);
+};
+
+/**
+ * Unblock user (works for both users and vendors)
+ * @param {string} userId - User ID
+ * @param {Object} admin - Admin user object
+ * @returns {Promise<Object>} Updated user object
+ */
+const unblockUser = async (userId, admin) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
       throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
     }
 
-    if (user.role !== 'vendor') {
-      throw new ApiError('User is not a vendor', 'NOT_VENDOR', 400);
-    }
-
     const previousStatus = user.status;
     
-    // Set status back to approved if they were verified, otherwise pending
-    user.status = user.isVerified ? 'approved' : 'pending';
+    // Set status back to approved (for both users and vendors)
+    user.status = 'approved';
     await user.save();
 
-    // Log audit event
+    // Log audit event with appropriate action based on user role
+    const action = user.role === 'vendor' ? 'VENDOR_UNBLOCK' : 'USER_UNBLOCK';
     await logEvent({
       user: admin,
-      action: 'VENDOR_UNBLOCK',
+      action: action,
       target: 'User',
       targetId: userId,
       details: { 
         unblockedUser: user.email,
+        userRole: user.role,
         previousStatus: previousStatus,
         newStatus: user.status
       }
@@ -784,6 +1073,16 @@ const unblockVendor = async (userId, admin) => {
   } catch (error) {
     throw error;
   }
+};
+
+/**
+ * Unblock vendor profile (legacy function for backward compatibility)
+ * @param {string} userId - User ID
+ * @param {Object} admin - Admin user object
+ * @returns {Promise<Object>} Updated user object
+ */
+const unblockVendor = async (userId, admin) => {
+  return await unblockUser(userId, admin);
 };
 
 /**
@@ -1100,9 +1399,18 @@ module.exports = {
   createAdmin,
   getDashboardAnalytics,
   getUsers,
+  getUserBySlug,
+  getUserById,
+  getUserProfileStats,
+  getUserProfileStatsBySlug,
+  getUserReviews,
+  getUserReviewsBySlug,
+  getVendorProfileStatsBySlug,
   verifyVendorProfile,
   approveVendor,
   rejectVendor,
+  blockUser,
+  unblockUser,
   blockVendor,
   unblockVendor,
   deleteVendor,

@@ -31,6 +31,12 @@ router.patch('/profile', adminAuth, uploadMiddleware('avatar'), validateAdminPro
 router.patch('/change-password', adminAuth, validateAdminPasswordChange, adminController.changeAdminPassword);
 router.get('/analytics', adminAuth, adminController.getDashboardAnalytics);
 router.get('/users', adminAuth, validateUserQuery, adminController.getUsers);
+router.get('/users/:id', adminAuth, adminController.getUserById);
+router.get('/users/:id/profile-stats', adminAuth, adminController.getUserProfileStats);
+router.get('/users/:id/reviews', adminAuth, adminController.getUserReviews);
+router.get('/users/slug/:slug', adminAuth, adminController.getUserBySlug);
+router.get('/users/slug/:slug/profile-stats', adminAuth, adminController.getUserProfileStatsBySlug);
+router.get('/users/slug/:slug/reviews', adminAuth, adminController.getUserReviewsBySlug);
 router.patch('/users/:id/verify', adminAuth, validateVerifyVendor, adminController.verifyVendorProfile);
 router.patch('/users/:id/approve', adminAuth, validateApproveVendor, adminController.approveVendor);
 router.patch('/users/:id/reject', adminAuth, validateRejectVendor, adminController.rejectVendor);

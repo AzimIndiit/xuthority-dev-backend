@@ -473,6 +473,337 @@ exports.getUsers = async (req, res, next) => {
 };
 
 /**
+ * Get user by slug
+ */
+exports.getUserBySlug = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+    
+    const user = await adminService.getUserBySlug(slug);
+    
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+    
+    return res.json(ApiResponse.success(user, 'User retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Get user profile statistics by slug
+ */
+exports.getUserProfileStatsBySlug = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+    
+    const stats = await adminService.getUserProfileStatsBySlug(slug);
+    
+    return res.json(ApiResponse.success(stats, 'User profile statistics retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Get user reviews by slug
+ */
+exports.getUserReviewsBySlug = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+    const options = {
+      page: req.query.page,
+      limit: req.query.limit,
+      status: req.query.status,
+      sortBy: req.query.sortBy,
+      sortOrder: req.query.sortOrder
+    };
+    
+    const result = await adminService.getUserReviewsBySlug(slug, options);
+    
+    return res.json(ApiResponse.success(result, 'User reviews retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Get vendor profile statistics by slug
+ */
+exports.getVendorProfileStatsBySlug = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+    
+    const stats = await adminService.getVendorProfileStatsBySlug(slug);
+    
+    return res.json(ApiResponse.success(stats, 'Vendor profile stats retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @openapi
+ * /admin/users/{id}:
+ *   get:
+ *     tags:
+ *       - Admin User Management
+ *     summary: Get user by ID
+ *     description: Retrieve a specific user's details by their ID
+ *     security:
+ *       - AdminBearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: ^[0-9a-fA-F]{24}$
+ *         description: MongoDB ObjectId of the user
+ *         example: 60d21b4667d0d8992e610c85
+ *     responses:
+ *       200:
+ *         description: User retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *                 message:
+ *                   type: string
+ *                   example: User retrieved successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       400:
+ *         description: Invalid user ID format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+exports.getUserById = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    
+    const user = await adminService.getUserById(userId);
+    
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+    
+    return res.json(ApiResponse.success(user, 'User retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @openapi
+ * /admin/users/{id}/profile-stats:
+ *   get:
+ *     tags:
+ *       - Admin User Management
+ *     summary: Get user profile statistics
+ *     description: Retrieve statistics for a user's profile including reviews count, disputes, followers, and following
+ *     security:
+ *       - AdminBearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: ^[0-9a-fA-F]{24}$
+ *         description: MongoDB ObjectId of the user
+ *         example: 60d21b4667d0d8992e610c85
+ *     responses:
+ *       200:
+ *         description: User profile statistics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     reviewsWritten:
+ *                       type: integer
+ *                       example: 4
+ *                     totalReviews:
+ *                       type: integer
+ *                       example: 4
+ *                     approved:
+ *                       type: integer
+ *                       example: 3
+ *                     pending:
+ *                       type: integer
+ *                       example: 1
+ *                     disputed:
+ *                       type: integer
+ *                       example: 0
+ *                     followers:
+ *                       type: integer
+ *                       example: 1200
+ *                     following:
+ *                       type: integer
+ *                       example: 1100
+ *                     badges:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                 message:
+ *                   type: string
+ *                   example: User profile statistics retrieved successfully
+ *       404:
+ *         description: User not found
+ *       400:
+ *         description: Invalid user ID format
+ */
+exports.getUserProfileStats = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    
+    const stats = await adminService.getUserProfileStats(userId);
+    
+    return res.json(ApiResponse.success(stats, 'User profile statistics retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @openapi
+ * /admin/users/{id}/reviews:
+ *   get:
+ *     tags:
+ *       - Admin User Management
+ *     summary: Get user reviews
+ *     description: Retrieve a paginated list of reviews written by a specific user
+ *     security:
+ *       - AdminBearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: ^[0-9a-fA-F]{24}$
+ *         description: MongoDB ObjectId of the user
+ *         example: 60d21b4667d0d8992e610c85
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Number of reviews per page
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [all, approved, pending, disputed]
+ *           default: all
+ *         description: Filter reviews by status
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: createdAt
+ *         description: Field to sort by
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
+ *     responses:
+ *       200:
+ *         description: User reviews retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     reviews:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                         limit:
+ *                           type: integer
+ *                         total:
+ *                           type: integer
+ *                         totalPages:
+ *                           type: integer
+ *                 message:
+ *                   type: string
+ *                   example: User reviews retrieved successfully
+ *       404:
+ *         description: User not found
+ *       400:
+ *         description: Invalid user ID format
+ */
+exports.getUserReviews = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const options = {
+      page: req.query.page,
+      limit: req.query.limit,
+      status: req.query.status,
+      sortBy: req.query.sortBy,
+      sortOrder: req.query.sortOrder
+    };
+    
+    const result = await adminService.getUserReviews(userId, options);
+    
+    return res.json(ApiResponse.success(result, 'User reviews retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+
+/**
  * @openapi
  * /admin/users/{id}/verify:
  *   patch:
@@ -679,8 +1010,8 @@ exports.rejectVendor = async (req, res, next) => {
  *   patch:
  *     tags:
  *       - Admin User Management
- *     summary: Block vendor profile
- *     description: Block a vendor profile by admin
+ *     summary: Block user or vendor profile
+ *     description: Block a user or vendor profile by admin
  *     security:
  *       - AdminBearerAuth: []
  *     parameters:
@@ -694,26 +1025,37 @@ exports.rejectVendor = async (req, res, next) => {
  *         example: 60d21b4667d0d8992e610c85
  *     responses:
  *       200:
- *         description: Vendor profile blocked successfully
+ *         description: User profile blocked successfully
  *       401:
  *         description: Unauthorized - Invalid or missing token
  *       404:
  *         description: User not found
  *       400:
- *         description: Invalid user ID format or user is not a vendor
+ *         description: Invalid user ID format
  */
-exports.blockVendor = async (req, res, next) => {
+exports.blockUser = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const user = await adminService.blockVendor(userId, req.user);
+    const user = await adminService.blockUser(userId, req.user);
+    
+    const message = user.role === 'vendor' 
+      ? 'Vendor profile blocked successfully'
+      : 'User profile blocked successfully';
     
     return res.json(ApiResponse.success(
       { user }, 
-      'Vendor profile blocked successfully'
+      message
     ));
   } catch (err) {
     next(err);
   }
+};
+
+/**
+ * Block vendor profile (legacy endpoint for backward compatibility)
+ */
+exports.blockVendor = async (req, res, next) => {
+  return exports.blockUser(req, res, next);
 };
 
 /**
@@ -722,8 +1064,8 @@ exports.blockVendor = async (req, res, next) => {
  *   patch:
  *     tags:
  *       - Admin User Management
- *     summary: Unblock vendor profile
- *     description: Unblock a vendor profile by admin
+ *     summary: Unblock user or vendor profile
+ *     description: Unblock a user or vendor profile by admin
  *     security:
  *       - AdminBearerAuth: []
  *     parameters:
@@ -737,26 +1079,37 @@ exports.blockVendor = async (req, res, next) => {
  *         example: 60d21b4667d0d8992e610c85
  *     responses:
  *       200:
- *         description: Vendor profile unblocked successfully
+ *         description: User profile unblocked successfully
  *       401:
  *         description: Unauthorized - Invalid or missing token
  *       404:
  *         description: User not found
  *       400:
- *         description: Invalid user ID format or user is not a vendor
+ *         description: Invalid user ID format
  */
-exports.unblockVendor = async (req, res, next) => {
+exports.unblockUser = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const user = await adminService.unblockVendor(userId, req.user);
+    const user = await adminService.unblockUser(userId, req.user);
+    
+    const message = user.role === 'vendor' 
+      ? 'Vendor profile unblocked successfully'
+      : 'User profile unblocked successfully';
     
     return res.json(ApiResponse.success(
       { user }, 
-      'Vendor profile unblocked successfully'
+      message
     ));
   } catch (err) {
     next(err);
   }
+};
+
+/**
+ * Unblock vendor profile (legacy endpoint for backward compatibility)
+ */
+exports.unblockVendor = async (req, res, next) => {
+  return exports.unblockUser(req, res, next);
 };
 
 /**

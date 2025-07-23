@@ -12467,6 +12467,362 @@
         }
       }
     },
+    "/admin/users/{id}": {
+      "get": {
+        "tags": [
+          "Admin User Management"
+        ],
+        "summary": "Get user by ID",
+        "description": "Retrieve a specific user's details by their ID",
+        "security": [
+          {
+            "AdminBearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "MongoDB ObjectId of the user",
+            "example": "60d21b4667d0d8992e610c85"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User retrieved successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Admin User Management"
+        ],
+        "summary": "Delete vendor profile",
+        "description": "Permanently delete a vendor profile by admin",
+        "security": [
+          {
+            "AdminBearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "MongoDB ObjectId of the user to delete",
+            "example": "60d21b4667d0d8992e610c85"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vendor profile deleted successfully"
+          },
+          "400": {
+            "description": "Invalid user ID format or user is not a vendor"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/admin/users/{id}/profile-stats": {
+      "get": {
+        "tags": [
+          "Admin User Management"
+        ],
+        "summary": "Get user profile statistics",
+        "description": "Retrieve statistics for a user's profile including reviews count, disputes, followers, and following",
+        "security": [
+          {
+            "AdminBearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "MongoDB ObjectId of the user",
+            "example": "60d21b4667d0d8992e610c85"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "reviewsWritten": {
+                          "type": "integer",
+                          "example": 4
+                        },
+                        "totalReviews": {
+                          "type": "integer",
+                          "example": 4
+                        },
+                        "approved": {
+                          "type": "integer",
+                          "example": 3
+                        },
+                        "pending": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "disputed": {
+                          "type": "integer",
+                          "example": 0
+                        },
+                        "followers": {
+                          "type": "integer",
+                          "example": 1200
+                        },
+                        "following": {
+                          "type": "integer",
+                          "example": 1100
+                        },
+                        "badges": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User profile statistics retrieved successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID format"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/admin/users/{id}/reviews": {
+      "get": {
+        "tags": [
+          "Admin User Management"
+        ],
+        "summary": "Get user reviews",
+        "description": "Retrieve a paginated list of reviews written by a specific user",
+        "security": [
+          {
+            "AdminBearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "MongoDB ObjectId of the user",
+            "example": "60d21b4667d0d8992e610c85"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Number of reviews per page"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "approved",
+                "pending",
+                "disputed"
+              ],
+              "default": "all"
+            },
+            "description": "Filter reviews by status"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "default": "createdAt"
+            },
+            "description": "Field to sort by"
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "description": "Sort order"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User reviews retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "reviews": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "integer"
+                            },
+                            "limit": {
+                              "type": "integer"
+                            },
+                            "total": {
+                              "type": "integer"
+                            },
+                            "totalPages": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User reviews retrieved successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID format"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
     "/admin/users/{id}/verify": {
       "patch": {
         "tags": [
@@ -12708,8 +13064,8 @@
         "tags": [
           "Admin User Management"
         ],
-        "summary": "Block vendor profile",
-        "description": "Block a vendor profile by admin",
+        "summary": "Block user or vendor profile",
+        "description": "Block a user or vendor profile by admin",
         "security": [
           {
             "AdminBearerAuth": []
@@ -12730,10 +13086,10 @@
         ],
         "responses": {
           "200": {
-            "description": "Vendor profile blocked successfully"
+            "description": "User profile blocked successfully"
           },
           "400": {
-            "description": "Invalid user ID format or user is not a vendor"
+            "description": "Invalid user ID format"
           },
           "401": {
             "description": "Unauthorized - Invalid or missing token"
@@ -12749,8 +13105,8 @@
         "tags": [
           "Admin User Management"
         ],
-        "summary": "Unblock vendor profile",
-        "description": "Unblock a vendor profile by admin",
+        "summary": "Unblock user or vendor profile",
+        "description": "Unblock a user or vendor profile by admin",
         "security": [
           {
             "AdminBearerAuth": []
@@ -12771,51 +13127,10 @@
         ],
         "responses": {
           "200": {
-            "description": "Vendor profile unblocked successfully"
+            "description": "User profile unblocked successfully"
           },
           "400": {
-            "description": "Invalid user ID format or user is not a vendor"
-          },
-          "401": {
-            "description": "Unauthorized - Invalid or missing token"
-          },
-          "404": {
-            "description": "User not found"
-          }
-        }
-      }
-    },
-    "/admin/users/{id}": {
-      "delete": {
-        "tags": [
-          "Admin User Management"
-        ],
-        "summary": "Delete vendor profile",
-        "description": "Permanently delete a vendor profile by admin",
-        "security": [
-          {
-            "AdminBearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-fA-F]{24}$"
-            },
-            "description": "MongoDB ObjectId of the user to delete",
-            "example": "60d21b4667d0d8992e610c85"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Vendor profile deleted successfully"
-          },
-          "400": {
-            "description": "Invalid user ID format or user is not a vendor"
+            "description": "Invalid user ID format"
           },
           "401": {
             "description": "Unauthorized - Invalid or missing token"
