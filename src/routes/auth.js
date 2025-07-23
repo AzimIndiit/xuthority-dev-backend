@@ -543,7 +543,21 @@ router.get('/google/callback', passport.authenticate('google', { session: false,
  */
 router.get('/google/failure', (req, res) => {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent('Google login failed')}&provider=Google`;
+  
+  // Check if it's a blocked account error
+  const error = req.session?.authError;
+  let errorMessage = 'Google login failed';
+  
+  if (error && error.includes('blocked')) {
+    errorMessage = error;
+  }
+  
+  // Clear the session error
+  if (req.session) {
+    delete req.session.authError;
+  }
+  
+  const redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent(errorMessage)}&provider=Google`;
   res.redirect(redirectUrl);
 });
 
@@ -636,7 +650,21 @@ router.get('/linkedin/callback', (req, res, next) => {
  */
 router.get('/linkedin/failure', (req, res) => {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent('LinkedIn login failed')}&provider=LinkedIn`;
+  
+  // Check if it's a blocked account error
+  const error = req.session?.authError;
+  let errorMessage = 'LinkedIn login failed';
+  
+  if (error && error.includes('blocked')) {
+    errorMessage = error;
+  }
+  
+  // Clear the session error
+  if (req.session) {
+    delete req.session.authError;
+  }
+  
+  const redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent(errorMessage)}&provider=LinkedIn`;
   res.redirect(redirectUrl);
 });
 

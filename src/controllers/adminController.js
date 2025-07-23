@@ -1114,6 +1114,66 @@ exports.unblockVendor = async (req, res, next) => {
 
 /**
  * @openapi
+ * /admin/products/{id}/recalculate-stats:
+ *   post:
+ *     tags:
+ *       - Admin Product Management
+ *     summary: Recalculate product statistics
+ *     description: Manually recalculate product rating statistics (avgRating, totalReviews, ratingDistribution)
+ *     security:
+ *       - AdminBearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: ^[0-9a-fA-F]{24}$
+ *         description: MongoDB ObjectId of the product
+ *         example: 60d21b4667d0d8992e610c85
+ *     responses:
+ *       200:
+ *         description: Product statistics recalculated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     product:
+ *                       type: object
+ *                       description: Updated product with recalculated statistics
+ *                 message:
+ *                   type: string
+ *                   example: Product statistics recalculated successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: Product not found
+ *       400:
+ *         description: Invalid product ID format
+ */
+exports.recalculateProductStats = async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+    const product = await adminService.recalculateProductStats(productId, req.user);
+    
+    return res.json(ApiResponse.success(
+      { product }, 
+      'Product statistics recalculated successfully'
+    ));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @openapi
  * /admin/users/{id}:
  *   delete:
  *     tags:

@@ -273,10 +273,41 @@ productReviewSchema.pre('save', function(next) {
   next();
 });
 
-// Pre-save middleware to update product average rating and total reviews
+// Pre-save middleware to track original values for comparison
+productReviewSchema.pre('save', function(next) {
+  try {
+    // Only track changes for existing documents
+    if (!this.isNew && this.isModified() && this._id) {
+      // Store a flag to fetch original data in post-save
+      this._needsStatsUpdate = true;
+    }
+    next();
+  } catch (error) {
+    console.error('Error in pre-save middleware:', error);
+    // Don't block the save operation for stats tracking issues
+    next();
+  }
+});
+
+// Post-save middleware to update product average rating and total reviews
 productReviewSchema.post('save', async function(doc) {
-  if (doc.status === 'approved' && doc.publishedAt) {
-    await updateProductAggregateRatings(doc.product);
+  try {
+    // Only update stats for approved reviews to keep it simple and avoid issues
+    const isApprovedReview = doc.status === 'approved' && doc.publishedAt && !doc.isDeleted;
+    
+    if (isApprovedReview || doc._needsStatsUpdate) {
+      // Use setTimeout to make this non-blocking
+      setTimeout(async () => {
+        try {
+          await updateProductAggregateRatings(doc.product);
+        } catch (error) {
+          console.error('Error updating product stats (async):', error);
+        }
+      }, 0);
+    }
+  } catch (error) {
+    console.error('Error in post-save middleware:', error);
+    // Don't throw the error to prevent breaking the review save operation
   }
 });
 
@@ -287,49 +318,8 @@ productReviewSchema.post('findOneAndDelete', async function(doc) {
   }
 });
 
-// Helper function to update product aggregate ratings
-async function updateProductAggregateRatings(productId) {
-  const Product = mongoose.model('Product');
-  const ProductReview = mongoose.model('ProductReview');
-  
-  const aggregateData = await ProductReview.aggregate([
-    {
-      $match: {
-        product: productId,
-        status: 'approved',
-        publishedAt: { $ne: null },
-        isDeleted: false // Exclude soft-deleted reviews
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        avgRating: { $avg: '$overallRating' },
-        totalReviews: { $sum: 1 },
-        ratingDistribution: {
-          $push: '$overallRating'
-        }
-      }
-    }
-  ]);
-
-  const result = aggregateData[0] || { avgRating: 0, totalReviews: 0, ratingDistribution: [] };
-  
-  // Calculate rating distribution
-  const distribution = {
-    5: 0, 4: 0, 3: 0, 2: 0, 1: 0
-  };
-  
-  result.ratingDistribution.forEach(rating => {
-    distribution[rating] = (distribution[rating] || 0) + 1;
-  });
-
-  await Product.findByIdAndUpdate(productId, {
-    avgRating: Math.round((result.avgRating || 0) * 10) / 10, // Round to 1 decimal, handle null
-    totalReviews: result.totalReviews,
-    ratingDistribution: distribution
-  });
-}
+// Import the centralized rating helper
+const { updateProductAggregateRatings } = require('../utils/productRatingHelpers');
 
 // Instance method to extract keywords and mentions
 productReviewSchema.methods.extractKeywordsAndMentions = function() {

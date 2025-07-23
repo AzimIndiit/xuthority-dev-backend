@@ -8,6 +8,7 @@ const { createNotification } = require('../services/notificationService');
 const emailService = require('../services/emailService');
 const userService = require('../services/userService');
 const logger = require('../config/logger');
+const { generateBlockedUserError, isUserBlocked } = require('../utils/authHelpers');
 
 const SALT_ROUNDS = process.env.BCRYPT_SALT_ROUNDS ? parseInt(process.env.BCRYPT_SALT_ROUNDS) : 12;
 const TOKEN_EXPIRY = "7d";
@@ -109,6 +110,14 @@ exports.login = async (req, res, next) => {
     if (!match) {
       return next(
         new ApiError("Invalid credentials", "INVALID_CREDENTIALS", 401),
+      );
+    }
+    
+    // Check if user is blocked
+    if (isUserBlocked(user)) {
+      const errorDetails = generateBlockedUserError();
+      return next(
+        new ApiError(errorDetails.message, errorDetails.code, errorDetails.statusCode),
       );
     }
     if (user.accessToken) {

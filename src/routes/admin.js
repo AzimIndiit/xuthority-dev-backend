@@ -42,6 +42,9 @@ router.patch('/users/:id/approve', adminAuth, validateApproveVendor, adminContro
 router.patch('/users/:id/reject', adminAuth, validateRejectVendor, adminController.rejectVendor);
 router.patch('/users/:id/block', adminAuth, validateBlockVendor, adminController.blockVendor);
 router.patch('/users/:id/unblock', adminAuth, validateUnblockVendor, adminController.unblockVendor);
+
+// Product management routes
+router.post('/products/:id/recalculate-stats', adminAuth, adminController.recalculateProductStats);
 router.delete('/users/:id', adminAuth, validateDeleteVendor, adminController.deleteVendor);
 
 module.exports = router;

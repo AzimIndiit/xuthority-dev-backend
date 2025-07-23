@@ -3,6 +3,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const User = require('../models/User');
+const { isUserBlocked } = require('../utils/authHelpers');
 require('dotenv').config();
 
 // Google OAuth Strategy
@@ -41,6 +42,19 @@ passport.use(new GoogleStrategy({
       // Clear the session role after user creation
       if (req.session) {
         req.session.oauthRole = undefined;
+      }
+    } else {
+      // Check if existing user is blocked
+      if (isUserBlocked(user)) {
+        const { generateBlockedUserError } = require('../utils/authHelpers');
+        const errorDetails = generateBlockedUserError();
+        // Store error message in session for failure handler
+        if (req.session) {
+          req.session.authError = errorDetails.message;
+        }
+        const error = new Error(errorDetails.message);
+        error.code = errorDetails.code;
+        return done(error, null);
       }
     }
     return done(null, user);
@@ -100,6 +114,19 @@ passport.use('linkedin', new LinkedInStrategy({
       // Clear the session role after user creation
       if (req.session) {
         req.session.oauthRole = undefined;
+      }
+    } else {
+      // Check if existing user is blocked
+      if (isUserBlocked(user)) {
+        const { generateBlockedUserError } = require('../utils/authHelpers');
+        const errorDetails = generateBlockedUserError();
+        // Store error message in session for failure handler
+        if (req.session) {
+          req.session.authError = errorDetails.message;
+        }
+        const error = new Error(errorDetails.message);
+        error.code = errorDetails.code;
+        return done(error, null);
       }
     }
     

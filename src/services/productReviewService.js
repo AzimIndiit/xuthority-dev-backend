@@ -4,6 +4,7 @@ const User = require('../models/User');
 const ApiResponse = require('../utils/apiResponse');
 const ApiError = require('../utils/apiError');
 const { createNotification } = require('../services/notificationService');
+const { updateProductAggregateRatings } = require('../utils/productRatingHelpers');
 
 /**
  * Create a new product review
@@ -17,12 +18,11 @@ const createProductReview = async (reviewData, userId) => {
     }
 
     // Check if user already reviewed this product (excluding soft-deleted)
-    const existingReviews = await ProductReview.findActive({
+    const existingReview = await ProductReview.findOne({
       product: reviewData.product,
-      reviewer: userId
-    }).limit(1);
-    
-    const existingReview = existingReviews[0];
+      reviewer: userId,
+      isDeleted: false
+    });
 
     if (existingReview) {
       throw new ApiError('You have already reviewed this product', 'REVIEW_ALREADY_EXISTS', 409);
@@ -55,8 +55,29 @@ const createProductReview = async (reviewData, userId) => {
 
     return ApiResponse.success(review, 'Product review created successfully');
   } catch (error) {
-    if (error instanceof ApiError) throw error;
-    throw new ApiError('Error creating product review', 'REVIEW_CREATE_ERROR', 500, { originalError: error.message });
+    // Re-throw ApiError instances as they are
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    
+    // Handle MongoDB duplicate key error specifically
+    if (error.code === 11000) {
+      // This is a duplicate key error from the database unique index
+      throw new ApiError('You have already reviewed this product', 'REVIEW_ALREADY_EXISTS', 409);
+    }
+    
+    // Handle other MongoDB/Mongoose errors
+    if (error.name === 'ValidationError') {
+      throw new ApiError('Review validation failed', 'VALIDATION_ERROR', 400, { 
+        errors: Object.values(error.errors).map(e => ({ field: e.path, message: e.message }))
+      });
+    }
+    
+    console.error('Unexpected error creating product review:', error);
+    throw new ApiError('Error creating product review', 'REVIEW_CREATE_ERROR', 500, { 
+      originalError: error.message,
+      stack: error.stack 
+    });
   }
 };
 
@@ -480,11 +501,15 @@ const moderateReview = async (reviewId, moderationData) => {
       throw new ApiError('Product review not found', 'REVIEW_NOT_FOUND', 404);
     }
 
-    const { status, moderationNote } = moderationData;
+        const { status, moderationNote } = moderationData;
+
+    // Track previous status and inclusion state BEFORE making changes
+    const previousStatus = review.status;
+    const wasPreviouslyIncluded = previousStatus === 'approved' && review.publishedAt && !review.isDeleted;
 
     // Update review status
     review.status = status;
-    
+
     // Set published date if approving
     if (status === 'approved' && !review.publishedAt) {
       review.publishedAt = new Date();
@@ -496,6 +521,16 @@ const moderateReview = async (reviewId, moderationData) => {
     }
 
     await review.save();
+
+    // Check if inclusion status changed
+    const isCurrentlyIncluded = review.status === 'approved' && review.publishedAt && !review.isDeleted;
+
+    // Update product statistics if inclusion status changed
+    // This handles cases like: approved → pending, pending → approved, etc.
+    if (isCurrentlyIncluded !== wasPreviouslyIncluded) {
+      await updateProductAggregateRatings(review.product);
+      console.log(`Product stats updated for review ${review._id}: ${previousStatus} → ${status} (included: ${wasPreviouslyIncluded} → ${isCurrentlyIncluded})`);
+    }
 
     await review.populate([
       { path: 'reviewer', select: 'name email avatar slug' },

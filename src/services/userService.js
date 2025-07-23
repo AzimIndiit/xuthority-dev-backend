@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const emailService = require('./emailService');
 const { createNotification } = require('../services/notificationService');
 const { Product ,UserBadge} = require('../models');
+const { generateBlockedUserError, isUserBlocked } = require('../utils/authHelpers');
 
 /**
  * Get user's own profile (full profile with sensitive data)
@@ -121,6 +122,12 @@ exports.forgotPassword = async (email) => {
   if (!user) {
     // Don't reveal if user exists or not for security - just return success
     return true;
+  }
+
+  // Check if user is blocked
+  if (isUserBlocked(user)) {
+    const errorDetails = generateBlockedUserError();
+    throw new ApiError(errorDetails.message, errorDetails.code, errorDetails.statusCode);
   }
 
   // Check if user has a password (OAuth users might not have passwords)

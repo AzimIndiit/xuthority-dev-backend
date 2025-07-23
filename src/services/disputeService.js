@@ -7,6 +7,9 @@ const { createNotification } = require('../services/notificationService');
 const emailService = require('../services/emailService');
 const config = require('../config');
 
+// Import the updateProductAggregateRatings function
+const { updateProductAggregateRatings } = require('../utils/productRatingHelpers');
+
 /**
  * Create a new dispute on a product review
  */
@@ -45,8 +48,17 @@ const createDispute = async (reviewId, vendorId, disputeData) => {
     });
 
     await dispute.save();
+    
+    // Check if review was approved before disputing
+    const wasApproved = review.status === 'approved' && review.publishedAt;
+    
     review.status = 'dispute';
     await review.save();
+    
+    // Update product statistics since the review is now disputed and should be excluded from calculations
+    if (wasApproved) {
+      await updateProductAggregateRatings(review.product._id);
+    }
     // Send notification to vendor
     await createNotification({
       userId: vendorId,
@@ -171,7 +183,10 @@ const updateDispute = async (disputeId, vendorId, updateData) => {
             { runValidators: true }
           );
           
-          console.log(`Review ${dispute.review} published after dispute resolution`);
+          // Update product statistics since review is now published
+          await updateProductAggregateRatings(review.product._id);
+          
+          console.log(`Review ${dispute.review} published after dispute resolution and product stats updated`);
           
           // Send notification to reviewer about review being published
           if (review.reviewer) {

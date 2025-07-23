@@ -6,6 +6,8 @@ const { Admin, User, Product, ProductReview } = require('../models');
 const ApiError = require('../utils/apiError');
 const { logEvent } = require('./auditService');
 const emailService = require('./emailService');
+const { generateBlockedUserError, isAdminDeactivated } = require('../utils/authHelpers');
+const { updateProductAggregateRatings, batchUpdateProductStats } = require('../utils/productRatingHelpers');
 
 const SALT_ROUNDS = process.env.BCRYPT_SALT_ROUNDS ? parseInt(process.env.BCRYPT_SALT_ROUNDS) : 12;
 const TOKEN_EXPIRY = "7d";
@@ -1248,13 +1250,19 @@ const changeAdminPassword = async (adminId, currentPassword, newPassword) => {
  */
 const forgotAdminPassword = async (email) => {
   try {
-    // Find admin by email
-    const admin = await Admin.findOne({ email: email.toLowerCase(), isActive: true });
+    // Find admin by email (check all admins first to give proper error for deactivated ones)
+    const admin = await Admin.findOne({ email: email.toLowerCase() });
     console.log(admin);
 
     if (!admin) {
       // Don't reveal if admin exists or not for security - just return success
       return true;
+    }
+
+    // Check if admin is deactivated
+    if (isAdminDeactivated(admin)) {
+      const errorDetails = generateBlockedUserError('Your admin account has been deactivated. Please contact support for assistance.');
+      throw new ApiError(errorDetails.message, errorDetails.code, errorDetails.statusCode);
     }
 
     // Generate reset token
@@ -1394,6 +1402,40 @@ const verifyAdminResetToken = async (resetToken) => {
   }
 };
 
+/**
+ * Manually recalculate product statistics for a specific product
+ * @param {string} productId - Product ID
+ * @param {Object} admin - Admin performing the action
+ * @returns {Promise<Object>} Updated product
+ */
+const recalculateProductStats = async (productId, admin) => {
+  try {
+    const product = await Product.findById(productId);
+    if (!product) {
+      throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
+    }
+
+    // Update aggregate ratings
+    await updateProductAggregateRatings(productId);
+
+    // Update product stats (e.g., total reviews, average rating)
+    await batchUpdateProductStats(productId);
+
+    // Log the action
+    await logEvent({
+      user: admin,
+      action: 'PRODUCT_STATS_RECALCULATED',
+      target: 'Product',
+      targetId: productId,
+      details: { productName: product.name }
+    });
+
+    return product;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   adminLogin,
   createAdmin,
@@ -1419,5 +1461,6 @@ module.exports = {
   changeAdminPassword,
   forgotAdminPassword,
   resetAdminPassword,
-  verifyAdminResetToken
+  verifyAdminResetToken,
+  recalculateProductStats
 }; 
