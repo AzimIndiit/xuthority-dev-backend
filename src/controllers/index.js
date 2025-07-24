@@ -19,6 +19,7 @@ const productReviewController = require('./productReviewController');
 const reviewReplyController = require('./reviewReplyController');
 const communityController = require('./communityController');
 const disputeController = require('./disputeController');
+const badgeController = require('./badgeController');
 
 module.exports = {
   authController,
@@ -40,5 +41,6 @@ module.exports = {
   productReviewController,
   reviewReplyController,
   communityController,
-  disputeController
+  disputeController,
+  badgeController
 };

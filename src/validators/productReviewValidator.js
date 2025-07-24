@@ -266,8 +266,8 @@ const productReviewValidator = {
       .trim(),
     query('status')
       .optional()
-      .isIn(['pending', 'approved', 'rejected', 'flagged'])
-      .withMessage('Status must be one of: pending, approved, rejected, flagged'),
+        .isIn(['pending', 'approved', 'rejected', 'dispute','all'])
+      .withMessage('Status must be one of: pending, approved, rejected, dispute'),
     query('overallRating')
       .optional()
       .custom((value) => {
@@ -392,8 +392,8 @@ const productReviewValidator = {
     body('status')
       .notEmpty()
       .withMessage('Status is required')
-      .isIn(['pending', 'approved', 'rejected', 'flagged'])
-      .withMessage('Status must be one of: pending, approved, rejected, flagged'),
+      .isIn(['pending', 'approved', 'rejected', 'dispute'])
+      .withMessage('Status must be one of: pending, approved, rejected, dispute'),
     body('moderationNote')
       .optional()
       .isLength({ max: 500 })

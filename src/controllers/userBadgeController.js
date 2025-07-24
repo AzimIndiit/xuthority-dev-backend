@@ -46,18 +46,23 @@ exports.requestBadge = async (req, res, next) => {
 // Get all badges for a user (for profile/public profile)
 exports.getUserBadges = async (req, res, next) => {
   try {
-    const userId = req.params.userId || req.user.id;
-    const userBadges = await UserBadge.find({ userId,  }).populate('badgeId');
+    const userId = req.params.userId || req.user._id;
+    const userBadges = await UserBadge.find({ userId }).populate('badgeId');
+    
     // Format for stats: total, and badge media URLs
-    const badges = userBadges.map(ub => ({
-      badgeId: ub.badgeId._id,
-      title: ub.badgeId.title,
-      icon: ub.badgeId.icon,
-      colorCode: ub.badgeId.colorCode,
-      description: ub.badgeId.description,
-      status: ub.status
-    }));
-    return res.json(ApiResponse.success(badges , 'User badges retrieved'));
+    // Filter out badges where badgeId is null (in case of deleted badges)
+    const badges = userBadges
+      .filter(ub => ub.badgeId) // Filter out null badge references
+      .map(ub => ({
+        badgeId: ub.badgeId._id,
+        title: ub.badgeId.title,
+        icon: ub.badgeId.icon,
+        colorCode: ub.badgeId.colorCode,
+        description: ub.badgeId.description,
+        status: ub.status
+      }));
+    
+    return res.json(ApiResponse.success(badges, 'User badges retrieved'));
   } catch (err) {
     next(err);
   }

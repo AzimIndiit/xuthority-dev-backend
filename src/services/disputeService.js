@@ -330,6 +330,75 @@ const updateDispute = async (disputeId, vendorId, updateData) => {
 };
 
 /**
+ * Update a dispute as admin (no ownership restrictions)
+ */
+const updateDisputeAsAdmin = async (disputeId, updateData) => {
+  try {
+    const dispute = await Dispute.findById(disputeId);
+    
+    if (!dispute) {
+      throw new ApiError('Dispute not found', 'NOT_FOUND', 404);
+    }
+
+    // Update allowed fields
+    const allowedUpdates = ['reason', 'description', 'status'];
+    const updates = {};
+    
+    allowedUpdates.forEach(field => {
+      if (updateData[field] !== undefined) {
+        updates[field] = updateData[field];
+      }
+    });
+
+    const updatedDispute = await Dispute.findByIdAndUpdate(
+      disputeId,
+      updates,
+      { new: true, runValidators: true }
+    ).populate([
+      { path: 'review', select: 'title content overallRating reviewer', populate: { path: 'reviewer', select: 'firstName lastName' } },
+      { path: 'product', select: 'name slug isActive' },
+      { path: 'vendor', select: 'firstName lastName email' }
+    ]);
+
+    // Handle review publishing when dispute is resolved
+    if (updates.status === 'resolved' && dispute.review) {
+      try {
+        // Get the review with populated data
+        const review = await ProductReview.findByIdActive(dispute.review)
+          .populate('reviewer', 'firstName lastName email')
+          .populate('product', 'name slug');
+        
+        if (review) {
+          // Publish the review by setting status to approved and publishedAt
+          await ProductReview.findByIdAndUpdate(
+            dispute.review,
+            {
+              status: 'approved',
+              publishedAt: new Date()
+            },
+            { runValidators: true }
+          );
+          
+          // Update product statistics since review is now published
+          await updateProductAggregateRatings(review.product._id);
+          
+          console.log(`Review ${dispute.review} published after dispute resolution and product stats updated`);
+        }
+      } catch (error) {
+        console.error('Error publishing review after dispute resolution:', error);
+      }
+    }
+
+    return updatedDispute;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError('Failed to update dispute', 'UPDATE_FAILED', 500);
+  }
+};
+
+/**
  * Delete a dispute
  */
 const deleteDispute = async (disputeId, vendorId) => {
@@ -667,6 +736,7 @@ module.exports = {
   getAllDisputes,
   getDisputeById,
   updateDispute,
+  updateDisputeAsAdmin,
   deleteDispute,
   addExplanation,
   updateExplanation

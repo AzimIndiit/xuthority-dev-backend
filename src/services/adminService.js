@@ -483,9 +483,9 @@ const getWeekNumber = (date) => {
 };
 
 /**
- * Get all users with filtering and pagination
+ * Get all users with filtering and pagination (with review stats)
  * @param {Object} options - Query options
- * @returns {Promise<Object>} Users with pagination
+ * @returns {Promise<Object>} Users with pagination and review statistics
  */
 const getUsers = async (options = {}) => {
   try {
@@ -500,23 +500,24 @@ const getUsers = async (options = {}) => {
       sortOrder = 'desc',
       period,
       dateFrom,
-      dateTo
+      dateTo,
+      includeStats = true
     } = options;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    const query = {};
+    const matchQuery = {};
 
-    if (role) query.role = role;
-    if (isVerified !== undefined) query.isVerified = isVerified;
+    if (role) matchQuery.role = role;
+    if (isVerified !== undefined) matchQuery.isVerified = isVerified;
     
     // Handle status filtering (supports comma-separated values like "approved,blocked")
     if (status) {
       const statusArray = status.split(',').map(s => s.trim());
-      query.status = { $in: statusArray };
+      matchQuery.status = { $in: statusArray };
     }
     
     if (search) {
-      query.$or = [
+      matchQuery.$or = [
         { firstName: { $regex: search, $options: 'i' } },
         { lastName: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
@@ -548,19 +549,123 @@ const getUsers = async (options = {}) => {
       }
 
       if (startDate || endDate) {
-        query.createdAt = {};
-        if (startDate) query.createdAt.$gte = startDate;
-        if (endDate) query.createdAt.$lte = endDate;
+        matchQuery.createdAt = {};
+        if (startDate) matchQuery.createdAt.$gte = startDate;
+        if (endDate) matchQuery.createdAt.$lte = endDate;
       }
     }
 
-    const [users, total] = await Promise.all([
-      User.find(query)
-        .select('-password -accessToken')
-        .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
-        .skip(skip)
-        .limit(parseInt(limit)),
-      User.countDocuments(query)
+    // If includeStats is false, use simple query (for performance when stats aren't needed)
+    if (!includeStats) {
+      const [users, total] = await Promise.all([
+        User.find(matchQuery)
+          .select('-password -accessToken')
+          .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
+          .skip(skip)
+          .limit(parseInt(limit)),
+        User.countDocuments(matchQuery)
+      ]);
+
+      return {
+        users,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          totalPages: Math.ceil(total / parseInt(limit))
+        }
+      };
+    }
+
+    // Use aggregation pipeline to include review statistics
+    const pipeline = [
+      { $match: matchQuery },
+      {
+        $lookup: {
+          from: 'productreviews',
+          let: { userId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$reviewer', '$$userId'] },
+                isDeleted: { $ne: true }
+              }
+            },
+            {
+              $group: {
+                _id: '$status',
+                count: { $sum: 1 }
+              }
+            }
+          ],
+          as: 'reviewStats'
+        }
+      },
+      {
+        $addFields: {
+          reviewsWritten: {
+            $reduce: {
+              input: '$reviewStats',
+              initialValue: 0,
+              in: { $add: ['$$value', '$$this.count'] }
+            }
+          },
+          reviewsApproved: {
+            $let: {
+              vars: {
+                approvedStat: {
+                  $arrayElemAt: [
+                    { $filter: { input: '$reviewStats', cond: { $eq: ['$$this._id', 'approved'] } } },
+                    0
+                  ]
+                }
+              },
+              in: { $ifNull: ['$$approvedStat.count', 0] }
+            }
+          },
+          reviewsPending: {
+            $let: {
+              vars: {
+                pendingStat: {
+                  $arrayElemAt: [
+                    { $filter: { input: '$reviewStats', cond: { $eq: ['$$this._id', 'pending'] } } },
+                    0
+                  ]
+                }
+              },
+              in: { $ifNull: ['$$pendingStat.count', 0] }
+            }
+          },
+          reviewsDisputed: {
+            $let: {
+              vars: {
+                disputedStat: {
+                  $arrayElemAt: [
+                    { $filter: { input: '$reviewStats', cond: { $eq: ['$$this._id', 'dispute'] } } },
+                    0
+                  ]
+                }
+              },
+              in: { $ifNull: ['$$disputedStat.count', 0] }
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          password: 0,
+          accessToken: 0,
+          reviewStats: 0
+        }
+      },
+      { $sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 } },
+      { $skip: skip },
+      { $limit: parseInt(limit) }
+    ];
+
+    const [users, totalResults] = await Promise.all([
+      User.aggregate(pipeline),
+      User.countDocuments(matchQuery)
     ]);
 
     return {
@@ -568,8 +673,8 @@ const getUsers = async (options = {}) => {
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total,
-        totalPages: Math.ceil(total / parseInt(limit))
+        total: totalResults,
+        totalPages: Math.ceil(totalResults / parseInt(limit))
       }
     };
   } catch (error) {
@@ -739,17 +844,26 @@ const getUserReviews = async (userId, options = {}) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const query = { 
       reviewer: new mongoose.Types.ObjectId(userId),
-      isDeleted: { $ne: true }
+      isDeleted: false // Use false instead of { $ne: true } for consistency
     };
 
-    // Filter by status if not 'all'
+    // For admin, allow filtering by specific statuses
+    // If status is 'all', show all non-deleted reviews regardless of status or publishedAt
+    // If status is specific (approved, pending, etc.), filter by that status
     if (status !== 'all') {
       query.status = status;
+      // Only add publishedAt filter for approved reviews
+      if (status === 'approved') {
+        query.publishedAt = { $ne: null };
+      }
     }
 
     const [reviews, total] = await Promise.all([
       ProductReview.find(query)
-        .populate('product', 'name slug logoUrl')
+        .populate([
+          { path: 'product', select: 'name slug logoUrl avgRating totalReviews brandColors' },
+          { path: 'reviewer', select: 'firstName lastName avatar isVerified' }
+        ])
         .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
         .skip(skip)
         .limit(parseInt(limit)),
@@ -762,7 +876,9 @@ const getUserReviews = async (userId, options = {}) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total,
-        totalPages: Math.ceil(total / parseInt(limit))
+        totalPages: Math.ceil(total / parseInt(limit)),
+        hasNext: parseInt(page) < Math.ceil(total / parseInt(limit)),
+        hasPrev: parseInt(page) > 1
       }
     };
   } catch (error) {

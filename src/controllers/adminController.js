@@ -1,4 +1,5 @@
 const adminService = require('../services/adminService');
+const disputeService = require('../services/disputeService');
 const ApiResponse = require('../utils/apiResponse');
 const ApiError = require('../utils/apiError');
 
@@ -1643,5 +1644,50 @@ exports.verifyAdminResetToken = async (req, res, next) => {
     ));
   } catch (err) {
     next(err);
+  }
+};
+
+/**
+ * Get all disputes for admin
+ */
+exports.getAdminDisputes = async (req, res, next) => {
+  try {
+    const disputes = await disputeService.getAllDisputes(req.query);
+    return res.json(ApiResponse.success(disputes, 'Disputes retrieved successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get specific dispute by ID for admin
+ */
+exports.getAdminDisputeById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const dispute = await disputeService.getDisputeById(id);
+    return res.json(ApiResponse.success(dispute, 'Dispute retrieved successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update dispute as admin (no ownership restrictions)
+ */
+exports.updateAdminDispute = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    // Admin can update any dispute without ownership checks
+    const updatedDispute = await disputeService.updateDisputeAsAdmin(id, updateData);
+    
+    return res.json(ApiResponse.success(
+      updatedDispute,
+      'Dispute updated successfully'
+    ));
+  } catch (error) {
+    next(error);
   }
 };

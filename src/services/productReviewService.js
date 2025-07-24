@@ -90,7 +90,7 @@ const getAllProductReviews = async (queryParams) => {
       page = 1,
       limit = 10,
       search,
-      status = 'approved',
+      status,
       overallRating,
       isVerified,
       sortBy = 'publishedAt',
@@ -101,8 +101,12 @@ const getAllProductReviews = async (queryParams) => {
       keywords
     } = queryParams;
 
-    const filter = { status };
-
+    let filter = {};
+    if (status === 'all') {
+      filter.status = { $in: ['pending', 'approved', 'dispute'] };
+    } else {
+      filter.status = status || 'approved';
+    }
     // Add rating filters
     if (overallRating) {
       if (Array.isArray(overallRating)) {
@@ -155,8 +159,15 @@ const getAllProductReviews = async (queryParams) => {
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const reviews = await ProductReview.findActiveWithPopulate(filter, [
-      { path: 'reviewer', select: 'name email' },
-      { path: 'product', select: 'name slug avgRating totalReviews brandColors' }
+      { path: 'reviewer', select: 'name email avatar firstName lastName title companyName companySize industry slug isVerified' },
+      { 
+        path: 'product', 
+        select: 'name slug avgRating totalReviews brandColors userId logoUrl',
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName avatar slug email'
+        }
+      }
     ])
       .sort(sortOptions)
       .skip(skip)
@@ -257,8 +268,15 @@ const getProductReviews = async (productId, queryParams) => {
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const reviews = await ProductReview.findActiveWithPopulate(filter, [
-      { path: 'reviewer', select: 'email isVerified avatar firstName lastName title companyName companySize industry slug ' },
-      { path: 'product', select: 'name slug userId brandColors' }
+      { path: 'reviewer', select: 'name email avatar firstName lastName title companyName companySize industry slug isVerified' },
+      { 
+        path: 'product', 
+        select: 'name slug avgRating totalReviews brandColors userId logoUrl',
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName avatar slug email'
+        }
+      }
     ])
       .sort(sortOptions)
       .skip(skip)
@@ -333,7 +351,14 @@ const getProductReviewById = async (reviewId) => {
     const review = await ProductReview.findByIdActive(reviewId)
       .populate([
         { path: 'reviewer', select: 'name email avatar firstName lastName title companyName companySize industry slug isVerified' },
-        { path: 'product', select: 'name slug avgRating totalReviews brandColors' }
+        { 
+          path: 'product', 
+          select: 'name slug avgRating totalReviews brandColors userId logoUrl',
+          populate: {
+            path: 'userId',
+            select: 'firstName lastName avatar slug email'
+          }
+        }
       ]);
 
     if (!review) {
