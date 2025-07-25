@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
-const { productReviewController, badgeController } = require('../controllers');
+const { productReviewController, badgeController, blogController } = require('../controllers');
 const adminAuth = require('../middleware/adminAuth');
 const upload = require('../middleware/upload');
 const { validate } = require('../middleware/validation');
-const { productReviewValidator } = require('../validators');
+const { productReviewValidator, blogValidator } = require('../validators');
 const { 
   validateAdminLogin, 
   validateUserQuery, 
@@ -99,5 +99,13 @@ router.patch('/badge-requests/:id/reject', validateRejectBadgeRequest, badgeCont
 router.get('/disputes', adminController.getAdminDisputes);
 router.get('/disputes/:id', adminController.getAdminDisputeById);
 router.put('/disputes/:id', adminController.updateAdminDispute);
+
+// Blog management routes (Admin only)
+router.post('/blogs', adminAuth, validate(blogValidator.create), blogController.createBlog);
+router.put('/blogs/:id', adminAuth, validate(blogValidator.update), blogController.updateBlog);
+router.delete('/blogs/:id', adminAuth, validate(blogValidator.delete), blogController.deleteBlog);
+
+// Resource Categories management routes (Admin only)
+router.get('/resource-categories', adminAuth, require('../controllers/resourceCategoryController').getAllResourceCategories);
 
 module.exports = router;

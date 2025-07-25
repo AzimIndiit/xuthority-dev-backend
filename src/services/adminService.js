@@ -364,7 +364,8 @@ const getRecentReviewsData = async (dateFilter) => {
             $project: {
               name: 1,
               slug: 1,
-              logoUrl: 1
+              logoUrl: 1,
+              userId: 1
             }
           }
         ]
@@ -383,6 +384,9 @@ const getRecentReviewsData = async (dateFilter) => {
             vars: { reviewer: { $arrayElemAt: ['$reviewerData', 0] } },
             in: {
               name: { $concat: ['$$reviewer.firstName', ' ', '$$reviewer.lastName'] },
+              firstName: '$$reviewer.firstName',
+              lastName: '$$reviewer.lastName',
+              slug: '$$reviewer.slug',
               avatar: '$$reviewer.avatar',
               email: '$$reviewer.email'
             }
