@@ -29,6 +29,20 @@ const getAllBlogs = async (req, res, next) => {
 };
 
 /**
+ * @desc    Get all blogs for admin
+ * @route   GET /api/v1/admin/blogs
+ * @access  Private (Admin only)
+ */
+const getAdminBlogs = async (req, res, next) => {
+  try {
+    const result = await blogService.getAdminBlogs(req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Get active blogs
  * @route   GET /api/v1/blogs/active
  * @access  Public
@@ -158,6 +172,7 @@ const getBlogsGroupedByCategories = async (req, res, next) => {
 module.exports = {
   createBlog,
   getAllBlogs,
+  getAdminBlogs,
   getActiveBlogs,
   getBlogById,
   getBlogBySlug,

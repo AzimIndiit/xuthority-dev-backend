@@ -109,6 +109,88 @@ const getAllBlogs = async (queryParams) => {
 };
 
 /**
+ * Get all blogs for admin with enhanced filtering and all statuses
+ */
+const getAdminBlogs = async (queryParams) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      status,
+      tag,
+      resourceCategoryId,
+      authorName,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = queryParams;
+
+    const filter = {};
+
+    // For admin, include all statuses by default unless specifically filtered
+    if (status && status !== 'all') {
+      filter.status = status;
+    }
+
+    // Add tag filter
+    if (tag) {
+      filter.tag = tag;
+    }
+
+    // Add category filter
+    if (resourceCategoryId) {
+      filter.resourceCategoryId = resourceCategoryId;
+    }
+
+    // Add author filter
+    if (authorName) {
+      filter.authorName = { $regex: authorName, $options: 'i' };
+    }
+
+    // Add search functionality
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { authorName: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    const blogs = await Blog.find(filter)
+      .populate([
+        { path: 'createdBy', select: 'name email' },
+        { path: 'resourceCategoryId', select: 'name slug' }
+      ])
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Blog.countDocuments(filter);
+
+    const pagination = {
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+      itemsPerPage: parseInt(limit),
+      hasNext: page < Math.ceil(total / limit),
+      hasPrev: page > 1
+    };
+
+    return ApiResponse.success(
+      { blogs, pagination },
+      'Admin blogs retrieved successfully',
+      { total }
+    );
+  } catch (error) {
+    throw new ApiError('Error retrieving admin blogs', 'ADMIN_BLOGS_FETCH_ERROR', 500, { originalError: error.message });
+  }
+};
+
+/**
  * Get active blogs
  */
 const getActiveBlogs = async () => {
@@ -412,6 +494,7 @@ const getBlogsGroupedByCategories = async (limit = 6) => {
 module.exports = {
   createBlog,
   getAllBlogs,
+  getAdminBlogs,
   getActiveBlogs,
   getBlogById,
   getBlogBySlug,

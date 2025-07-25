@@ -101,7 +101,9 @@ router.get('/disputes/:id', adminController.getAdminDisputeById);
 router.put('/disputes/:id', adminController.updateAdminDispute);
 
 // Blog management routes (Admin only)
+router.get('/blogs', adminAuth, validate(blogValidator.list), blogController.getAdminBlogs);
 router.post('/blogs', adminAuth, validate(blogValidator.create), blogController.createBlog);
+router.get('/blogs/:id', adminAuth, validate(blogValidator.getById), blogController.getBlogById);
 router.put('/blogs/:id', adminAuth, validate(blogValidator.update), blogController.updateBlog);
 router.delete('/blogs/:id', adminAuth, validate(blogValidator.delete), blogController.deleteBlog);
 
