@@ -514,6 +514,7 @@ const getBadgeRequestDetails = async (requestId) => {
 
 module.exports = {
   getAdminBadges,
+  getAdminBadgeById,
   createBadge,
   updateBadge,
   deleteBadge,
