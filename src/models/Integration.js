@@ -25,6 +25,16 @@ const integrationSchema = new mongoose.Schema({
       message: 'Image must be a valid URL ending with jpg, jpeg, png, gif, svg, or webp'
     }
   },
+  link: {
+    type: String,
+    trim: true,
+    validate: {
+      validator: function(v) {
+        return !v || /^https?:\/\/.+$/i.test(v);
+      },
+      message: 'Link must be a valid URL'
+    }
+  },
   status: {
     type: String,
     enum: ['active', 'inactive'],

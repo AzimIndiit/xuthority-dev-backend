@@ -15,6 +15,7 @@
     "seed:user-roles": "node scripts/seed.js --module=user-roles",
     "seed:software": "node scripts/seed.js --module=software",
     "seed:solutions": "node scripts/seed.js --module=solutions",
+    "seed:pages": "node scripts/seed-pages.js",
     "migrate": "node scripts/migrate.js",
     "migrate:dry-run": "node scripts/migrate.js --dry-run",
     "setup:subscription": "node scripts/setup-subscription.js",

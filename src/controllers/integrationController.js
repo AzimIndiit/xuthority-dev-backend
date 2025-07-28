@@ -79,12 +79,12 @@ exports.getActiveIntegrations = async (req, res, next) => {
 
 /**
  * @desc    Get integration by ID
- * @route   GET /api/v1/integrations/:integrationId
+ * @route   GET /api/v1/integrations/:id
  * @access  Public
  */
 exports.getIntegrationById = async (req, res, next) => {
   try {
-    const integration = await integrationService.getIntegrationById(req.params.integrationId);
+    const integration = await integrationService.getIntegrationById(req.params.id);
 
     res.status(200).json(
       ApiResponse.success(integration, 'Integration retrieved successfully')
@@ -113,13 +113,13 @@ exports.getIntegrationBySlug = async (req, res, next) => {
 
 /**
  * @desc    Update integration
- * @route   PUT /api/v1/integrations/:integrationId
+ * @route   PUT /api/v1/integrations/:id
  * @access  Private
  */
 exports.updateIntegration = async (req, res, next) => {
   try {
     const integration = await integrationService.updateIntegration(
-      req.params.integrationId,
+      req.params.id,
       req.body,
       req.user.id
     );
@@ -134,12 +134,12 @@ exports.updateIntegration = async (req, res, next) => {
 
 /**
  * @desc    Delete integration
- * @route   DELETE /api/v1/integrations/:integrationId
+ * @route   DELETE /api/v1/integrations/:id
  * @access  Private
  */
 exports.deleteIntegration = async (req, res, next) => {
   try {
-    const result = await integrationService.deleteIntegration(req.params.integrationId, req.user.id);
+    const result = await integrationService.deleteIntegration(req.params.id, req.user.id);
 
     res.status(200).json(
       ApiResponse.success(null, result.message)
@@ -151,12 +151,12 @@ exports.deleteIntegration = async (req, res, next) => {
 
 /**
  * @desc    Toggle integration status
- * @route   PATCH /api/v1/integrations/:integrationId/toggle-status
+ * @route   PATCH /api/v1/integrations/:id/toggle-status
  * @access  Private
  */
 exports.toggleIntegrationStatus = async (req, res, next) => {
   try {
-    const integration = await integrationService.toggleIntegrationStatus(req.params.integrationId, req.user.id);
+    const integration = await integrationService.toggleIntegrationStatus(req.params.id, req.user.id);
 
     res.status(200).json(
       ApiResponse.success(integration, `Integration status changed to ${integration.status}`)

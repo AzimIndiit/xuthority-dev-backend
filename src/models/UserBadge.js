@@ -42,6 +42,11 @@ const userBadgeSchema = new mongoose.Schema({
     type: String,
     trim: true,
     maxlength: 500
+  },
+  // Cancellation fields
+  canceledAt: {
+    type: Date,
+    index: true
   }
 }, {
   timestamps: true,

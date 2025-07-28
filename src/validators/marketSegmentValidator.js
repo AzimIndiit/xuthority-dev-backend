@@ -18,7 +18,7 @@ const marketSegmentValidator = {
 
   // Update market segment validation
   update: [
-    param('marketSegmentId').isMongoId().withMessage('Invalid market segment ID'),
+    param('id').isMongoId().withMessage('Invalid market segment ID'),
     body('name')
       .optional()
       .isLength({ min: 2, max: 100 })
@@ -33,7 +33,7 @@ const marketSegmentValidator = {
 
   // Get market segment by ID validation
   getById: [
-    param('marketSegmentId').isMongoId().withMessage('Invalid market segment ID')
+    param('id').isMongoId().withMessage('Invalid market segment ID')
   ],
 
   // Get market segment by slug validation
@@ -43,12 +43,12 @@ const marketSegmentValidator = {
 
   // Delete market segment validation
   delete: [
-    param('marketSegmentId').isMongoId().withMessage('Invalid market segment ID')
+    param('id').isMongoId().withMessage('Invalid market segment ID')
   ],
 
   // Toggle status validation
   toggleStatus: [
-    param('marketSegmentId').isMongoId().withMessage('Invalid market segment ID')
+    param('id').isMongoId().withMessage('Invalid market segment ID')
   ],
 
   // Query validation for listing market segments

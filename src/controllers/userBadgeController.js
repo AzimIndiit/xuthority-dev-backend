@@ -71,12 +71,37 @@ exports.getUserBadges = async (req, res, next) => {
 // Admin approves a badge request
 exports.approveBadgeRequest = async (req, res, next) => {
   try {
+    // First check if the badge request exists and is in the right status
+    const existingUserBadge = await UserBadge.findById(req.params.id);
+    if (!existingUserBadge) {
+      return next(new ApiError('Badge request not found', 'NOT_FOUND', 404));
+    }
+    
+    if (existingUserBadge.status !== 'requested') {
+      return next(new ApiError('Only pending requests can be approved', 'INVALID_STATUS', 400));
+    }
+
+    // Update the badge request status
     const userBadge = await UserBadge.findByIdAndUpdate(
       req.params.id,
-      { status: 'approved' },
+      { 
+        status: 'approved',
+        approvedAt: new Date(),
+        approvedBy: req.user?.id || req.user?._id // Handle both admin auth types
+      },
       { new: true }
     ).populate('badgeId');
-    if (!userBadge) return next(new ApiError('Badge request not found', 'NOT_FOUND', 404));
+
+    if (!userBadge) {
+      return next(new ApiError('Badge request not found', 'NOT_FOUND', 404));
+    }
+
+    // Increment the badge's earnedBy count
+    await Badge.findByIdAndUpdate(
+      userBadge.badgeId._id,
+      { $inc: { earnedBy: 1 } }
+    );
+
     // Send badge approved notification
     await createNotification({
       userId: userBadge.userId,
@@ -86,6 +111,7 @@ exports.approveBadgeRequest = async (req, res, next) => {
       meta: { badgeId: userBadge.badgeId._id },
       actionUrl: '/profile/my-badges'
     });
+
     return res.json(ApiResponse.success(userBadge, 'Badge request approved'));
   } catch (err) {
     next(err);
@@ -95,12 +121,38 @@ exports.approveBadgeRequest = async (req, res, next) => {
 // Vendor cancels a badge request
 exports.cancelBadgeRequest = async (req, res, next) => {
   try {
+    // First, find the current badge request to check its status
+    const existingUserBadge = await UserBadge.findOne({
+      _id: req.params.id, 
+      userId: req.user.id
+    }).populate('badgeId');
+
+    if (!existingUserBadge) {
+      return next(new ApiError('Badge request not found', 'NOT_FOUND', 404));
+    }
+
+    // Check if the badge was previously approved
+    const wasApproved = existingUserBadge.status === 'approved';
+
+    // Update the badge request status to canceled
     const userBadge = await UserBadge.findOneAndUpdate(
       { _id: req.params.id, userId: req.user.id },
-      { status: 'canceled' },
+      { 
+        status: 'canceled',
+        canceledAt: new Date()
+      },
       { new: true }
-    );
-    if (!userBadge) return next(new ApiError('Badge request not found', 'NOT_FOUND', 404));
+    ).populate('badgeId');
+
+    // If the badge was approved, we need to decrement the earnedBy count
+    if (wasApproved && userBadge.badgeId) {
+      await Badge.findByIdAndUpdate(
+        userBadge.badgeId._id,
+        { $inc: { earnedBy: -1 } }
+      );
+      console.log(`Decremented earnedBy count for badge: ${userBadge.badgeId.title}`);
+    }
+
     return res.json(ApiResponse.success(userBadge, 'Badge request canceled'));
   } catch (err) {
     next(err);

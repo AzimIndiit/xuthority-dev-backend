@@ -84,7 +84,7 @@ exports.getActiveMarketSegments = async (req, res, next) => {
  */
 exports.getMarketSegmentById = async (req, res, next) => {
   try {
-    const marketSegment = await marketSegmentService.getMarketSegmentById(req.params.marketSegmentId);
+    const marketSegment = await marketSegmentService.getMarketSegmentById(req.params.id);
 
     res.status(200).json(
       ApiResponse.success(marketSegment, 'Market segment retrieved successfully')
@@ -119,7 +119,7 @@ exports.getMarketSegmentBySlug = async (req, res, next) => {
 exports.updateMarketSegment = async (req, res, next) => {
   try {
     const marketSegment = await marketSegmentService.updateMarketSegment(
-      req.params.marketSegmentId,
+      req.params.id,
       req.body,
       req.user.id
     );
@@ -139,7 +139,7 @@ exports.updateMarketSegment = async (req, res, next) => {
  */
 exports.deleteMarketSegment = async (req, res, next) => {
   try {
-    const result = await marketSegmentService.deleteMarketSegment(req.params.marketSegmentId, req.user.id);
+    const result = await marketSegmentService.deleteMarketSegment(req.params.id, req.user.id);
 
     res.status(200).json(
       ApiResponse.success(null, result.message)
@@ -156,7 +156,7 @@ exports.deleteMarketSegment = async (req, res, next) => {
  */
 exports.toggleMarketSegmentStatus = async (req, res, next) => {
   try {
-    const marketSegment = await marketSegmentService.toggleMarketSegmentStatus(req.params.marketSegmentId, req.user.id);
+    const marketSegment = await marketSegmentService.toggleMarketSegmentStatus(req.params.id, req.user.id);
 
     res.status(200).json(
       ApiResponse.success(marketSegment, `Market segment status changed to ${marketSegment.status}`)

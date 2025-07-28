@@ -29,6 +29,7 @@ const searchRoutes = require('./search');
 const otpRoutes = require('./otp');
 const favoritesRoutes = require('./favorites');
 const subscriptionRoutes = require('./subscription');
+const pageRoutes = require('./pages');
 const { API_PREFIX } = require('../config/constants');
 
 // Register all routes
@@ -59,6 +60,7 @@ router.use(`${API_PREFIX}/search`, searchRoutes);
 router.use(`${API_PREFIX}/otp`, otpRoutes);
 router.use(`${API_PREFIX}/favorites`, favoritesRoutes);
 router.use(`${API_PREFIX}/subscription`, subscriptionRoutes);
+router.use(`${API_PREFIX}/pages`, pageRoutes);
 
 // API documentation route
 router.get('/', (req, res) => {
@@ -82,6 +84,7 @@ router.get('/', (req, res) => {
       disputes: `${API_PREFIX}/disputes`,
       notifications: `${API_PREFIX}/notifications`,
       subscription: `${API_PREFIX}/subscription`,
+      pages: `${API_PREFIX}/pages`,
     },
   });
 });

@@ -173,6 +173,30 @@ const toggleUserRoleStatus = async (userRoleId, userId) => {
   return userRole;
 };
 
+/**
+ * Bulk delete user roles
+ * @param {Array} userRoleIds - Array of user role IDs
+ * @returns {Object} Result summary
+ */
+const bulkDeleteUserRoles = async (userRoleIds) => {
+  if (!Array.isArray(userRoleIds) || userRoleIds.length === 0) {
+    throw new ApiError('User role IDs array is required', 'INVALID_INPUT', 400);
+  }
+
+  // Validate all user role IDs
+  const invalidIds = userRoleIds.filter(id => !mongoose.Types.ObjectId.isValid(id));
+  if (invalidIds.length > 0) {
+    throw new ApiError('Invalid user role IDs provided', 'INVALID_IDS', 400);
+  }
+
+  const result = await UserRole.deleteMany({ _id: { $in: userRoleIds } });
+
+  return {
+    deletedCount: result.deletedCount,
+    requestedCount: userRoleIds.length
+  };
+};
+
 module.exports = {
   createUserRole,
   getAllUserRoles,
@@ -181,5 +205,6 @@ module.exports = {
   getUserRoleBySlug,
   updateUserRole,
   deleteUserRole,
-  toggleUserRoleStatus
+  toggleUserRoleStatus,
+  bulkDeleteUserRoles
 };

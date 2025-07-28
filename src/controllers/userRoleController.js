@@ -165,3 +165,24 @@ exports.toggleUserRoleStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc    Bulk delete user roles
+ * @route   DELETE /api/v1/admin/user-roles/bulk
+ * @access  Private (Admin)
+ */
+exports.bulkDeleteUserRoles = async (req, res, next) => {
+  try {
+    const { ids } = req.body;
+    const result = await userRoleService.bulkDeleteUserRoles(ids);
+
+    res.status(200).json(
+      ApiResponse.success(
+        result,
+        `Successfully deleted ${result.deletedCount} out of ${result.requestedCount} user roles`
+      )
+    );
+  } catch (error) {
+    next(error);
+  }
+};

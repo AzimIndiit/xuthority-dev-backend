@@ -167,9 +167,9 @@ exports.updateSoftware = async (softwareId, updateData, userId) => {
       throw new ApiError('Software not found', 'SOFTWARE_NOT_FOUND', 404);
     }
 
-    // Update fields
+    // Update fields (exclude createdBy as it should not be modified)
     Object.keys(updateData).forEach(key => {
-      if (updateData[key] !== undefined) {
+      if (updateData[key] !== undefined && key !== 'createdBy') {
         software[key] = updateData[key];
       }
     });
@@ -179,6 +179,7 @@ exports.updateSoftware = async (softwareId, updateData, userId) => {
 
     return software;
   } catch (error) {
+    console.error('Software update error:', error);
     if (error.name === 'CastError') {
       throw new ApiError('Invalid software ID', 'INVALID_SOFTWARE_ID', 400);
     }
@@ -516,4 +517,31 @@ exports.getPopularSoftwaresWithTopProducts = async (options = {}) => {
   } catch (error) {
     throw new ApiError('Failed to fetch popular softwares with top products', 'POPULAR_SOFTWARES_FETCH_FAILED', 500);
   }
+};
+
+/**
+ * Bulk delete software
+ * @param {Array} softwareIds - Array of software IDs
+ * @returns {Object} Result summary
+ */
+exports.bulkDeleteSoftware = async (softwareIds) => {
+  const mongoose = require('mongoose');
+  const ApiError = require('../utils/apiError');
+
+  if (!Array.isArray(softwareIds) || softwareIds.length === 0) {
+    throw new ApiError('Software IDs array is required', 'INVALID_INPUT', 400);
+  }
+
+  // Validate all software IDs
+  const invalidIds = softwareIds.filter(id => !mongoose.Types.ObjectId.isValid(id));
+  if (invalidIds.length > 0) {
+    throw new ApiError('Invalid software IDs provided', 'INVALID_IDS', 400);
+  }
+
+  const result = await Software.deleteMany({ _id: { $in: softwareIds } });
+
+  return {
+    deletedCount: result.deletedCount,
+    requestedCount: softwareIds.length
+  };
 }; 

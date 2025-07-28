@@ -14,6 +14,10 @@ const integrationValidator = {
       .optional()
       .isURL()
       .withMessage('Image must be a valid URL'),
+    body('link')
+      .optional()
+      .isURL()
+      .withMessage('Link must be a valid URL'),
     body('status')
       .optional()
       .isIn(['active', 'inactive'])
@@ -22,7 +26,7 @@ const integrationValidator = {
 
   // Update integration validation
   update: [
-    param('integrationId').isMongoId().withMessage('Invalid integration ID'),
+    param('id').isMongoId().withMessage('Invalid integration ID'),
     body('name')
       .optional()
       .isLength({ min: 2, max: 100 })
@@ -33,6 +37,10 @@ const integrationValidator = {
       .optional()
       .isURL()
       .withMessage('Image must be a valid URL'),
+    body('link')
+      .optional()
+      .isURL()
+      .withMessage('Link must be a valid URL'),
     body('status')
       .optional()
       .isIn(['active', 'inactive'])
@@ -41,7 +49,7 @@ const integrationValidator = {
 
   // Get integration by ID validation
   getById: [
-    param('integrationId').isMongoId().withMessage('Invalid integration ID')
+    param('id').isMongoId().withMessage('Invalid integration ID')
   ],
 
   // Get integration by slug validation
@@ -51,12 +59,12 @@ const integrationValidator = {
 
   // Delete integration validation
   delete: [
-    param('integrationId').isMongoId().withMessage('Invalid integration ID')
+    param('id').isMongoId().withMessage('Invalid integration ID')
   ],
 
   // Toggle status validation
   toggleStatus: [
-    param('integrationId').isMongoId().withMessage('Invalid integration ID')
+    param('id').isMongoId().withMessage('Invalid integration ID')
   ],
 
   // Query validation for listing integrations

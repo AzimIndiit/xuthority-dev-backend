@@ -22,6 +22,7 @@ const Favorite = require('./Favorite');
 const SubscriptionPlan = require('./SubscriptionPlan');
 const UserSubscription = require('./UserSubscription');
 const UserBadge = require('./UserBadge');
+const Page = require('./Page');
 
 module.exports = {
   User,
@@ -47,5 +48,6 @@ module.exports = {
   Favorite,
   SubscriptionPlan,
   UserSubscription,
-  UserBadge
+  UserBadge,
+  Page
 };

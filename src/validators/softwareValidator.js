@@ -15,7 +15,17 @@ const validateCreateSoftware = [
   body('status')
     .optional()
     .isIn(['active', 'inactive'])
-    .withMessage('Status must be either active or inactive')
+    .withMessage('Status must be either active or inactive'),
+
+  body('isFeatured')
+    .optional()
+    .isBoolean()
+    .withMessage('isFeatured must be a boolean'),
+
+  body('isPopular')
+    .optional()
+    .isBoolean()
+    .withMessage('isPopular must be a boolean')
 ];
 
 // Validation for updating software
@@ -37,7 +47,17 @@ const validateUpdateSoftware = [
   body('status')
     .optional()
     .isIn(['active', 'inactive'])
-    .withMessage('Status must be either active or inactive')
+    .withMessage('Status must be either active or inactive'),
+
+  body('isFeatured')
+    .optional()
+    .isBoolean()
+    .withMessage('isFeatured must be a boolean'),
+
+  body('isPopular')
+    .optional()
+    .isBoolean()
+    .withMessage('isPopular must be a boolean')
 ];
 
 // Validation for getting software by ID
@@ -141,6 +161,15 @@ const validateGetFeaturedSoftwaresWithProducts = [
 ];
 
 module.exports = {
+  create: validateCreateSoftware,
+  update: validateUpdateSoftware,
+  getById: validateGetSoftwareById,
+  getBySlug: validateGetSoftwareBySlug,
+  query: validateGetSoftwareList,
+  delete: validateDeleteSoftware,
+  toggleStatus: validateToggleSoftwareStatus,
+  getFeaturedWithProducts: validateGetFeaturedSoftwaresWithProducts,
+  // Keep the old names for backward compatibility
   validateCreateSoftware,
   validateUpdateSoftware,
   validateGetSoftwareById,

@@ -86,7 +86,7 @@ exports.getActiveIndustries = async (req, res, next) => {
  */
 exports.getIndustryById = async (req, res, next) => {
   try {
-    const industry = await industryService.getIndustryById(req.params.industryId);
+    const industry = await industryService.getIndustryById(req.params.id);
 
     res.status(200).json(
       ApiResponse.success(industry, 'Industry retrieved successfully')
@@ -115,13 +115,13 @@ exports.getIndustryBySlug = async (req, res, next) => {
 
 /**
  * @desc    Update industry
- * @route   PUT /api/v1/industries/:industryId
+ * @route   PUT /api/v1/industries/:id
  * @access  Private
  */
 exports.updateIndustry = async (req, res, next) => {
   try {
     const industry = await industryService.updateIndustry(
-      req.params.industryId,
+      req.params.id,
       req.body,
       req.user.id
     );
@@ -141,7 +141,7 @@ exports.updateIndustry = async (req, res, next) => {
  */
 exports.deleteIndustry = async (req, res, next) => {
   try {
-    const result = await industryService.deleteIndustry(req.params.industryId, req.user.id);
+    const result = await industryService.deleteIndustry(req.params.id, req.user.id);
 
     res.status(200).json(
       ApiResponse.success(null, result.message)
@@ -158,7 +158,7 @@ exports.deleteIndustry = async (req, res, next) => {
  */
 exports.toggleIndustryStatus = async (req, res, next) => {
   try {
-    const industry = await industryService.toggleIndustryStatus(req.params.industryId, req.user.id);
+    const industry = await industryService.toggleIndustryStatus(req.params.id, req.user.id);
 
     res.status(200).json(
       ApiResponse.success(industry, `Industry status changed to ${industry.status}`)

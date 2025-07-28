@@ -250,4 +250,25 @@ exports.getPopularSoftwaresWithTopProducts = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+/**
+ * @desc    Bulk delete software
+ * @route   DELETE /api/v1/admin/software/bulk
+ * @access  Private (Admin)
+ */
+exports.bulkDeleteSoftware = async (req, res, next) => {
+  try {
+    const { ids } = req.body;
+    const result = await softwareService.bulkDeleteSoftware(ids);
+
+    res.status(200).json(
+      ApiResponse.success(
+        result,
+        `Successfully deleted ${result.deletedCount} out of ${result.requestedCount} software items`
+      )
+    );
+  } catch (error) {
+    next(error);
+  }
 }; 

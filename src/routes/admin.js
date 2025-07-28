@@ -1,11 +1,32 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
-const { productReviewController, badgeController, blogController } = require('../controllers');
+const { 
+  productReviewController, 
+  badgeController, 
+  blogController, 
+  userRoleController, 
+  softwareController,
+  solutionController,
+  industryController,
+  languageController,
+  marketSegmentController,
+  integrationController
+} = require('../controllers');
 const adminAuth = require('../middleware/adminAuth');
 const upload = require('../middleware/upload');
 const { validate } = require('../middleware/validation');
-const { productReviewValidator, blogValidator } = require('../validators');
+const { 
+  productReviewValidator, 
+  blogValidator, 
+  userRoleValidator, 
+  softwareValidator,
+  solutionValidator,
+  industryValidator,
+  languageValidator,
+  marketSegmentValidator,
+  integrationValidator
+} = require('../validators');
 const { 
   validateAdminLogin, 
   validateUserQuery, 
@@ -109,5 +130,73 @@ router.delete('/blogs/:id', adminAuth, validate(blogValidator.delete), blogContr
 
 // Resource Categories management routes (Admin only)
 router.get('/resource-categories', adminAuth, require('../controllers/resourceCategoryController').getAllResourceCategories);
+
+// User Roles management routes (Admin only)
+router.get('/user-roles', validate(userRoleValidator.query, 'query'), userRoleController.getAllUserRoles);
+router.post('/user-roles', validate(userRoleValidator.create, 'body'), userRoleController.createUserRole);
+router.get('/user-roles/:id', validate(userRoleValidator.getById, 'params'), userRoleController.getUserRoleById);
+router.put('/user-roles/:id', validate(userRoleValidator.update, 'body'), userRoleController.updateUserRole);
+router.delete('/user-roles/:id', validate(userRoleValidator.delete, 'params'), userRoleController.deleteUserRole);
+router.patch('/user-roles/:id/toggle-status', validate(userRoleValidator.toggleStatus, 'params'), userRoleController.toggleUserRoleStatus);
+router.delete('/user-roles/bulk', userRoleController.bulkDeleteUserRoles);
+
+// Software management routes (Admin only)
+router.get('/software', validate(softwareValidator.validateGetSoftwareList, 'query'), softwareController.getAllSoftware);
+router.post('/software', validate(softwareValidator.validateCreateSoftware, 'body'), softwareController.createSoftware);
+router.get('/software/:id', validate(softwareValidator.validateGetSoftwareById, 'params'), softwareController.getSoftwareById);
+router.put('/software/:id', validate(softwareValidator.validateUpdateSoftware, 'body'), softwareController.updateSoftware);
+router.delete('/software/:id', validate(softwareValidator.validateDeleteSoftware, 'params'), softwareController.deleteSoftware);
+router.patch('/software/:id/toggle-status', validate(softwareValidator.validateToggleSoftwareStatus, 'params'), softwareController.toggleSoftwareStatus);
+router.delete('/software/bulk', softwareController.bulkDeleteSoftware);
+
+// Solutions management routes (Admin only)
+router.get('/solutions', validate(solutionValidator.query, 'query'), solutionController.getAllSolutions);
+router.post('/solutions', validate(solutionValidator.create, 'body'), solutionController.createSolution);
+router.get('/solutions/:id', validate(solutionValidator.getById, 'params'), solutionController.getSolutionById);
+router.put('/solutions/:id', validate(solutionValidator.update, 'body'), solutionController.updateSolution);
+router.delete('/solutions/:id', validate(solutionValidator.delete, 'params'), solutionController.deleteSolution);
+router.patch('/solutions/:id/toggle-status', validate(solutionValidator.toggleStatus, 'params'), solutionController.toggleSolutionStatus);
+
+// Industries management routes (Admin only)
+router.get('/industries', validate(industryValidator.query, 'query'), industryController.getAllIndustries);
+router.post('/industries', validate(industryValidator.create, 'body'), industryController.createIndustry);
+router.get('/industries/:id', validate(industryValidator.getById, 'params'), industryController.getIndustryById);
+router.put('/industries/:id', validate(industryValidator.update, 'body'), industryController.updateIndustry);
+router.delete('/industries/:id', validate(industryValidator.delete, 'params'), industryController.deleteIndustry);
+router.patch('/industries/:id/toggle-status', validate(industryValidator.toggleStatus, 'params'), industryController.toggleIndustryStatus);
+
+// Languages management routes (Admin only)
+router.get('/languages', validate(languageValidator.query, 'query'), languageController.getAllLanguages);
+router.post('/languages', validate(languageValidator.create, 'body'), languageController.createLanguage);
+router.get('/languages/:id', validate(languageValidator.getById, 'params'), languageController.getLanguageById);
+router.put('/languages/:id', validate(languageValidator.update, 'body'), languageController.updateLanguage);
+router.delete('/languages/:id', validate(languageValidator.delete, 'params'), languageController.deleteLanguage);
+router.patch('/languages/:id/toggle-status', validate(languageValidator.toggleStatus, 'params'), languageController.toggleLanguageStatus);
+
+// Market Segments management routes (Admin only)
+router.get('/market-segments', validate(marketSegmentValidator.query, 'query'), marketSegmentController.getAllMarketSegments);
+router.post('/market-segments', validate(marketSegmentValidator.create, 'body'), marketSegmentController.createMarketSegment);
+router.get('/market-segments/:id', validate(marketSegmentValidator.getById, 'params'), marketSegmentController.getMarketSegmentById);
+router.put('/market-segments/:id', validate(marketSegmentValidator.update, 'body'), marketSegmentController.updateMarketSegment);
+router.delete('/market-segments/:id', validate(marketSegmentValidator.delete, 'params'), marketSegmentController.deleteMarketSegment);
+router.patch('/market-segments/:id/toggle-status', validate(marketSegmentValidator.toggleStatus, 'params'), marketSegmentController.toggleMarketSegmentStatus);
+
+// Integrations management routes (Admin only)
+router.get('/integrations', validate(integrationValidator.query, 'query'), integrationController.getAllIntegrations);
+router.post('/integrations', validate(integrationValidator.create, 'body'), integrationController.createIntegration);
+router.get('/integrations/:id', validate(integrationValidator.getById, 'params'), integrationController.getIntegrationById);
+router.put('/integrations/:id', validate(integrationValidator.update, 'body'), integrationController.updateIntegration);
+router.delete('/integrations/:id', validate(integrationValidator.delete, 'params'), integrationController.deleteIntegration);
+router.patch('/integrations/:id/toggle-status', validate(integrationValidator.toggleStatus, 'params'), integrationController.toggleIntegrationStatus);
+
+// Pages management routes (Admin only)
+const { pageController } = require('../controllers');
+router.get('/pages', pageController.getAllPages);
+router.post('/pages', pageController.createPage);
+router.get('/pages/:id', pageController.getPageById);
+router.put('/pages/:id', pageController.updatePage);
+router.delete('/pages/:id', pageController.deletePage);
+router.patch('/pages/:id/toggle-status', pageController.togglePageStatus);
+router.delete('/pages/bulk', pageController.bulkDeletePages);
 
 module.exports = router;

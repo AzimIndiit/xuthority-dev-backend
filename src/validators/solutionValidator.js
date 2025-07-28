@@ -108,11 +108,11 @@ const validateToggleSolutionStatus = [
 ];
 
 module.exports = {
-  validateCreateSolution,
-  validateUpdateSolution,
-  validateGetSolutionById,
-  validateGetSolutionBySlug,
-  validateGetSolutionList,
-  validateDeleteSolution,
-  validateToggleSolutionStatus
+  create: validateCreateSolution,
+  update: validateUpdateSolution,
+  getById: validateGetSolutionById,
+  getBySlug: validateGetSolutionBySlug,
+  query: validateGetSolutionList,
+  delete: validateDeleteSolution,
+  toggleStatus: validateToggleSolutionStatus
 }; 

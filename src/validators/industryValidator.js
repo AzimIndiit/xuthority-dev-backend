@@ -71,13 +71,13 @@ const getIndustriesByCategoryValidation = [
 ];
 
 module.exports = {
-  createIndustryValidation,
-  updateIndustryValidation,
-  getIndustryByIdValidation,
-  getIndustryBySlugValidation,
-  deleteIndustryValidation,
-  toggleIndustryStatusValidation,
-  getAllIndustriesValidation,
-  getActiveIndustriesValidation,
-  getIndustriesByCategoryValidation
+  create: createIndustryValidation,
+  update: updateIndustryValidation,
+  getById: getIndustryByIdValidation,
+  getBySlug: getIndustryBySlugValidation,
+  delete: deleteIndustryValidation,
+  toggleStatus: toggleIndustryStatusValidation,
+  query: getAllIndustriesValidation,
+  getActiveIndustries: getActiveIndustriesValidation,
+  getByCategory: getIndustriesByCategoryValidation
 };
