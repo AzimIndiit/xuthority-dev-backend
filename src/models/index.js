@@ -23,6 +23,7 @@ const SubscriptionPlan = require('./SubscriptionPlan');
 const UserSubscription = require('./UserSubscription');
 const UserBadge = require('./UserBadge');
 const Page = require('./Page');
+const LandingPage = require('./LandingPage');
 
 module.exports = {
   User,
@@ -49,5 +50,6 @@ module.exports = {
   SubscriptionPlan,
   UserSubscription,
   UserBadge,
-  Page
+  Page,
+  LandingPage
 };
