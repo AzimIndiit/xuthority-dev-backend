@@ -101,11 +101,72 @@ exports.updateSection = async (req, res, next) => {
     const validSections = [
       'hero', 'categories', 'reviewCta', 'insights', 'testimonials',
       'vendorCta', 'popular', 'features', 'pricing', 'cta',
-      'mission', 'values', 'team', 'contact', 'trustedTech', 'reachBuyers'
+      'mission', 'missionSupport', 'values', 'team', 'contact', 'trustedTech', 'reachBuyers'
     ];
     
     if (!validSections.includes(normalizedSectionName)) {
       throw new ApiError('Invalid section name', 'INVALID_SECTION', 400);
+    }
+    
+    // Process categories section - keep IDs but populate product details
+    if (normalizedSectionName === 'categories' && sectionData.categories) {
+      const Product = require('../models/Product');
+      
+      // Process each category
+      for (let category of sectionData.categories) {
+        // Keep the software ID as is (don't convert to name)
+        // The frontend will handle displaying the name
+        
+        // Process products - convert IDs to objects with id, name, logo
+        if (category.products && Array.isArray(category.products)) {
+          const processedProducts = [];
+          for (let productItem of category.products) {
+            // If it's just an ID string, fetch the product details
+            if (typeof productItem === 'string') {
+              const product = await Product.findById(productItem).select('name logoUrl').lean();
+              if (product) {
+                processedProducts.push({
+                  id: productItem,
+                  name: product.name,
+                  logo: product.logoUrl || ''
+                });
+              }
+            } else if (productItem && productItem.id) {
+              // It's already an object, keep it
+              processedProducts.push(productItem);
+            }
+          }
+          category.products = processedProducts;
+        }
+      }
+    }
+    
+    // Process popular section - keep IDs but populate product details
+    if (normalizedSectionName === 'popular' && sectionData.solutions) {
+      const Product = require('../models/Product');
+      
+      // Process each solution
+      for (let solution of sectionData.solutions) {
+        // Process types - convert product IDs to objects with id and name
+        if (solution.types && Array.isArray(solution.types)) {
+          const processedTypes = [];
+          for (let productId of solution.types) {
+            if (typeof productId === 'string') {
+              const product = await Product.findById(productId).select('name').lean();
+              if (product) {
+                processedTypes.push({
+                  id: productId,
+                  name: product.name
+                });
+              }
+            }
+          }
+          solution.types = processedTypes;
+        }
+        
+        // Keep the prefixed value as is (e.g., "software_id" or "solution_id")
+        // The frontend will handle displaying the name
+      }
     }
     
     // Update section data

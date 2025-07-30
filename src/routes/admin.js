@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
+const adminNotificationController = require('../controllers/adminNotificationController');
 const { 
   productReviewController, 
   badgeController, 
@@ -73,6 +74,12 @@ router.patch('/change-password', validateAdminPasswordChange, adminController.ch
 
 // Dashboard and analytics
 router.get('/analytics', adminController.getDashboardAnalytics);
+
+// Notification routes
+router.get('/notifications', adminNotificationController.listAdminNotifications);
+router.get('/notifications/unread-count', adminNotificationController.getAdminUnreadCount);
+router.patch('/notifications/:id/read', adminNotificationController.markAdminNotificationAsRead);
+router.patch('/notifications/read-all', adminNotificationController.markAllAdminNotificationsAsRead);
 
 // User management routes
 router.get('/users', validateUserQuery, adminController.getUsers);

@@ -21,7 +21,7 @@ const landingPageSchema = new mongoose.Schema({
       heading: { type: String, required: false },
       categories: [{
         id: { type: String, required: false },
-        name: { type: String, required: false },
+        name: { type: String, required: false }, // This will store the software ID
         products: [{
           id: { type: String, required: false },
           name: { type: String, required: false },
@@ -33,7 +33,7 @@ const landingPageSchema = new mongoose.Schema({
     // Review CTA Section
     reviewCta: {
       heading: { type: String, required: false },
-      subheading: { type: String, required: false },
+      subtext: { type: String, required: false },
       buttonText: { type: String, required: false },
       buttonLink: { type: String, required: false }
     },
@@ -70,7 +70,7 @@ const landingPageSchema = new mongoose.Schema({
       heading: { type: String, required: false },
       solutions: [{
         id: { type: String, required: false },
-        name: { type: String, required: false },
+        name: { type: String, required: false }, // This will store "software_id" or "solution_id"
         types: [{
           id: { type: String, required: false },
           name: { type: String, required: false }
@@ -116,14 +116,23 @@ const landingPageSchema = new mongoose.Schema({
       image: { type: String, required: false }
     },
     
+    // Mission Support Section
+    missionSupport: {
+      heading: { type: String, required: false },
+      subtext: { type: String, required: false },
+      buttonText: { type: String, required: false },
+      buttonLink: { type: String, required: false }
+    },
+    
     // Values Section
     values: {
-      title: { type: String, required: false },
-      values: [{
-        title: { type: String, required: false },
-        description: { type: String, required: false },
-        icon: { type: String, required: false }
-      }]
+      cards: [{
+        id: { type: String, required: false },
+        heading: { type: String, required: false },
+        subtext: { type: String, required: false }
+      }],
+      buttonText: { type: String, required: false },
+      buttonLink: { type: String, required: false }
     },
     
     // Team Section
@@ -148,8 +157,11 @@ const landingPageSchema = new mongoose.Schema({
     
     // Vendor-specific sections
     trustedTech: {
-      heading: { type: String, required: false },
-      subtext: { type: String, required: false },
+      cards: [{
+        id: { type: String, required: false },
+        heading: { type: String, required: false },
+        subtext: { type: String, required: false }
+      }],
       buttonText: { type: String, required: false },
       buttonLink: { type: String, required: false }
     },

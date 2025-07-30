@@ -8,6 +8,7 @@ const { createNotification } = require('../services/notificationService');
 const emailService = require('../services/emailService');
 const userService = require('../services/userService');
 const logger = require('../config/logger');
+const { notifyAdminsNewUser } = require('../services/adminNotificationService');
 const { generateBlockedUserError, isUserBlocked } = require('../utils/authHelpers');
 
 const SALT_ROUNDS = process.env.BCRYPT_SALT_ROUNDS ? parseInt(process.env.BCRYPT_SALT_ROUNDS) : 12;
@@ -84,6 +85,10 @@ exports.register = async (req, res, next) => {
       message: user.role === 'vendor' ? 'Welcome to XUTHORITY! Start exploring and add your products today.' : 'Welcome to XUTHORITY! Start exploring and add your reviews today.',
       actionUrl: '/'
     });
+    
+    // Notify admins about new user
+    await notifyAdminsNewUser(user);
+    
     const newUser = {
       ...user.toObject(),
       password: undefined,

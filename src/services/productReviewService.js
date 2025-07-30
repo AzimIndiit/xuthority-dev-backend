@@ -5,6 +5,7 @@ const ApiResponse = require('../utils/apiResponse');
 const ApiError = require('../utils/apiError');
 const { createNotification } = require('../services/notificationService');
 const { updateProductAggregateRatings } = require('../utils/productRatingHelpers');
+const { notifyAdminsNewReview } = require('../services/adminNotificationService');
 
 /**
  * Create a new product review
@@ -52,6 +53,10 @@ const createProductReview = async (reviewData, userId) => {
       { path: 'reviewer', select: 'name email' },
       { path: 'product', select: 'name slug' }
     ]);
+
+    // Send notification to admins
+    const reviewer = await User.findById(reviewerId).select('name');
+    await notifyAdminsNewReview(review, product, reviewer);
 
     return ApiResponse.success(review, 'Product review created successfully');
   } catch (error) {

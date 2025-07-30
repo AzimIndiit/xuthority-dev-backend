@@ -3,6 +3,7 @@ const Badge = require('../models/Badge');
 const ApiResponse = require('../utils/apiResponse');
 const ApiError = require('../utils/apiError');
 const { createNotification } = require('../services/notificationService');
+const { notifyAdminsBadgeRequest } = require('../services/adminNotificationService');
 
 // Vendor requests a badge
 exports.requestBadge = async (req, res, next) => {
@@ -36,6 +37,10 @@ exports.requestBadge = async (req, res, next) => {
       meta: { badgeId },
       actionUrl: '/profile/my-badges'
     });
+    
+    // Notify admins about the badge request
+    await notifyAdminsBadgeRequest(badge, req.user);
+    
     return res.status(201).json(ApiResponse.success(userBadge, 'Badge request submitted'));
   } catch (err) {
     console.error('Error in requestBadge:', err);
