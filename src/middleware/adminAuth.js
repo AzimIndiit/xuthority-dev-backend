@@ -62,7 +62,8 @@ const adminAuth = async (req, res, next) => {
         });
       }
 
-      req.user = admin;
+      req.admin = admin;
+      req.user = admin; // For backward compatibility
       next();
     } catch (jwtError) {
       return res.status(401).json({

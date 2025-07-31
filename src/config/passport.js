@@ -4,6 +4,8 @@ const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const User = require('../models/User');
 const { isUserBlocked } = require('../utils/authHelpers');
+const { createNotification } = require('../services/notificationService');
+const { notifyAdminsNewUser } = require('../services/adminNotificationService');
 require('dotenv').config();
 
 // Google OAuth Strategy
@@ -27,6 +29,28 @@ passport.use(new GoogleStrategy({
         authProvider: 'google',
         acceptedTerms: true, // You may want to handle this in the UI
       });
+
+      // Send welcome notification to user
+      try {
+        await createNotification({
+          userId: user._id,
+          type: 'WELCOME',
+          title: 'Welcome to XUTHORITY!',
+          message: user.role === 'vendor' ? 'Welcome to XUTHORITY! Start exploring and add your products today.' : 'Welcome to XUTHORITY! Start exploring and add your reviews today.',
+          actionUrl: user.role === 'vendor' ? '/dashboard' : '/'
+        });
+      } catch (notificationError) {
+        console.error('Failed to send welcome notification for Google OAuth user:', notificationError);
+        // Don't throw error here as registration was successful
+      }
+
+      // Notify admins about new user
+      try {
+        await notifyAdminsNewUser(user);
+      } catch (adminNotificationError) {
+        console.error('Failed to send admin notification for Google OAuth user:', adminNotificationError);
+        // Don't throw error here as registration was successful
+      }
 
       // Create default free plan subscription for new vendors
       // if (role === 'vendor') {
@@ -99,6 +123,28 @@ passport.use('linkedin', new LinkedInStrategy({
         authProvider: 'linkedin',
         acceptedTerms: true, // You may want to handle this in the UI
       });
+
+      // Send welcome notification to user
+      try {
+        await createNotification({
+          userId: user._id,
+          type: 'WELCOME',
+          title: 'Welcome to XUTHORITY!',
+          message: user.role === 'vendor' ? 'Welcome to XUTHORITY! Start exploring and add your products today.' : 'Welcome to XUTHORITY! Start exploring and add your reviews today.',
+          actionUrl: user.role === 'vendor' ? '/dashboard' : '/'
+        });
+      } catch (notificationError) {
+        console.error('Failed to send welcome notification for LinkedIn OAuth user:', notificationError);
+        // Don't throw error here as registration was successful
+      }
+
+      // Notify admins about new user
+      try {
+        await notifyAdminsNewUser(user);
+      } catch (adminNotificationError) {
+        console.error('Failed to send admin notification for LinkedIn OAuth user:', adminNotificationError);
+        // Don't throw error here as registration was successful
+      }
 
       // Create default free plan subscription for new vendors
       // if (role === 'vendor') {

@@ -216,7 +216,7 @@ const getProducts = async (options = {}, user = null) => {
       }
     }
   }
-
+console.log('filter========', filter,categories)
   // Industries filter
   if (industries && industries.length > 0) {
     const { Industry } = require('../models');

@@ -412,8 +412,14 @@ exports.getActiveProducts = async (req, res, next) => {
       status: 'published', // Only published products
       isActive: 'active', // Only active products
       softwareIds: req.query.softwareIds,
-      solutionIds: req.query.solutionIds
+      solutionIds: req.query.solutionIds,
+      categories: req.query.categories,
+     
     };
+
+    if(options.categories){
+      options.categories = options.categories.split(',');
+    }
 
     // Convert comma-separated strings to arrays for ObjectId fields
     if (options.softwareIds && typeof options.softwareIds === 'string') {
@@ -697,10 +703,17 @@ exports.getProductsByCategory = async (req, res, next) => {
       // New filter parameters
       segment: req.query.segment,
       categories: req.query.categories,
+      softwareIds: req.query.softwareIds,
       industries: req.query.industries,
       minPrice: req.query.minPrice ? parseFloat(req.query.minPrice) : undefined,
       maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice) : undefined
     };
+
+    if(options.softwareIds){
+      options.softwareIds = options.softwareIds.split(',');
+    }
+
+   
 
     // Convert comma-separated strings to arrays for filter fields
     if (options.categories && typeof options.categories === 'string') {
@@ -725,7 +738,7 @@ exports.getProductsByCategory = async (req, res, next) => {
         }
       }
     }
-    console.log(options,"options");
+    console.log(options,"options=========");
 
     const result = await productService.getProducts(options, req.user);
 

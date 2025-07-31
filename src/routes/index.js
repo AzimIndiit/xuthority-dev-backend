@@ -31,6 +31,7 @@ const favoritesRoutes = require('./favorites');
 const subscriptionRoutes = require('./subscription');
 const pageRoutes = require('./pages');
 const landingPageRoutes = require('./landingPages');
+const metaTagRoutes = require('./metaTags');
 const { API_PREFIX } = require('../config/constants');
 
 // Register all routes
@@ -63,6 +64,7 @@ router.use(`${API_PREFIX}/favorites`, favoritesRoutes);
 router.use(`${API_PREFIX}/subscription`, subscriptionRoutes);
 router.use(`${API_PREFIX}/pages`, pageRoutes);
 router.use(`${API_PREFIX}/landing-pages`, landingPageRoutes);
+router.use(`${API_PREFIX}/meta-tags`, metaTagRoutes);
 
 // API documentation route
 router.get('/', (req, res) => {

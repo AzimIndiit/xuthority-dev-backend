@@ -107,7 +107,7 @@ router.patch('/vendors/:id/unblock', validateUnblockVendor, adminController.unbl
 // router.patch('/reviews/:id/approve', validate(productReviewValidator.updateReviewStatus), productReviewController.approveReview);
 // router.patch('/reviews/:id/reject', validate(productReviewValidator.updateReviewStatus), productReviewController.rejectReview);
 // router.patch('/reviews/:id/flag', validate(productReviewValidator.updateReviewStatus), productReviewController.flagReview);
-// router.delete('/reviews/:id', validate(productReviewValidator.deleteReview), productReviewController.deleteReview);
+router.delete('/product-reviews/:id', validate(productReviewValidator.delete), adminController.deleteReview);
 
 // Badge management routes
 router.get('/badges', validateAdminBadgeQuery, badgeController.getAdminBadges);
@@ -205,5 +205,15 @@ router.put('/pages/:id', pageController.updatePage);
 router.delete('/pages/:id', pageController.deletePage);
 router.patch('/pages/:id/toggle-status', pageController.togglePageStatus);
 router.delete('/pages/bulk', pageController.bulkDeletePages);
+
+// Meta Tags management routes (Admin only)
+const { metaTagController } = require('../controllers');
+router.get('/meta-tags', metaTagController.getAllMetaTags);
+router.post('/meta-tags', metaTagController.createMetaTag);
+router.get('/meta-tags/:id', metaTagController.getMetaTagById);
+router.put('/meta-tags/:id', metaTagController.updateMetaTag);
+router.delete('/meta-tags/:id', metaTagController.deleteMetaTag);
+router.patch('/meta-tags/:id/toggle-status', metaTagController.toggleMetaTagStatus);
+router.delete('/meta-tags/bulk', metaTagController.bulkDeleteMetaTags);
 
 module.exports = router;

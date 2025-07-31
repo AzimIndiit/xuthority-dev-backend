@@ -5895,6 +5895,157 @@
         }
       }
     },
+    "/api/v1/meta-tags/active": {
+      "get": {
+        "summary": "Get all active meta tags",
+        "tags": [
+          "Meta Tags"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            },
+            "description": "Number of items per page"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search term for page name, meta title, or description"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Meta tags retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "metaTags": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/MetaTag"
+                          }
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Active meta tags retrieved successfully"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "example": 10
+                            },
+                            "total": {
+                              "type": "integer",
+                              "example": 50
+                            },
+                            "totalPages": {
+                              "type": "integer",
+                              "example": 5
+                            },
+                            "hasNextPage": {
+                              "type": "boolean",
+                              "example": true
+                            },
+                            "hasPrevPage": {
+                              "type": "boolean",
+                              "example": false
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/meta-tags/page/{pageName}": {
+      "get": {
+        "summary": "Get meta tag by page name",
+        "tags": [
+          "Meta Tags"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pageName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Page name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Meta tag retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/MetaTag"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Meta tag retrieved successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Meta tag not found"
+          }
+        }
+      }
+    },
     "/otp/create": {
       "post": {
         "tags": [
@@ -13862,6 +14013,68 @@
         }
       }
     },
+    "/admin/product-reviews/{id}": {
+      "delete": {
+        "tags": [
+          "Admin Review Management"
+        ],
+        "summary": "Delete product review",
+        "description": "Permanently delete a product review by admin",
+        "security": [
+          {
+            "AdminBearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$"
+            },
+            "description": "MongoDB ObjectId of the review to delete",
+            "example": "60d21b4667d0d8992e610c85"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "example": {}
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Review deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid review ID format"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        }
+      }
+    },
     "/admin/badges": {
       "get": {
         "tags": [
@@ -14596,6 +14809,10 @@
     }
   },
   "tags": [
+    {
+      "name": "Meta Tags",
+      "description": "Meta tag management API"
+    },
     {
       "name": "Pages",
       "description": "Page management API"

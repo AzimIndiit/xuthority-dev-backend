@@ -115,17 +115,7 @@ const sampleBlogs = [
     categoryName: 'Case Studies'
   },
 
-  // White Papers
-  {
-    authorName: 'Dr. James Wilson',
-    designation: 'Research Director',
-    title: 'The State of B2B Buying in 2024',
-    description: 'Comprehensive research report analyzing current trends, challenges, and opportunities in B2B purchasing decisions based on data from 1000+ enterprises.',
-    mediaUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&h=340&fit=crop&crop=center',
-    tag: 'Research',
-    status: 'active',
-    categoryName: 'White Papers'
-  }
+
 ];
 
 const seedBlogs = async () => {

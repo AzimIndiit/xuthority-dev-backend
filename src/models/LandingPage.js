@@ -21,12 +21,12 @@ const landingPageSchema = new mongoose.Schema({
       heading: { type: String, required: false },
       categories: [{
         id: { type: String, required: false },
-        name: { type: String, required: false }, // This will store the software ID
+        name: { type: mongoose.Schema.Types.ObjectId, ref:'Software',required: true },
         products: [{
-          id: { type: String, required: false },
-          name: { type: String, required: false },
-          logo: { type: String, required: false }
-        }]
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Product',
+          required: true,
+        }],
       }]
     },
     
@@ -70,11 +70,15 @@ const landingPageSchema = new mongoose.Schema({
       heading: { type: String, required: false },
       solutions: [{
         id: { type: String, required: false },
-        name: { type: String, required: false }, // This will store "software_id" or "solution_id"
-        types: [{
-          id: { type: String, required: false },
-          name: { type: String, required: false }
-        }]
+        // Allow referencing either a Software or a Solution
+        software: { type: mongoose.Schema.Types.ObjectId, ref: 'Software', required: false },
+        solution: { type: mongoose.Schema.Types.ObjectId, ref: 'Solution', required: false },
+        // Allow multiple products per solution/software
+        products: [{
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Product',
+          required: false,
+        }],
       }]
     },
     

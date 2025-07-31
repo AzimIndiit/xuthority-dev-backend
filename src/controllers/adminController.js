@@ -683,9 +683,7 @@ exports.getUserById = async (req, res, next) => {
 exports.getUserProfileStats = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    
     const stats = await adminService.getUserProfileStats(userId);
-    
     return res.json(ApiResponse.success(stats, 'User profile statistics retrieved successfully'));
   } catch (err) {
     next(err);
@@ -1689,5 +1687,65 @@ exports.updateAdminDispute = async (req, res, next) => {
     ));
   } catch (error) {
     next(error);
+  }
+};
+
+/**
+ * @openapi
+ * /admin/product-reviews/{id}:
+ *   delete:
+ *     tags:
+ *       - Admin Review Management
+ *     summary: Delete product review
+ *     description: Permanently delete a product review by admin
+ *     security:
+ *       - AdminBearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: ^[0-9a-fA-F]{24}$
+ *         description: MongoDB ObjectId of the review to delete
+ *         example: 60d21b4667d0d8992e610c85
+ *     responses:
+ *       200:
+ *         description: Review deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   example: {}
+ *                 message:
+ *                   type: string
+ *                   example: Review deleted successfully
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: Review not found
+ *       400:
+ *         description: Invalid review ID format
+ */
+exports.deleteReview = async (req, res, next) => {
+  try {
+    const reviewId = req.params.id;
+    const productReviewService = require('../services/productReviewService');
+    
+    // Admin can delete any review
+    const result = await productReviewService.deleteProductReview(reviewId, req.user.id, 'admin');
+    
+    return res.json(ApiResponse.success(
+      result, 
+      'Review deleted successfully'
+    ));
+  } catch (err) {
+    next(err);
   }
 };

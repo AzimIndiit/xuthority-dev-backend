@@ -801,9 +801,9 @@ const getUserProfileStats = async (userId) => {
 
     // Get user badges
     const userBadges = await UserBadge.find({ userId, status: 'accepted' })
-      .populate('badgeId', 'name description icon')
+      .populate('badgeId', 'name description icon colorCode')
       .sort({ earnedAt: -1 });
-
+console.log("userBadges------",userBadges)
     const badges = userBadges
       .filter(ub => ub.badgeId) // Filter out badges where badgeId is null
       .map(ub => ({
@@ -811,7 +811,8 @@ const getUserProfileStats = async (userId) => {
         name: ub.badgeId.name,
         description: ub.badgeId.description,
         icon: ub.badgeId.icon,
-        earnedDate: ub.earnedAt
+        earnedDate: ub.earnedAt,
+        colorCode: ub.badgeId.colorCode
       }));
 
     return {
@@ -969,7 +970,8 @@ const getVendorProfileStatsBySlug = async (slug) => {
           name: userBadge.badgeId.title,
           description: userBadge.badgeId.description,
           icon: userBadge.badgeId.icon,
-          earnedDate: userBadge.createdAt
+          earnedDate: userBadge.createdAt,
+          colorCode: userBadge.badgeId.colorCode
         }))
     };
   } catch (error) {

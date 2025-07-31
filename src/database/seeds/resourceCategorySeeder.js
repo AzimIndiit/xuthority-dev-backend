@@ -18,14 +18,7 @@ const resourceCategories = [
     name: 'Success Hub',
     status: 'active'
   },
-  {
-    name: 'Case Studies',
-    status: 'active'
-  },
-  {
-    name: 'White Papers',
-    status: 'active'
-  }
+ 
 ];
 
 const seedResourceCategories = async () => {

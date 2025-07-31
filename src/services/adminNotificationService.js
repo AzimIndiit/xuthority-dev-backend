@@ -44,7 +44,7 @@ async function notifyAdminsNewReview(review, product, reviewer) {
       reviewerName: reviewer.name || 'Unknown',
       productName: product.name || 'Unknown'
     },
-    actionUrl: `/reviews/${review._id}`
+    actionUrl: 'reviews'
   });
 }
 
@@ -56,9 +56,16 @@ async function notifyAdminsNewUser(user) {
   const roleText = user.role === 'vendor' ? 'vendor' : 'user';
   const type = user.role === 'vendor' ? 'VENDOR_REGISTRATION' : 'USER_REGISTRATION';
   const title = user.role === 'vendor' ? 'New Vendor Application' : 'New User Joined';
+  
+  // Create display name from firstName and lastName
+  const displayName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
+  
   const message = user.role === 'vendor' 
-    ? `A new vendor ${user.name || 'Unknown'} has registered and is awaiting approval. Review their details in the vendor section.`
-    : `A new user ${user.name || 'Unknown'} has successfully registered on the platform. View their profile in the user management panel.`;
+    ? `A new vendor ${displayName} has registered and is awaiting approval. Review their details in the vendor section.`
+    : `A new user ${displayName} has successfully registered on the platform. View their profile in the user management panel.`;
+
+  // Set action URL based on user role - always use general route
+  const actionUrl = user.role === 'vendor' ? 'vendors' : 'users';
 
   return createAdminNotification({
     type,
@@ -68,9 +75,9 @@ async function notifyAdminsNewUser(user) {
       userId: user._id.toString(),
       userRole: user.role,
       userEmail: user.email,
-      userName: user.name || 'Unknown'
+      userName: displayName
     },
-    actionUrl: `/users/${user._id}`
+    actionUrl: actionUrl
   });
 }
 
@@ -80,17 +87,20 @@ async function notifyAdminsNewUser(user) {
  * @param {Object} user - User requesting badge
  */
 async function notifyAdminsBadgeRequest(badge, user) {
+  // Create display name from firstName and lastName
+  const displayName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
+  
   return createAdminNotification({
     type: 'BADGE_REQUEST',
     title: 'New Badge Request',
-    message: `${user.name || 'A vendor'} has requested the "${badge.title || 'Unknown'}" badge. Review the request in the Badges section.`,
+    message: `${displayName} has requested the "${badge.title || 'Unknown'}" badge. Review the request in the Badges section.`,
     meta: { 
       badgeId: badge._id.toString(),
       userId: user._id.toString(),
       badgeName: badge.title || 'Unknown',
-      userName: user.name || 'Unknown'
+      userName: displayName
     },
-    actionUrl: `/badges/requests`
+    actionUrl: 'badges'
   });
 }
 
@@ -100,18 +110,21 @@ async function notifyAdminsBadgeRequest(badge, user) {
  * @param {Object} user - User who made payment
  */
 async function notifyAdminsPaymentSuccess(payment, user) {
+  // Create display name from firstName and lastName
+  const displayName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
+  
   return createAdminNotification({
     type: 'PAYMENT_SUCCESS',
     title: 'Payment Received',
-    message: `A payment of $${payment.amount || '0'} was received from ${user.name || 'Unknown'} for ${payment.description || 'Unknown'}.`,
+    message: `A payment of $${payment.amount || '0'} was received from ${displayName} for ${payment.description || 'Unknown'}.`,
     meta: { 
       paymentId: payment._id ? payment._id.toString() : 'unknown',
       userId: user._id.toString(),
       amount: payment.amount || 0,
       currency: payment.currency || 'USD',
-      userName: user.name || 'Unknown'
+      userName: displayName
     },
-    actionUrl: `/payments`
+    actionUrl: 'dashboard'
   });
 }
 

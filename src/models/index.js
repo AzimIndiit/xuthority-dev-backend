@@ -24,6 +24,7 @@ const UserSubscription = require('./UserSubscription');
 const UserBadge = require('./UserBadge');
 const Page = require('./Page');
 const LandingPage = require('./LandingPage');
+const MetaTag = require('./MetaTag');
 
 module.exports = {
   User,
@@ -51,5 +52,6 @@ module.exports = {
   UserSubscription,
   UserBadge,
   Page,
-  LandingPage
+  LandingPage,
+  MetaTag
 };

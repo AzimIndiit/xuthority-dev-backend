@@ -21,6 +21,7 @@ const communityController = require('./communityController');
 const disputeController = require('./disputeController');
 const badgeController = require('./badgeController');
 const pageController = require('./pageController');
+const metaTagController = require('./metaTagController');
 
 module.exports = {
   authController,
@@ -44,5 +45,6 @@ module.exports = {
   communityController,
   disputeController,
   badgeController,
-  pageController
+  pageController,
+  metaTagController
 };

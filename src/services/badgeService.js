@@ -310,76 +310,48 @@ const getBadgeRequests = async (options = {}) => {
     // Calculate pagination
     const skip = (page - 1) * limit;
 
-    // Simple aggregation pipeline
-    const pipeline = [
-      { $match: query },
-      {
-        $lookup: {
-          from: 'badges',
-          localField: 'badgeId',
-          foreignField: '_id',
-          as: 'badge'
-        }
+    // Get badge requests with populated data
+    const badgeRequests = await UserBadge.find(query)
+      .populate('badgeId', 'title description icon colorCode status earnedBy')
+      .populate('userId', 'firstName lastName email avatar role')
+      .sort(sort)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+
+    // Transform the data to match frontend expectations
+    const transformedRequests = badgeRequests.map(request => ({
+      _id: request._id,
+      userId: request.userId?._id || request.userId,
+      badgeId: request.badgeId?._id || request.badgeId,
+      reason: request.reason,
+      status: request.status,
+      requestedAt: request.createdAt,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
+      approvedAt: request.approvedAt,
+      rejectedAt: request.rejectedAt,
+      rejectionReason: request.rejectionReason,
+      badge: {
+        _id: request.badgeId?._id || request.badgeId,
+        title: request.badgeId?.title || 'Unknown Badge',
+        description: request.badgeId?.description || 'No description available',
+        icon: request.badgeId?.icon || '🏆',
+        colorCode: request.badgeId?.colorCode || '#3B82F6',
+        earnedBy: request.badgeId?.earnedBy || 0
       },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'userId',
-          foreignField: '_id',
-          as: 'user'
-        }
-      },
-      { $unwind: { path: '$badge', preserveNullAndEmptyArrays: true } },
-      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
-      // Add a field to handle missing badge data
-      {
-        $addFields: {
-          badge: {
-            $ifNull: [
-              '$badge',
-              {
-                _id: '$badgeId',
-                title: 'Badge Not Found',
-                description: 'This badge no longer exists',
-                icon: '❓',
-                colorCode: '#999999'
-              }
-            ]
-          }
-        }
+      user: {
+        _id: request.userId?._id || request.userId,
+        firstName: request.userId?.firstName || '',
+        lastName: request.userId?.lastName || '',
+        email: request.userId?.email || '',
+        avatar: request.userId?.avatar || '',
+        role: request.userId?.role || 'user'
       }
-    ];
-
-    // Add search filter if provided
-    if (search) {
-      const searchRegex = new RegExp(search, 'i');
-      pipeline.push({
-        $match: {
-          $or: [
-            { 'badge.title': { $regex: searchRegex } },
-            { 'user.firstName': { $regex: searchRegex } },
-            { 'user.lastName': { $regex: searchRegex } },
-            { 'user.email': { $regex: searchRegex } }
-          ]
-        }
-      });
-    }
-
-    // Add sort, skip, and limit
-    pipeline.push(
-      { $sort: sort },
-      { $skip: skip },
-      { $limit: parseInt(limit) }
-    );
-
-    // Execute aggregation
-    const badgeRequests = await UserBadge.aggregate(pipeline);
+    }));
 
     // Get total count
-    const totalPipeline = pipeline.slice(0, -3); // Remove sort, skip, limit
-    totalPipeline.push({ $count: 'total' });
-    const totalResult = await UserBadge.aggregate(totalPipeline);
-    const total = totalResult.length > 0 ? totalResult[0].total : 0;
+    const total = await UserBadge.countDocuments(query);
 
     // Calculate pagination info
     const totalPages = Math.ceil(total / limit);
@@ -391,7 +363,7 @@ const getBadgeRequests = async (options = {}) => {
     };
 
     return {
-      badgeRequests,
+      badgeRequests: transformedRequests,
       pagination
     };
   } catch (error) {
@@ -505,7 +477,50 @@ const getBadgeRequestDetails = async (requestId) => {
       throw new ApiError('Badge request not found', 'REQUEST_NOT_FOUND', 404);
     }
 
-    return request;
+    // Transform the data to match frontend expectations
+    const transformedRequest = {
+      _id: request._id,
+      userId: request.userId._id,
+      badgeId: request.badgeId._id,
+      reason: request.reason,
+      status: request.status,
+      requestedAt: request.createdAt,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
+      approvedAt: request.approvedAt,
+      rejectedAt: request.rejectedAt,
+      rejectionReason: request.rejectionReason,
+      badge: {
+        _id: request.badgeId._id,
+        title: request.badgeId.title || 'Unknown Badge',
+        description: request.badgeId.description || 'No description available',
+        icon: request.badgeId.icon || '🏆',
+        colorCode: request.badgeId.colorCode || '#3B82F6',
+        earnedBy: request.badgeId.earnedBy || 0
+      },
+      user: {
+        _id: request.userId._id,
+        firstName: request.userId.firstName || '',
+        lastName: request.userId.lastName || '',
+        email: request.userId.email || '',
+        avatar: request.userId.avatar || '',
+        role: request.userId.role || 'user'
+      },
+      approvedBy: request.approvedBy ? {
+        _id: request.approvedBy._id,
+        firstName: request.approvedBy.firstName,
+        lastName: request.approvedBy.lastName,
+        email: request.approvedBy.email
+      } : null,
+      rejectedBy: request.rejectedBy ? {
+        _id: request.rejectedBy._id,
+        firstName: request.rejectedBy.firstName,
+        lastName: request.rejectedBy.lastName,
+        email: request.rejectedBy.email
+      } : null
+    };
+
+    return transformedRequest;
   } catch (error) {
     if (error instanceof ApiError) throw error;
     throw new ApiError(`Failed to fetch badge request details: ${error.message}`, 'FETCH_REQUEST_DETAILS_ERROR', 500);

@@ -2,6 +2,7 @@ const LandingPage = require('../models/LandingPage');
 const ApiError = require('../utils/apiError');
 const { success } = require('../utils/apiResponse');
 const logger = require('../config/logger');
+const mongoose = require('mongoose');
 
 /**
  * Get landing page data by type
@@ -16,7 +17,39 @@ exports.getLandingPage = async (req, res, next) => {
     }
     
     // Get or create the landing page
-    const landingPage = await LandingPage.getOrCreate(pageType);
+    let landingPage = await LandingPage.getOrCreate(pageType);
+    
+    // Populate categories section if it exists
+    if (landingPage.sections && landingPage.sections.categories) {
+      landingPage = await landingPage.populate([
+        {
+          path: 'sections.categories.categories.name',
+          select: 'name slug'
+        },
+        {
+          path: 'sections.categories.categories.products',
+          select: 'name slug logo logoUrl'
+        }
+      ]);
+    }
+    
+    // Populate popular section if it exists
+    if (landingPage.sections && landingPage.sections.popular) {
+      landingPage = await landingPage.populate([
+        {
+          path: 'sections.popular.solutions.software',
+          select: 'name slug'
+        },
+        {
+          path: 'sections.popular.solutions.solution',
+          select: 'name slug'
+        },
+        {
+          path: 'sections.popular.solutions.products',
+          select: 'name slug logo logoUrl'
+        }
+      ]);
+    }
     
     return res.json(
       success(landingPage, 'Landing page retrieved successfully')
@@ -49,12 +82,41 @@ exports.getSection = async (req, res, next) => {
     
     const normalizedSectionName = sectionNameMap[sectionName] || sectionName;
     
-    const landingPage = await LandingPage.getOrCreate(pageType);
+    let landingPage = await LandingPage.getOrCreate(pageType);
     
     if (!landingPage.sections || !landingPage.sections[normalizedSectionName]) {
       return res.json(
         success({}, 'Section data retrieved successfully')
       );
+    }
+    
+    // Populate data based on section name
+    if (normalizedSectionName === 'categories' && landingPage.sections.categories) {
+      landingPage = await landingPage.populate([
+        {
+          path: 'sections.categories.categories.name',
+          select: 'name slug'
+        },
+        {
+          path: 'sections.categories.categories.products',
+          select: 'name slug logo logoUrl'
+        }
+      ]);
+    } else if (normalizedSectionName === 'popular' && landingPage.sections.popular) {
+      landingPage = await landingPage.populate([
+        {
+          path: 'sections.popular.solutions.software',
+          select: 'name slug'
+        },
+        {
+          path: 'sections.popular.solutions.solution',
+          select: 'name slug'
+        },
+        {
+          path: 'sections.popular.solutions.products',
+          select: 'name slug logo logoUrl'
+        }
+      ]);
     }
     
     return res.json(
@@ -108,64 +170,104 @@ exports.updateSection = async (req, res, next) => {
       throw new ApiError('Invalid section name', 'INVALID_SECTION', 400);
     }
     
-    // Process categories section - keep IDs but populate product details
+    // Process categories section - handle new schema with ObjectId references
     if (normalizedSectionName === 'categories' && sectionData.categories) {
       const Product = require('../models/Product');
+      const Software = require('../models/Software');
       
       // Process each category
       for (let category of sectionData.categories) {
-        // Keep the software ID as is (don't convert to name)
-        // The frontend will handle displaying the name
+        // Validate software ID (name field)
+        if (category.name && typeof category.name === 'string') {
+          // Ensure it's a valid ObjectId
+          if (!mongoose.Types.ObjectId.isValid(category.name)) {
+            throw new ApiError('Invalid software ID', 'INVALID_SOFTWARE_ID', 400);
+          }
+          
+          // Verify software exists
+          const software = await Software.findById(category.name).lean();
+          if (!software) {
+            throw new ApiError('Software not found', 'SOFTWARE_NOT_FOUND', 400);
+          }
+        }
         
-        // Process products - convert IDs to objects with id, name, logo
+        // Process products array - validate each product ID
         if (category.products && Array.isArray(category.products)) {
           const processedProducts = [];
-          for (let productItem of category.products) {
-            // If it's just an ID string, fetch the product details
-            if (typeof productItem === 'string') {
-              const product = await Product.findById(productItem).select('name logoUrl').lean();
-              if (product) {
-                processedProducts.push({
-                  id: productItem,
-                  name: product.name,
-                  logo: product.logoUrl || ''
-                });
+          
+          for (let productId of category.products) {
+            // Handle if product is an object with _id
+            if (typeof productId === 'object' && productId._id) {
+              productId = productId._id || productId.id;
+            }
+            
+            if (productId && typeof productId === 'string') {
+              // Validate product ID
+              if (!mongoose.Types.ObjectId.isValid(productId)) {
+                throw new ApiError('Invalid product ID', 'INVALID_PRODUCT_ID', 400);
               }
-            } else if (productItem && productItem.id) {
-              // It's already an object, keep it
-              processedProducts.push(productItem);
+              
+              // Verify product exists
+              const product = await Product.findById(productId).lean();
+              if (!product) {
+                throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 400);
+              }
+              
+              // Add to processed products array
+              processedProducts.push(productId);
             }
           }
+          
+          // Update category with processed products array
           category.products = processedProducts;
         }
       }
     }
     
-    // Process popular section - keep IDs but populate product details
+    // Process popular section - handle new schema with ObjectId references
     if (normalizedSectionName === 'popular' && sectionData.solutions) {
       const Product = require('../models/Product');
+      const Software = require('../models/Software');
+      const Solution = require('../models/Solution');
       
       // Process each solution
       for (let solution of sectionData.solutions) {
-        // Process types - convert product IDs to objects with id and name
-        if (solution.types && Array.isArray(solution.types)) {
-          const processedTypes = [];
-          for (let productId of solution.types) {
-            if (typeof productId === 'string') {
-              const product = await Product.findById(productId).select('name').lean();
-              if (product) {
-                processedTypes.push({
-                  id: productId,
-                  name: product.name
-                });
-              }
-            }
+        // Validate software or solution reference
+        if (solution.software) {
+          if (!mongoose.Types.ObjectId.isValid(solution.software)) {
+            throw new ApiError('Invalid software ID', 'INVALID_SOFTWARE_ID', 400);
           }
-          solution.types = processedTypes;
+          const software = await Software.findById(solution.software).lean();
+          if (!software) {
+            throw new ApiError('Software not found', 'SOFTWARE_NOT_FOUND', 400);
+          }
+        } else if (solution.solution) {
+          if (!mongoose.Types.ObjectId.isValid(solution.solution)) {
+            throw new ApiError('Invalid solution ID', 'INVALID_SOLUTION_ID', 400);
+          }
+          const solutionDoc = await Solution.findById(solution.solution).lean();
+          if (!solutionDoc) {
+            throw new ApiError('Solution not found', 'SOLUTION_NOT_FOUND', 400);
+          }
         }
         
-        // Keep the prefixed value as is (e.g., "software_id" or "solution_id")
-        // The frontend will handle displaying the name
+        // Process products array
+        if (solution.products && Array.isArray(solution.products)) {
+          const processedProducts = [];
+          for (let productId of solution.products) {
+            if (typeof productId === 'string') {
+              if (!mongoose.Types.ObjectId.isValid(productId)) {
+                throw new ApiError('Invalid product ID', 'INVALID_PRODUCT_ID', 400);
+              }
+              const product = await Product.findById(productId).lean();
+              if (!product) {
+                throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 400);
+              }
+              processedProducts.push(productId);
+            }
+          }
+          solution.products = processedProducts;
+        }
       }
     }
     
