@@ -75,6 +75,7 @@ router.get('/', async (req, res) => {
       database: dbStatus,
       redis: redisStatus,
     },
+    message :"hi"
   });
 });
 
