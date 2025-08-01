@@ -730,11 +730,43 @@ exports.getProductsByCategory = async (req, res, next) => {
         const software = await Software.findOne({ slug: subCategory });
         if (software) {
           options.softwareIds = [software._id.toString()];
+        } else {
+          // Invalid software subcategory - return empty results
+          return res.json(
+            ApiResponse.success(
+              [], 
+              'No products found for this software category',
+              { pagination: {
+                total: 0,
+                pages: 0,
+                page: options.page,
+                limit: options.limit,
+                hasNextPage: false,
+                hasPrevPage: false
+              }}
+            )
+          );
         }
       } else if (category.toLowerCase() === 'solutions') {
         const solution = await Solution.findOne({ slug: subCategory });
         if (solution) {
           options.solutionIds = [solution._id.toString()];
+        } else {
+          // Invalid solution subcategory - return empty results
+          return res.json(
+            ApiResponse.success(
+              [], 
+              'No products found for this solution category',
+              { pagination: {
+                total: 0,
+                pages: 0,
+                page: options.page,
+                limit: options.limit,
+                hasNextPage: false,
+                hasPrevPage: false
+              }}
+            )
+          );
         }
       }
     }

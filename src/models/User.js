@@ -45,7 +45,11 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: false }, // hashed
   region: { type: String, required: false, trim: true },
   description: { type: String, trim: false },
-  industry: { type: String, trim: false },
+  industry: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Industry',
+    required: false 
+  },
   title: { type: String, trim: false },
   companyName: { type: String, trim: false },
   companySize: { 
@@ -131,6 +135,12 @@ const userSchema = new mongoose.Schema({
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
+
+// Add indexes for better query performance
+userSchema.index({ industry: 1 });
+userSchema.index({ status: 1, role: 1 });
+userSchema.index({ email: 1 });
+userSchema.index({ slug: 1 });
 
 // Pre-save hook to generate unique slug
 userSchema.pre('save', async function(next) {

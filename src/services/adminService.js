@@ -300,9 +300,9 @@ const getReviewTrendsData = async (dateFilter, groupFormat, periods) => {
             $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0]
           }
         },
-        flagged: {
+        dispute: {
           $sum: {
-            $cond: [{ $eq: ['$status', 'flagged'] }, 1, 0]
+            $cond: [{ $eq: ['$status', 'dispute'] }, 1, 0]
           }
         }
       }
@@ -347,7 +347,10 @@ const getRecentReviewsData = async (dateFilter) => {
               firstName: 1,
               lastName: 1,
               avatar: 1,
-              email: 1
+              email: 1,
+              slug: 1,
+              companyName: 1,
+              isVerified: 1
             }
           }
         ]
@@ -361,11 +364,31 @@ const getRecentReviewsData = async (dateFilter) => {
         as: 'productData',
         pipeline: [
           {
+            $lookup: {
+              from: 'users',
+              localField: 'userId',
+              foreignField: '_id',
+              as: 'vendorData',
+              pipeline: [
+                {
+                  $project: {
+                    firstName: 1,
+                    lastName: 1,
+                    email: 1,
+                    avatar: 1,
+                    slug: 1,
+                    companyName: 1
+                  }
+                }
+              ]
+            }
+          },
+          {
             $project: {
               name: 1,
               slug: 1,
               logoUrl: 1,
-              userId: 1
+              userId: { $arrayElemAt: ['$vendorData', 0] }
             }
           }
         ]
@@ -379,6 +402,7 @@ const getRecentReviewsData = async (dateFilter) => {
         overallRating: 1,
         status: 1,
         submittedAt: 1,
+        totalReplies: { $ifNull: ['$totalReplies', 0] },
         reviewer: {
           $let: {
             vars: { reviewer: { $arrayElemAt: ['$reviewerData', 0] } },
@@ -388,7 +412,9 @@ const getRecentReviewsData = async (dateFilter) => {
               lastName: '$$reviewer.lastName',
               slug: '$$reviewer.slug',
               avatar: '$$reviewer.avatar',
-              email: '$$reviewer.email'
+              email: '$$reviewer.email',
+              companyName: '$$reviewer.companyName',
+              isVerified: '$$reviewer.isVerified'
             }
           }
         },
@@ -398,7 +424,8 @@ const getRecentReviewsData = async (dateFilter) => {
             in: {
               name: '$$product.name',
               slug: '$$product.slug',
-              logoUrl: '$$product.logoUrl'
+              logoUrl: '$$product.logoUrl',
+              userId: '$$product.userId'
             }
           }
         }
@@ -461,7 +488,7 @@ const formatChartData = (results, groupFormat, periods, isReviewData = false) =>
         approved: matchingResult?.approved || 0,
         pending: matchingResult?.pending || 0,
         rejected: matchingResult?.rejected || 0,
-        flagged: matchingResult?.flagged || 0
+        dispute: matchingResult?.dispute || 0
       });
     } else {
       formattedData.push({
@@ -566,9 +593,26 @@ const getUsers = async (options = {}) => {
           .select('-password -accessToken')
           .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
           .skip(skip)
-          .limit(parseInt(limit)),
+          .limit(parseInt(limit))
+          .lean(),
         User.countDocuments(matchQuery)
       ]);
+
+      // Populate industry names
+      const Industry = require('../models/Industry');
+      const industryIds = users.filter(u => u.industry).map(u => u.industry);
+      const industries = await Industry.find({ _id: { $in: industryIds } }).select('name');
+      const industryMap = industries.reduce((map, ind) => {
+        map[ind._id.toString()] = ind.name;
+        return map;
+      }, {});
+
+      // Add industry names to users
+      users.forEach(user => {
+        if (user.industry) {
+          user.industryName = industryMap[user.industry] || user.industry;
+        }
+      });
 
       return {
         users,

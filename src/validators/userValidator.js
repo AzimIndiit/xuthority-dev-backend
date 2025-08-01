@@ -13,8 +13,9 @@ exports.updateProfileValidator = [
   }).withMessage('Description must be a string with max 1000 characters'),
   body('industry').optional().custom((value) => {
     if (!value || value === '') return true;
-    return typeof value === 'string' && value.length <= 100;
-  }).withMessage('Industry must be a string with max 100 characters'),
+    // Validate that it's a valid MongoDB ObjectId format
+    return typeof value === 'string' && /^[0-9a-fA-F]{24}$/.test(value);
+  }).withMessage('Industry must be a valid MongoDB ObjectId'),
   body('title').optional().custom((value) => {
     if (!value || value === '') return true;
     return typeof value === 'string' && value.trim().length >= 2 && value.trim().length <= 100;
