@@ -19,6 +19,7 @@ const allowedMimeTypes = [
   "image/bmp",     // Added BMP support
   "image/tiff",    // Added TIFF support
   "image/tif",     // Alternative TIFF extension
+  "image/svg+xml", // Added SVG support
   
   // Document formats
   "application/pdf",
@@ -47,7 +48,7 @@ const fileFilter = (req, file, cb) => {
   } else {
     // Pass error directly to callback with false
     const error = new ApiError(
-      `Invalid file type: ${file.mimetype}. Supported formats: JPEG, PNG, GIF, WebP, BMP, TIFF, PDF, and video files (MP4, AVI, MOV, etc.).`,
+      `Invalid file type: ${file.mimetype}. Supported formats: JPEG, PNG, GIF, WebP, BMP, TIFF, SVG, PDF, and video files (MP4, AVI, MOV, etc.).`,
       "INVALID_FILE_TYPE",
       400,
     );
@@ -259,7 +260,7 @@ const processAndUploadImage = async (file, fieldName) => {
     const processingStartTime = Date.now();
     
     // Validate image constraints
-    await imageProcessingService.validateImageConstraints(file.buffer);
+    await imageProcessingService.validateImageConstraints(file.buffer, file.mimetype);
     
     // Generate image variants
     const variants = await imageProcessingService.generateImageVariants(

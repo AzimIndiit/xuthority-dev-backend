@@ -8,7 +8,7 @@ const ApiError = require('../utils/apiError');
  */
 class ImageProcessingService {
   constructor() {
-    this.supportedFormats = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'tiff', 'bmp'];
+    this.supportedFormats = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'tiff', 'bmp', 'svg'];
     this.maxWidth = 1920;
     this.maxHeight = 1080;
     this.quality = {
@@ -24,7 +24,7 @@ class ImageProcessingService {
    * @returns {boolean}
    */
   isImage(mimeType) {
-    return mimeType && mimeType.startsWith('image/');
+    return mimeType && (mimeType.startsWith('image/') || mimeType === 'image/svg+xml');
   }
 
   /**
@@ -40,7 +40,8 @@ class ImageProcessingService {
       'image/gif': 'gif',
       'image/webp': 'webp',
       'image/tiff': 'tiff',
-      'image/bmp': 'bmp'
+      'image/bmp': 'bmp',
+      'image/svg+xml': 'svg'
     };
     return mimeMap[mimeType] || 'jpg';
   }
@@ -56,6 +57,18 @@ class ImageProcessingService {
     try {
       if (!this.isImage(originalMimeType)) {
         throw new ApiError('File is not an image', 'INVALID_IMAGE_TYPE', 400);
+      }
+
+      // Handle SVG files differently - they don't need processing
+      if (originalMimeType === 'image/svg+xml') {
+        return {
+          buffer: imageBuffer,
+          mimeType: originalMimeType,
+          extension: 'svg',
+          width: null,
+          height: null,
+          size: imageBuffer.length
+        };
       }
 
       const {
@@ -247,6 +260,34 @@ class ImageProcessingService {
         compressOriginal = true
       } = options;
 
+      // Handle SVG files differently - they don't need variants
+      if (originalMimeType === 'image/svg+xml') {
+        const variants = {};
+        
+        // For SVG files, we just return the original as compressed
+        if (compressOriginal) {
+          variants.compressed = {
+            buffer: imageBuffer,
+            mimeType: originalMimeType,
+            extension: 'svg',
+            size: imageBuffer.length,
+            originalDimensions: null // SVG files are scalable
+          };
+        }
+
+        // Keep original if requested
+        if (options.keepOriginal) {
+          variants.original = {
+            buffer: imageBuffer,
+            mimeType: originalMimeType,
+            size: imageBuffer.length,
+            extension: 'svg'
+          };
+        }
+
+        return variants;
+      }
+
       const variants = {};
 
       // Original compressed version
@@ -291,10 +332,11 @@ class ImageProcessingService {
   /**
    * Validate image constraints
    * @param {Buffer} imageBuffer - Image buffer
+   * @param {string} mimeType - Image mime type
    * @param {Object} constraints - Validation constraints
    * @returns {Promise<boolean>}
    */
-  async validateImageConstraints(imageBuffer, constraints = {}) {
+  async validateImageConstraints(imageBuffer, mimeType, constraints = {}) {
     try {
       const {
         maxWidth = 5000,
@@ -314,7 +356,14 @@ class ImageProcessingService {
         );
       }
 
-      // Get image metadata
+      // Handle SVG files differently - they don't have fixed dimensions
+      if (mimeType === 'image/svg+xml') {
+        // For SVG files, we only check file size and format
+        // SVG files are scalable and don't have fixed dimensions
+        return true;
+      }
+
+      // Get image metadata for raster images
       const metadata = await sharp(imageBuffer).metadata();
 
       // Check dimensions
