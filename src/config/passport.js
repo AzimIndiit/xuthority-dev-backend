@@ -30,6 +30,8 @@ passport.use(new GoogleStrategy({
         acceptedTerms: true, // You may want to handle this in the UI
       });
 
+      console.log('Google OAuth - User created with role:', user.role);
+
       // Send welcome notification to user
       try {
         await createNotification({
@@ -123,6 +125,8 @@ passport.use('linkedin', new LinkedInStrategy({
         authProvider: 'linkedin',
         acceptedTerms: true, // You may want to handle this in the UI
       });
+
+      console.log('LinkedIn OAuth - User created with role:', user.role);
 
       // Send welcome notification to user
       try {

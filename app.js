@@ -1,6 +1,7 @@
 const express = require('express');
 const helmet = require('helmet');
 const session = require('express-session');
+const MemoryStore = require('memorystore')(session);
 const cors = require('./src/middleware/cors');
 const compression = require('./src/middleware/compression');
 const errorHandler = require('./src/middleware/errorHandler');
@@ -55,6 +56,9 @@ app.use(cache);
 
 // Session middleware for OAuth role storage
 app.use(session({
+  store: new MemoryStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  }),
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
