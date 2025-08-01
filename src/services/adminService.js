@@ -598,19 +598,19 @@ const getUsers = async (options = {}) => {
         User.countDocuments(matchQuery)
       ]);
 
-      // Populate industry names
+      // Populate industry objects
       const Industry = require('../models/Industry');
       const industryIds = users.filter(u => u.industry).map(u => u.industry);
-      const industries = await Industry.find({ _id: { $in: industryIds } }).select('name');
+      const industries = await Industry.find({ _id: { $in: industryIds } }).select('_id name slug');
       const industryMap = industries.reduce((map, ind) => {
-        map[ind._id.toString()] = ind.name;
+        map[ind._id.toString()] = ind;
         return map;
       }, {});
 
-      // Add industry names to users
+      // Replace industry ID with industry object
       users.forEach(user => {
-        if (user.industry) {
-          user.industryName = industryMap[user.industry] || user.industry;
+        if (user.industry && industryMap[user.industry]) {
+          user.industry = industryMap[user.industry];
         }
       });
 
@@ -700,10 +700,30 @@ const getUsers = async (options = {}) => {
         }
       },
       {
+        $lookup: {
+          from: 'industries',
+          localField: 'industry',
+          foreignField: '_id',
+          as: 'industryData'
+        }
+      },
+      {
+        $addFields: {
+          industry: {
+            $cond: {
+              if: { $gt: [{ $size: '$industryData' }, 0] },
+              then: { $arrayElemAt: ['$industryData', 0] },
+              else: '$industry'
+            }
+          }
+        }
+      },
+      {
         $project: {
           password: 0,
           accessToken: 0,
-          reviewStats: 0
+          reviewStats: 0,
+          industryData: 0
         }
       },
       { $sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 } },

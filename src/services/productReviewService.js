@@ -355,13 +355,24 @@ const getProductReviewById = async (reviewId) => {
   try {
     const review = await ProductReview.findByIdActive(reviewId)
       .populate([
-        { path: 'reviewer', select: 'name email avatar firstName lastName title companyName companySize industry slug isVerified' },
+        { 
+          path: 'reviewer', 
+          select: 'name email avatar firstName lastName title companyName companySize industry slug isVerified',
+          populate: {
+            path: 'industry',
+            select: 'name slug'
+          }
+        },
         { 
           path: 'product', 
           select: 'name slug avgRating totalReviews brandColors userId logoUrl',
           populate: {
             path: 'userId',
-            select: 'firstName lastName avatar slug email'
+            select: 'firstName lastName avatar slug email industry',
+            populate: {
+              path: 'industry',
+              select: 'name slug'
+            }
           }
         }
       ]);
