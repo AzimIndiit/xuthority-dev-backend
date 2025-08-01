@@ -55,7 +55,7 @@ const createProductReview = async (reviewData, userId) => {
     ]);
 
     // Send notification to admins
-    const reviewer = await User.findById(reviewerId).select('name');
+    const reviewer = await User.findById(userId).select('name');
     await notifyAdminsNewReview(review, product, reviewer);
 
     return ApiResponse.success(review, 'Product review created successfully');
@@ -625,7 +625,7 @@ const getUserReviewForProduct = async (productId, userId) => {
     const review = reviews[0];
 
     if (!review) {
-      throw new ApiError('Review not found', 'REVIEW_NOT_FOUND', 404);
+      return ApiResponse.success(null, 'No review found for this product');
     }
 
     return ApiResponse.success(review, 'User review retrieved successfully');
