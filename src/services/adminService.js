@@ -738,7 +738,8 @@ const getUsers = async (options = {}) => {
 const getUserBySlug = async (slug) => {
   try {
     const user = await User.findOne({ slug })
-      .select('-password -accessToken');
+      .select('-password -accessToken')
+      .populate('industry', 'name slug');
     
     return user;
   } catch (error) {
