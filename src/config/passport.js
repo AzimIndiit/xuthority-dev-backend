@@ -21,6 +21,9 @@ passport.use(new GoogleStrategy({
       // Get role from session, default to 'user'
       const role = req.session?.oauthRole || 'user';
       
+      console.log('Google OAuth - Session role:', req.session?.oauthRole);
+      console.log('Google OAuth - Using role:', role);
+      
       user = await User.create({
         firstName: profile.name.givenName,
         lastName: profile.name.familyName,
@@ -116,6 +119,9 @@ passport.use('linkedin', new LinkedInStrategy({
     if (!user) {
       // Get role from session, default to 'user'
       const role = req.session?.oauthRole || 'user';
+      
+      console.log('LinkedIn OAuth - Session role:', req.session?.oauthRole);
+      console.log('LinkedIn OAuth - Using role:', role);
       
       user = await User.create({
         firstName: profile.givenName,

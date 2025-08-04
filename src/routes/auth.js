@@ -504,8 +504,10 @@ router.get('/google', (req, res, next) => {
   // Store role in session for use in callback
   if (req.query.role && ['user', 'vendor'].includes(req.query.role)) {
     req.session.oauthRole = req.query.role;
+    console.log('Google OAuth - Storing role in session:', req.query.role);
   } else {
     req.session.oauthRole = 'user'; // default to user
+    console.log('Google OAuth - Using default role: user');
   }
   passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
 });
@@ -525,7 +527,7 @@ router.get('/google', (req, res, next) => {
  *         description: OAuth login failed
  */
 // Google OAuth callback
-router.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: '/api/v1/auth/google/failure' }), (req, res) => {
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/api/v1/auth/google/failure' }), (req, res) => {
   authController.handleOAuthCallback(req, res, 'Google');
 });
 
@@ -586,8 +588,10 @@ router.get('/linkedin', (req, res, next) => {
   // Store role in session for use in callback
   if (req.query.role && ['user', 'vendor'].includes(req.query.role)) {
     req.session.oauthRole = req.query.role;
+    console.log('LinkedIn OAuth - Storing role in session:', req.query.role);
   } else {
     req.session.oauthRole = 'user'; // default to user
+    console.log('LinkedIn OAuth - Using default role: user');
   }
   passport.authenticate('linkedin')(req, res, next);
 });
@@ -629,7 +633,6 @@ router.get('/linkedin/callback', (req, res, next) => {
   
   // Proceed with normal authentication
   passport.authenticate('linkedin', { 
-    session: false, 
     failureRedirect: '/api/v1/auth/linkedin/failure' 
   })(req, res, next);
 }, (req, res) => {
@@ -725,7 +728,6 @@ router.get('/linkedin/verify/callback', (req, res, next) => {
   
   // Proceed with normal verification
   passport.authenticate('linkedin-verify', { 
-    session: false, 
     failureRedirect: '/api/v1/auth/linkedin/verify/failure' 
   })(req, res, next);
 }, (req, res) => {
