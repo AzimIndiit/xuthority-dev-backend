@@ -56,17 +56,16 @@ async function notifyAdminsNewUser(user) {
   const roleText = user.role === 'vendor' ? 'vendor' : 'user';
   const type = user.role === 'vendor' ? 'VENDOR_REGISTRATION' : 'USER_REGISTRATION';
   const title = user.role === 'vendor' ? 'New Vendor Application' : 'New User Joined';
-  
+  console.log('user=======', user)
   // Create display name from firstName and lastName
   const displayName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
   
   const message = user.role === 'vendor' 
-    ? `A new vendor ${displayName} has registered and is awaiting approval. Review their details in the vendor section.`
-    : `A new user ${displayName} has successfully registered on the platform. View their profile in the user management panel.`;
+    ? `A new user ${displayName} signup on platform as ${user.role.charAt(0).toUpperCase() + user.role.slice(1)} and is awaiting approval. Review their details in the vendor section.`
+    : `A new user ${displayName} signup on platform as ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}. View their profile in the user management panel.`;
 
   // Set action URL based on user role - always use general route
   const actionUrl = user.role === 'vendor' ? 'vendors' : 'users';
-
   return createAdminNotification({
     type,
     title,

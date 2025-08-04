@@ -241,6 +241,8 @@ exports.registerVendor = async (req, res, next) => {
       actionUrl: '/dashboard'
     });
 
+   const ree= await notifyAdminsNewUser(user)
+   console.log('ree==========', ree)
     // Create default free plan subscription for new vendor
     // try {
     //   const subscriptionService = require('../services/subscriptionService');
