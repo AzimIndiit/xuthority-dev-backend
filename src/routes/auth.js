@@ -505,11 +505,24 @@ router.get('/google', (req, res, next) => {
   if (req.query.role && ['user', 'vendor'].includes(req.query.role)) {
     req.session.oauthRole = req.query.role;
     console.log('Google OAuth - Storing role in session:', req.query.role);
+    console.log('Google OAuth - Session ID:', req.sessionID);
+    console.log('Google OAuth - Full session:', JSON.stringify(req.session));
   } else {
     req.session.oauthRole = 'user'; // default to user
     console.log('Google OAuth - Using default role: user');
+    console.log('Google OAuth - Session ID:', req.sessionID);
+    console.log('Google OAuth - Full session:', JSON.stringify(req.session));
   }
-  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  
+  // Save session before redirect
+  req.session.save((err) => {
+    if (err) {
+      console.error('Google OAuth - Session save error:', err);
+    } else {
+      console.log('Google OAuth - Session saved successfully');
+    }
+    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  });
 });
 
 /**
@@ -589,11 +602,24 @@ router.get('/linkedin', (req, res, next) => {
   if (req.query.role && ['user', 'vendor'].includes(req.query.role)) {
     req.session.oauthRole = req.query.role;
     console.log('LinkedIn OAuth - Storing role in session:', req.query.role);
+    console.log('LinkedIn OAuth - Session ID:', req.sessionID);
+    console.log('LinkedIn OAuth - Full session:', JSON.stringify(req.session));
   } else {
     req.session.oauthRole = 'user'; // default to user
     console.log('LinkedIn OAuth - Using default role: user');
+    console.log('LinkedIn OAuth - Session ID:', req.sessionID);
+    console.log('LinkedIn OAuth - Full session:', JSON.stringify(req.session));
   }
-  passport.authenticate('linkedin')(req, res, next);
+  
+  // Save session before redirect
+  req.session.save((err) => {
+    if (err) {
+      console.error('LinkedIn OAuth - Session save error:', err);
+    } else {
+      console.log('LinkedIn OAuth - Session saved successfully');
+    }
+    passport.authenticate('linkedin')(req, res, next);
+  });
 });
 
 /**

@@ -63,7 +63,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // Set to false for OAuth to work properly
     httpOnly: true,
     maxAge: 10 * 60 * 1000, // 10 minutes
   }

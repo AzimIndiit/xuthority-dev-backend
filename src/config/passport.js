@@ -21,6 +21,8 @@ passport.use(new GoogleStrategy({
       // Get role from session, default to 'user'
       const role = req.session?.oauthRole || 'user';
       
+      console.log('Google OAuth - Session ID in callback:', req.sessionID);
+      console.log('Google OAuth - Full session in callback:', JSON.stringify(req.session));
       console.log('Google OAuth - Session role:', req.session?.oauthRole);
       console.log('Google OAuth - Using role:', role);
       
@@ -120,6 +122,8 @@ passport.use('linkedin', new LinkedInStrategy({
       // Get role from session, default to 'user'
       const role = req.session?.oauthRole || 'user';
       
+      console.log('LinkedIn OAuth - Session ID in callback:', req.sessionID);
+      console.log('LinkedIn OAuth - Full session in callback:', JSON.stringify(req.session));
       console.log('LinkedIn OAuth - Session role:', req.session?.oauthRole);
       console.log('LinkedIn OAuth - Using role:', role);
       
