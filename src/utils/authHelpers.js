@@ -28,6 +28,7 @@ const isUserBlocked = (user) => {
   return user && user.status === 'blocked';
 };
 
+
 /**
  * Check if admin is deactivated
  * @param {object} admin - Admin object

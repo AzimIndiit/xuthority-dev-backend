@@ -359,9 +359,12 @@ exports.handleOAuthCallback = async (req, res, provider) => {
       req,
     });
 
-    // Redirect to frontend with token
+    // Check if user status is pending
+    const isPending = req.user.status === 'pending';
+    
+    // Redirect to frontend with token and status
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const redirectUrl = `${frontendUrl}/auth/callback?token=${encodeURIComponent(token)}&provider=${encodeURIComponent(provider)}`;
+    const redirectUrl = `${frontendUrl}/auth/callback?token=${encodeURIComponent(token)}&provider=${encodeURIComponent(provider)}&status=${encodeURIComponent(req.user.status)}&isPending=${encodeURIComponent(isPending)}`;
     
     res.redirect(redirectUrl);
   } catch (error) {
