@@ -6,6 +6,7 @@ const { Admin, User, Product, ProductReview } = require('../models');
 const ApiError = require('../utils/apiError');
 const { logEvent } = require('./auditService');
 const emailService = require('./emailService');
+const logger = require('../config/logger');
 const { generateBlockedUserError, isAdminDeactivated } = require('../utils/authHelpers');
 const { updateProductAggregateRatings, batchUpdateProductStats } = require('../utils/productRatingHelpers');
 
@@ -865,7 +866,7 @@ const getUserProfileStats = async (userId) => {
     ]);
 
     // Get user badges
-    const userBadges = await UserBadge.find({ userId, status: 'accepted' })
+    const userBadges = await UserBadge.find({ userId, status: 'approved' })
       .populate('badgeId', 'name description icon colorCode')
       .sort({ earnedAt: -1 });
 console.log("userBadges------",userBadges)
@@ -877,6 +878,7 @@ console.log("userBadges------",userBadges)
         description: ub.badgeId.description,
         icon: ub.badgeId.icon,
         earnedDate: ub.earnedAt,
+        requestedDate: ub.requestedDate,
         colorCode: ub.badgeId.colorCode
       }));
 
@@ -1036,6 +1038,7 @@ const getVendorProfileStatsBySlug = async (slug) => {
           description: userBadge.badgeId.description,
           icon: userBadge.badgeId.icon,
           earnedDate: userBadge.createdAt,
+          requestedDate: userBadge.requestedAt,
           colorCode: userBadge.badgeId.colorCode
         }))
     };
@@ -1104,6 +1107,17 @@ const approveVendor = async (userId, admin) => {
     user.isVerified = true;
     await user.save();
 
+    // Send approval email
+    const emailService = require('./emailService');
+    try {
+      const userName = `${user.firstName} ${user.lastName}`;
+      await emailService.sendVendorApprovalEmail(user.email, userName);
+      logger.info(`Vendor approval email sent to ${user.email}`);
+    } catch (emailError) {
+      logger.error('Failed to send vendor approval email:', emailError);
+      // Don't throw error if email fails - vendor is still approved
+    }
+
     // Log audit event
     await logEvent({
       user: admin,
@@ -1144,6 +1158,16 @@ const rejectVendor = async (userId, admin, reason = null) => {
     const previousStatus = user.status;
     const userEmail = user.email;
     const userName = `${user.firstName} ${user.lastName}`;
+    
+    // Send rejection email before deleting the user
+    const emailService = require('./emailService');
+    try {
+      await emailService.sendVendorRejectionEmail(userEmail, userName, reason);
+      logger.info(`Vendor rejection email sent to ${userEmail}`);
+    } catch (emailError) {
+      logger.error('Failed to send vendor rejection email:', emailError);
+      // Don't throw error if email fails - continue with rejection process
+    }
     
     // Delete the user from database
     await User.findByIdAndDelete(userId);

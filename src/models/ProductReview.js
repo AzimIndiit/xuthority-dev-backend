@@ -99,7 +99,7 @@ const productReviewSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['pending', 'approved', 'dispute','rejected'],
-    default: 'approved',
+    default: 'pending',
     index: true
   },
 

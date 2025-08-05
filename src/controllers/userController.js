@@ -160,7 +160,8 @@ exports.getUserReviews = async (req, res, next) => {
       page: parseInt(req.query.page) || 1,
       limit: Math.min(parseInt(req.query.limit) || 10, 20),
       sortBy: req.query.sortBy || 'publishedAt',
-      sortOrder: req.query.sortOrder || 'desc'
+      sortOrder: req.query.sortOrder || 'desc',
+      publicProfile: req.query.publicProfile === 'true'
     };
     
     const result = await require('../services/userService').getUserReviews(userId, options);
@@ -188,7 +189,8 @@ exports.getUserReviewsBySlug = async (req, res, next) => {
       page: parseInt(req.query.page) || 1,
       limit: Math.min(parseInt(req.query.limit) || 10, 20),
       sortBy: req.query.sortBy || 'publishedAt',
-      sortOrder: req.query.sortOrder || 'desc'
+      sortOrder: req.query.sortOrder || 'desc',
+      publicProfile: req.query.publicProfile === 'true'
     };
     
     const result = await require('../services/userService').getUserReviewsBySlug(slug, options);

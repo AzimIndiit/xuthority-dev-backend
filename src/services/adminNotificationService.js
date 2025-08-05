@@ -36,7 +36,7 @@ async function notifyAdminsNewReview(review, product, reviewer) {
   return createAdminNotification({
     type: 'PRODUCT_REVIEW',
     title: 'New Review Received',
-    message: `${reviewer.name || 'A user'} has posted a review for ${product.name || 'a product'}. Visit the reviews section to read and moderate it.`,
+    message: `${reviewer.name || 'A user'} has posted a review for ${product.name || 'a product'}. Visit the reviews section to read.`,
     meta: { 
       reviewId: review._id.toString(), 
       productId: product._id.toString(),

@@ -277,12 +277,42 @@ exports.updateUserProfile = async (userId, updateData) => {
   if (Object.keys(update).length === 0) {
     throw new ApiError('No valid fields to update', 'NO_VALID_FIELDS', 400);
   }
-  const user = await User.findByIdAndUpdate(userId, update, { new: true, runValidators: true })
-    .select('-password -accessToken');
-  if (!user) {
-    throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+  
+  // Check if firstName or lastName is being updated
+  if (update.firstName || update.lastName) {
+    // Get the current user to access existing firstName/lastName
+    const currentUser = await User.findById(userId).select('+password');
+    if (!currentUser) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+    
+    
+    // Update all fields on the user document
+    Object.keys(update).forEach(key => {
+      currentUser[key] = update[key];
+    });
+    
+    // Mark firstName and lastName as modified to ensure the pre-save hook runs
+    if (update.firstName) currentUser.markModified('firstName');
+    if (update.lastName) currentUser.markModified('lastName');
+    
+    // Save to trigger pre-save hook (which will regenerate the slug)
+    const savedUser = await currentUser.save();
+    
+    // Return the saved user without password and accessToken
+    const userObject = savedUser.toObject();
+    delete userObject.password;
+    delete userObject.accessToken;
+    return userObject;
+  } else {
+    // If firstName/lastName not changing, use findByIdAndUpdate as before
+    const user = await User.findByIdAndUpdate(userId, update, { new: true, runValidators: true })
+      .select('-password -accessToken');
+    if (!user) {
+      throw new ApiError('User not found', 'USER_NOT_FOUND', 404);
+    }
+    return user;
   }
-  return user;
 };
 
 /**
@@ -318,7 +348,7 @@ exports.verifyVendorProfile = async (userId) => {
  * @returns {Promise<object>}
  */
 exports.getUserReviews = async (userId, options = {}) => {
-  const { page = 1, limit = 10, sortBy = 'publishedAt', sortOrder = 'desc' } = options;
+    const { page = 1, limit = 10, sortBy = 'publishedAt', sortOrder = 'desc', publicProfile = false } = options;
   
   const ProductReview = require('../models/ProductReview');
   
@@ -334,9 +364,13 @@ exports.getUserReviews = async (userId, options = {}) => {
 
   const filter = {
     reviewer: userId,
-    status: 'approved',
     publishedAt: { $ne: null }
   };
+
+  // If publicProfile is true, only show approved reviews
+  if (publicProfile) {
+    filter.status = 'approved';
+  }
 
   const [reviews, total] = await Promise.all([
     ProductReview.findActiveWithPopulate(filter, [
@@ -405,6 +439,7 @@ exports.getUserProfileStats = async (userId) => {
     
     disputesCount = await Dispute.countDocuments({
       vendor: userId,
+      status: 'active'
     });
     productCount = await Product.countDocuments({
       userId: userId,
@@ -412,8 +447,13 @@ exports.getUserProfileStats = async (userId) => {
     });
 
    badges = await UserBadge.find({
-    userId: userId
-  }).populate('badgeId')
+    userId: userId,
+    status:"approved"
+   
+  }).populate({
+    path: 'badgeId',
+    match: { status: 'active' }
+  })
   }
 
   // Get follow statistics
@@ -440,7 +480,7 @@ exports.getUserProfileStats = async (userId) => {
  * @returns {Promise<object>}
  */
 exports.getUserReviewsBySlug = async (slug, options = {}) => {
-  const { page = 1, limit = 10, sortBy = 'publishedAt', sortOrder = 'desc' } = options;
+  const { page = 1, limit = 10, sortBy = 'publishedAt', sortOrder = 'desc', publicProfile = true } = options;
   
   const ProductReview = require('../models/ProductReview');
   
@@ -454,9 +494,13 @@ exports.getUserReviewsBySlug = async (slug, options = {}) => {
 
   const filter = {
     reviewer: userId,
-    status: 'approved',
     publishedAt: { $ne: null }
   };
+
+  // For slug-based queries, always show only approved reviews (public profile behavior)
+  if (publicProfile) {
+    filter.status = 'approved';
+  }
 
   const [reviews, total] = await Promise.all([
     ProductReview.findActiveWithPopulate(filter, [

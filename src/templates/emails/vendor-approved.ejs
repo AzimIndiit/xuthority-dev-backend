@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Application Approved</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 600;">Congratulations! 🎉</h1>
+            <p style="color: #e6e6fa; margin: 10px 0 0 0; font-size: 18px;">Your Vendor Application Has Been Approved</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 40px 30px;">
+            <h2 style="color: #333; margin-bottom: 10px; font-size: 24px;">Hi <%= userName %>,</h2>
+            
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              Great news! We're thrilled to inform you that your vendor application on <strong><%= appName %></strong> has been approved. Welcome to our community of trusted vendors!
+            </p>
+
+            <div style="background-color: #f0f4ff; border-left: 4px solid #667eea; padding: 20px; margin: 30px 0; border-radius: 4px;">
+              <h3 style="color: #667eea; margin-top: 0; margin-bottom: 10px;">What's Next?</h3>
+              <ul style="margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">Complete your vendor profile with detailed information</li>
+                <li style="margin-bottom: 8px;">Add your products and services</li>
+                <li style="margin-bottom: 8px;">Start engaging with potential customers</li>
+                <li style="margin-bottom: 8px;">Build your reputation through customer reviews</li>
+              </ul>
+            </div>
+
+            <p style="font-size: 16px; margin-bottom: 25px;">
+              Your vendor account is now active and you can start leveraging all the features available to our vendors. This is an exciting opportunity to grow your business and connect with customers who are looking for quality products and services.
+            </p>
+
+            <div style="text-align: center; margin: 40px 0;">
+              <a href="<%= loginUrl %>" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                Access Your Vendor Dashboard
+              </a>
+            </div>
+
+            <div style="background-color: #e8f5e9; padding: 20px; border-radius: 8px; margin: 30px 0;">
+              <h4 style="color: #2e7d32; margin-top: 0;">💡 Pro Tips for Success:</h4>
+              <ul style="margin: 0; padding-left: 20px; color: #2e7d32;">
+                <li style="margin-bottom: 8px;">Keep your profile information up-to-date</li>
+                <li style="margin-bottom: 8px;">Respond promptly to customer inquiries</li>
+                <li style="margin-bottom: 8px;">Maintain high-quality standards</li>
+                <li style="margin-bottom: 8px;">Encourage satisfied customers to leave reviews</li>
+              </ul>
+            </div>
+
+            <p style="font-size: 16px; margin-top: 30px;">
+              If you have any questions or need assistance getting started, our support team is here to help you every step of the way.
+            </p>
+
+            <p style="font-size: 16px; margin-top: 20px;">
+              Welcome aboard!<br>
+              <strong>The <%= appName %> Team</strong>
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef; border-radius: 0 0 8px 8px;">
+            <p style="font-size: 14px; color: #666; margin: 0 0 10px 0;">
+              Need help? Contact us at <a href="mailto:<%= supportEmail %>" style="color: #667eea; text-decoration: none;"><%= supportEmail %></a>
+            </p>
+            <p style="font-size: 14px; color: #666; margin: 0 0 10px 0;">
+              <%= companyName %><br>
+              <%= companyAddress %>
+            </p>
+            <p style="font-size: 12px; color: #999; margin: 15px 0 0 0;">
+              © <%= currentYear %> <%= appName %>. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

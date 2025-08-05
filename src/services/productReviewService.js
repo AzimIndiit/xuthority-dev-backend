@@ -33,7 +33,8 @@ const createProductReview = async (reviewData, userId) => {
     const review = new ProductReview({
       ...reviewData,
       reviewer: userId,
-      publishedAt: new Date() // Auto-approve for now, can be changed based on requirements
+      publishedAt: new Date(),
+      status: 'pending' // Auto-approve for now, can be changed based on requirements
     });
 
     await review.save();

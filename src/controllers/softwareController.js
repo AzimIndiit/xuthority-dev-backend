@@ -38,7 +38,7 @@ exports.getAllSoftware = async (req, res, next) => {
       sortBy: req.query.sortBy || 'createdAt',
       sortOrder: req.query.sortOrder || 'desc'
     };
-
+console.log('options', options)
     const result = await softwareService.getAllSoftware(options);
 
     res.status(200).json(
@@ -80,6 +80,7 @@ exports.getSoftwareById = async (req, res, next) => {
  */
 exports.getSoftwareBySlug = async (req, res, next) => {
   try {
+    console.log('req.params.slug--------', req.params.slug)
     const software = await softwareService.getSoftwareBySlug(req.params.slug);
 
     res.status(200).json(

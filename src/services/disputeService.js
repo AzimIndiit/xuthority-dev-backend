@@ -684,9 +684,9 @@ const getAllDisputes = async (options = {}) => {
 
     const disputes = await Dispute.find(filter)
       .populate([
-        { path: 'review', select: 'title content overallRating reviewer createdAt', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title slug' } },
-        { path: 'product', select: 'name slug isActive logoUrl createdAt' },
-        { path: 'vendor', select: 'firstName lastName email' },
+        { path: 'review', select: 'title content overallRating reviewer createdAt helpfulVotes', populate: { path: 'reviewer', select: 'firstName lastName avatar companyName companySize title slug' } },
+        { path: 'product', select: 'name slug isActive logoUrl createdAt totalReviews' },
+        { path: 'vendor', select: 'firstName lastName email companySize' },
         { path: 'explanations.author', select: 'firstName lastName avatar' }
       ])
       .sort(sort)

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Application Update</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 600;">Application Update</h1>
+            <p style="color: #ffe6e6; margin: 10px 0 0 0; font-size: 18px;">Regarding Your Vendor Application</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 40px 30px;">
+            <h2 style="color: #333; margin-bottom: 10px; font-size: 24px;">Hi <%= userName %>,</h2>
+            
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              Thank you for your interest in becoming a vendor on <strong><%= appName %></strong>. We appreciate the time you took to submit your application.
+            </p>
+
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              After careful review, we regret to inform you that we are unable to approve your vendor application at this time.
+            </p>
+
+            <% if (reason) { %>
+            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 30px 0; border-radius: 4px;">
+              <h3 style="color: #856404; margin-top: 0; margin-bottom: 10px;">Reason for Decision:</h3>
+              <p style="margin: 0; color: #856404;"><%= reason %></p>
+            </div>
+            <% } %>
+
+            <div style="background-color: #f0f4ff; border-left: 4px solid #667eea; padding: 20px; margin: 30px 0; border-radius: 4px;">
+              <h3 style="color: #667eea; margin-top: 0; margin-bottom: 10px;">What You Can Do:</h3>
+              <ul style="margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">Review our vendor requirements and guidelines</li>
+                <li style="margin-bottom: 8px;">Ensure all required information is complete and accurate</li>
+                <li style="margin-bottom: 8px;">Address any specific feedback provided</li>
+                <li style="margin-bottom: 8px;">You may reapply after addressing these points</li>
+              </ul>
+            </div>
+
+            <p style="font-size: 16px; margin-bottom: 25px;">
+              We understand this may be disappointing news. Please know that this decision doesn't reflect on your business's quality or potential. We encourage you to review our vendor requirements and consider reapplying in the future once you've addressed any concerns.
+            </p>
+
+            <div style="text-align: center; margin: 40px 0;">
+              <a href="<%= vendorGuidelinesUrl %>" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                View Vendor Guidelines
+              </a>
+            </div>
+
+            <p style="font-size: 16px; margin-top: 30px;">
+              If you have any questions about this decision or would like more information about our vendor requirements, please don't hesitate to contact our support team.
+            </p>
+
+            <p style="font-size: 16px; margin-top: 20px;">
+              Thank you for your understanding.<br>
+              <strong>The <%= appName %> Team</strong>
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef; border-radius: 0 0 8px 8px;">
+            <p style="font-size: 14px; color: #666; margin: 0 0 10px 0;">
+              Need help? Contact us at <a href="mailto:<%= supportEmail %>" style="color: #667eea; text-decoration: none;"><%= supportEmail %></a>
+            </p>
+            <p style="font-size: 14px; color: #666; margin: 0 0 10px 0;">
+              <%= companyName %><br>
+              <%= companyAddress %>
+            </p>
+            <p style="font-size: 12px; color: #999; margin: 15px 0 0 0;">
+              © <%= currentYear %> <%= appName %>. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

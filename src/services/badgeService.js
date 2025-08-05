@@ -4,6 +4,8 @@ const User = require('../models/User');
 const Admin = require('../models/Admin');
 const ApiError = require('../utils/apiError');
 const mongoose = require('mongoose');
+const emailService = require('./emailService');
+const config = require('../config');
 
 /**
  * Get all badges with pagination and filtering for admin
@@ -383,7 +385,10 @@ const approveBadgeRequest = async (requestId, adminId) => {
       throw new ApiError('Invalid request ID format', 'INVALID_REQUEST_ID', 400);
     }
 
-    const userBadge = await UserBadge.findById(requestId);
+    const userBadge = await UserBadge.findById(requestId)
+      .populate('badgeId')
+      .populate('userId');
+    
     if (!userBadge) {
       throw new ApiError('Badge request not found', 'REQUEST_NOT_FOUND', 404);
     }
@@ -404,8 +409,38 @@ const approveBadgeRequest = async (requestId, adminId) => {
       { $inc: { earnedBy: 1 } }
     );
 
+    // Send approval email
+    try {
+      const emailData = {
+        user: {
+          firstName: userBadge.userId.firstName || 'User',
+          email: userBadge.userId.email
+        },
+        badge: {
+          title: userBadge.badgeId.title,
+          description: userBadge.badgeId.description,
+          icon: userBadge.badgeId.icon || '🏆',
+          colorCode: userBadge.badgeId.colorCode || '#667eea'
+        },
+        reason: userBadge.reason || '',
+        profileUrl: `${config.app.frontendUrl}/profile/${userBadge.userId._id}`,
+        appName: config.app.name || 'Xuthority',
+        currentYear: new Date().getFullYear()
+      };
+
+      await emailService.sendTemplatedEmail({
+        to: userBadge.userId.email,
+        subject: `Congratulations! Your ${userBadge.badgeId.title} Badge Request Has Been Approved`,
+        template: 'badge-request-approved.ejs',
+        data: emailData
+      });
+    } catch (emailError) {
+      // Log error but don't fail the approval
+      console.error('Failed to send approval email:', emailError);
+    }
+
     return await UserBadge.findById(requestId)
-      .populate('badgeId', 'title description icon')
+      .populate('badgeId', 'title description icon colorCode')
       .populate('userId', 'firstName lastName email')
       .populate('approvedBy', 'firstName lastName email')
       .lean();
@@ -428,7 +463,10 @@ const rejectBadgeRequest = async (requestId, reason, adminId) => {
       throw new ApiError('Invalid request ID format', 'INVALID_REQUEST_ID', 400);
     }
 
-    const userBadge = await UserBadge.findById(requestId);
+    const userBadge = await UserBadge.findById(requestId)
+      .populate('badgeId')
+      .populate('userId');
+      
     if (!userBadge) {
       throw new ApiError('Badge request not found', 'REQUEST_NOT_FOUND', 404);
     }
@@ -437,18 +475,46 @@ const rejectBadgeRequest = async (requestId, reason, adminId) => {
       throw new ApiError('Only pending requests can be rejected', 'INVALID_REQUEST_STATUS', 400);
     }
 
-    // Update request status
-    userBadge.status = 'rejected';
-    userBadge.rejectedAt = new Date();
-    userBadge.rejectedBy = adminId;
-    userBadge.rejectionReason = reason;
-    await userBadge.save();
+    // Send rejection email before deleting
+    try {
+      const emailData = {
+        user: {
+          firstName: userBadge.userId.firstName || 'User',
+          email: userBadge.userId.email
+        },
+        badge: {
+          title: userBadge.badgeId.title,
+          description: userBadge.badgeId.description,
+          icon: userBadge.badgeId.icon || '🏆',
+          colorCode: userBadge.badgeId.colorCode || '#667eea'
+        },
+        rejectionReason: reason || '',
+        badgesUrl: `${config.app.frontendUrl}/badges`,
+        appName: config.app.name || 'Xuthority',
+        currentYear: new Date().getFullYear()
+      };
 
-    return await UserBadge.findById(requestId)
-      .populate('badgeId', 'title description icon')
-      .populate('userId', 'firstName lastName email')
-      .populate('rejectedBy', 'firstName lastName email')
-      .lean();
+      await emailService.sendTemplatedEmail({
+        to: userBadge.userId.email,
+        subject: `Update on Your ${userBadge.badgeId.title} Badge Request`,
+        template: 'badge-request-rejected.ejs',
+        data: emailData
+      });
+    } catch (emailError) {
+      // Log error but don't fail the rejection
+      console.error('Failed to send rejection email:', emailError);
+    }
+
+    // Delete the badge request instead of updating status
+    await UserBadge.findByIdAndDelete(requestId);
+
+    return {
+      message: 'Badge request rejected and deleted successfully',
+      requestId: requestId,
+      reason: reason,
+      deletedAt: new Date(),
+      deletedBy: adminId
+    };
   } catch (error) {
     if (error instanceof ApiError) throw error;
     throw new ApiError(`Failed to reject badge request: ${error.message}`, 'REJECT_REQUEST_ERROR', 500);

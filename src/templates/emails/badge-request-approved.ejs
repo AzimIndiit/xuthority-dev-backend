@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Badge Request Approved</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 600;">Congratulations! 🎉</h1>
+            <p style="color: #e6e6fa; margin: 10px 0 0 0; font-size: 18px;">Your Badge Request Has Been Approved</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 40px 30px;">
+            <h2 style="color: #333; margin-bottom: 10px; font-size: 24px;">Hi <%= user.firstName %>,</h2>
+            
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              Fantastic news! Your request for the <strong><%= badge.title %></strong> badge has been approved. You've earned this recognition through your dedication and achievements!
+            </p>
+
+            <!-- Badge Display -->
+            <div style="background-color: #f8f9fa; border-radius: 12px; padding: 30px; margin: 30px 0; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+              <img  style="font-size: 64px; margin-bottom: 15px;"><%= badge.icon %></div>
+              <h3 style="color: <%= badge.colorCode || '#667eea' %>; margin: 0 0 10px 0; font-size: 24px;"><%= badge.title %></h3>
+              <p style="color: #666; margin: 0; font-size: 16px;"><%= badge.description %></p>
+            </div>
+
+            <div style="background-color: #f0f4ff; border-left: 4px solid #667eea; padding: 20px; margin: 30px 0; border-radius: 4px;">
+              <h3 style="color: #667eea; margin-top: 0; margin-bottom: 10px;">What This Means</h3>
+              <ul style="margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">Your profile now displays the <%= badge.title %> badge</li>
+                <li style="margin-bottom: 8px;">This achievement is visible to all platform users</li>
+                <li style="margin-bottom: 8px;">You've joined an exclusive group of recognized members</li>
+                <li style="margin-bottom: 8px;">Your credibility and reputation have been enhanced</li>
+              </ul>
+            </div>
+
+            <% if (reason) { %>
+            <div style="background-color: #e8f5e9; padding: 20px; border-radius: 8px; margin: 30px 0;">
+              <h4 style="color: #2e7d32; margin-top: 0;">Your Achievement</h4>
+              <p style="color: #2e7d32; margin: 0;"><%= reason %></p>
+            </div>
+            <% } %>
+
+            <p style="font-size: 16px; margin-bottom: 25px;">
+              This badge represents your commitment to excellence and your valuable contributions to our community. Keep up the amazing work!
+            </p>
+
+            <div style="text-align: center; margin: 40px 0;">
+              <a href="<%= profileUrl %>" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                View Your Profile
+              </a>
+            </div>
+
+            <div style="background-color: #fff3cd; padding: 20px; border-radius: 8px; margin: 30px 0; border-left: 4px solid #ffc107;">
+              <h4 style="color: #856404; margin-top: 0;">💡 Next Steps</h4>
+              <ul style="margin: 0; padding-left: 20px; color: #856404;">
+                <li style="margin-bottom: 8px;">Share your achievement with your network</li>
+                <li style="margin-bottom: 8px;">Continue building your reputation</li>
+                <li style="margin-bottom: 8px;">Explore other badges you can earn</li>
+                <li style="margin-bottom: 8px;">Help others in the community achieve their goals</li>
+              </ul>
+            </div>
+
+            <p style="font-size: 16px; margin-top: 30px;">
+              Thank you for being an outstanding member of our community!
+            </p>
+
+            <p style="font-size: 16px; margin-top: 20px;">
+              Best regards,<br>
+              <strong>The <%= appName %> Team</strong>
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef; border-radius: 0 0 8px 8px;">
+            <p style="font-size: 14px; color: #666; margin: 0 0 10px 0;">
+              Questions? Contact us at <a href="mailto:<%= supportEmail %>" style="color: #667eea; text-decoration: none;"><%= supportEmail %></a>
+            </p>
+            <p style="font-size: 14px; color: #666; margin: 0 0 10px 0;">
+              <%= companyName %><br>
+              <%= companyAddress %>
+            </p>
+            <p style="font-size: 12px; color: #999; margin: 15px 0 0 0;">
+              © <%= currentYear %> <%= appName %>. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

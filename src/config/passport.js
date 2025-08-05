@@ -111,7 +111,7 @@ passport.use('linkedin', new LinkedInStrategy({
       firstName: profile.givenName,
       lastName: profile.familyName,
       email: profile.email,
-      profileUrl: profile.publicProfileUrl || `https://linkedin.com/in/${profile.id}`,
+      profileUrl: profile.publicProfileUrl || `https://www.linkedin.com/search/results/people/?keywords=${profile.displayName}`,
       profilePicture: profile.pictureUrl || profile.displayPictureUrl,
       headline: profile.headline,
       industry: profile.industry

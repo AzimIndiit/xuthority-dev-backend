@@ -144,13 +144,21 @@ userSchema.index({ slug: 1 });
 
 // Pre-save hook to generate unique slug
 userSchema.pre('save', async function(next) {
+  console.log('Pre-save hook running...');
+  console.log('isModified firstName:', this.isModified('firstName'));
+  console.log('isModified lastName:', this.isModified('lastName'));
+  console.log('Current slug:', this.slug);
+  
   // Only generate slug if firstName or lastName has changed, or slug doesn't exist
   if (this.isModified('firstName') || this.isModified('lastName') || !this.slug) {
+    console.log('Generating new slug...');
     let baseSlug = generateSlug(this.firstName, this.lastName);
     
     if (!baseSlug) {
       return next(new Error('Unable to generate slug from firstName and lastName'));
     }
+    
+    console.log('Base slug:', baseSlug);
     
     let slug = baseSlug;
     let counter = 1;
@@ -164,6 +172,7 @@ userSchema.pre('save', async function(next) {
       
       if (!existingUser) {
         this.slug = slug;
+        console.log('New slug set to:', this.slug);
         break;
       }
       

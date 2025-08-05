@@ -796,6 +796,70 @@ class EmailService {
       throw new Error('Failed to send review published after dispute email');
     }
   }
+
+  /**
+   * Send vendor approval email
+   * @param {string} email - Vendor email
+   * @param {string} userName - Vendor's name
+   * @returns {Promise<object>} - Email send result
+   */
+  async sendVendorApprovalEmail(email, userName) {
+    try {
+      const templateData = {
+        userName: userName || 'Vendor',
+        appName: config?.app?.name || 'Xuthority',
+        loginUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/login`,
+        currentYear: new Date().getFullYear(),
+        companyName: config?.app?.companyName || 'Xuthority Inc.',
+        companyAddress: config?.app?.companyAddress || '123 Business St, Tech City, TC 12345',
+        supportEmail: config?.email?.supportEmail || 'support@xuthority.com'
+      };
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `Congratulations! Your Vendor Application Has Been Approved - ${config?.app?.name || 'Xuthority'}`,
+        template: 'vendor-approved.ejs',
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending vendor approval email:', error);
+      throw new Error('Failed to send vendor approval email');
+    }
+  }
+
+  /**
+   * Send vendor rejection email
+   * @param {string} email - Vendor email
+   * @param {string} userName - Vendor's name
+   * @param {string} reason - Optional reason for rejection
+   * @returns {Promise<object>} - Email send result
+   */
+  async sendVendorRejectionEmail(email, userName, reason) {
+    try {
+      const templateData = {
+        userName: userName || 'Vendor',
+        reason: reason || null,
+        appName: config?.app?.name || 'Xuthority',
+        vendorGuidelinesUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/for-vendors`,
+        currentYear: new Date().getFullYear(),
+        companyName: config?.app?.companyName || 'Xuthority Inc.',
+        companyAddress: config?.app?.companyAddress || '123 Business St, Tech City, TC 12345',
+        supportEmail: config?.email?.supportEmail || 'support@xuthority.com'
+      };
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `Update on Your Vendor Application - ${config?.app?.name || 'Xuthority'}`,
+        template: 'vendor-rejected.ejs',
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending vendor rejection email:', error);
+      throw new Error('Failed to send vendor rejection email');
+    }
+  }
 }
 
 module.exports = new EmailService();

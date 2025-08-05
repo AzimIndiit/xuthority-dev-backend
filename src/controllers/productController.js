@@ -726,7 +726,11 @@ exports.getProductsByCategory = async (req, res, next) => {
     if ( !options.categories && !options.industries && category && subCategory) {
       const { Software, Solution } = require('../models');
       
-      if (category.toLowerCase() === 'software') {
+      // Handle "All Categories" - fetch all products without filtering by specific software/solution
+      if (subCategory.toLowerCase() === 'all categories') {
+        // Don't set softwareIds or solutionIds - this will fetch all products
+        console.log('Fetching all products for All Categories');
+      } else if (category.toLowerCase() === 'software') {
         const software = await Software.findOne({ slug: subCategory });
         if (software) {
           options.softwareIds = [software._id.toString()];
