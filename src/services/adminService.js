@@ -1111,10 +1111,14 @@ const getVendorProfileStatsBySlug = async (slug) => {
       : 0;
 
     // Get badges
-    const badges = await UserBadge.find({
+    const userBadges = await UserBadge.find({
       userId: userId,
-      status: 'approved'
+      status: 'approved',
+      badgeId: { $exists: true, $ne: null }
     }).populate('badgeId').sort({ createdAt: -1 });
+    
+    // Filter out any badges where badgeId is still null after population
+    const badges = userBadges.filter(badge => badge.badgeId !== null);
 
     // Get follow statistics
     const [followersCount, followingCount] = await Promise.all([

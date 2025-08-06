@@ -453,14 +453,19 @@ exports.getUserProfileStats = async (userId) => {
       isActive: 'active'
     });
 
-   badges = await UserBadge.find({
+   // Only get badges where badgeId is not null and exists
+   const userBadges = await UserBadge.find({
     userId: userId,
-    status:"approved"
-   
+    status: "approved",
+    badgeId: { $ne: null, $exists: true }
   }).populate({
     path: 'badgeId',
     match: { status: 'active' }
-  })
+  });
+  
+  // Filter out any badges where badgeId is still null after population
+  // This handles cases where the badge might have been deleted but reference still exists
+  badges = userBadges.filter(badge => badge.badgeId !== null)
   }
 
   // Get follow statistics
