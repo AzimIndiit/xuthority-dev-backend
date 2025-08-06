@@ -68,6 +68,7 @@ const landingPageSchema = new mongoose.Schema({
     // Popular Software & Solutions Section
     popular: {
       heading: { type: String, required: false },
+      subtext: { type: String, required: false },
       solutions: [{
         id: { type: String, required: false },
         // Allow referencing either a Software or a Solution
@@ -130,6 +131,7 @@ const landingPageSchema = new mongoose.Schema({
     
     // Values Section
     values: {
+      heading: { type: String, required: false },
       cards: [{
         id: { type: String, required: false },
         heading: { type: String, required: false },
@@ -161,6 +163,7 @@ const landingPageSchema = new mongoose.Schema({
     
     // Vendor-specific sections
     trustedTech: {
+      heading: { type: String, required: false },
       cards: [{
         id: { type: String, required: false },
         heading: { type: String, required: false },
