@@ -105,7 +105,9 @@ const getAllProductReviews = async (queryParams) => {
       minRating,
       maxRating,
       mention,
-      keywords
+      keywords,
+      dateFrom,
+      dateTo
     } = queryParams;
 
     let filter = {};
@@ -135,13 +137,8 @@ const getAllProductReviews = async (queryParams) => {
       filter['verification.isVerified'] = isVerified === 'true';
     }
 
-    // Add search functionality
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } }
-      ];
-    }
+    // Don't add search to filter here if we need to search populated fields
+    // We'll handle it differently below
 
     // Add mention filtering
     if (mention) {
@@ -161,10 +158,197 @@ const getAllProductReviews = async (queryParams) => {
       }
     }
 
+    // Add date filtering
+    if (dateFrom || dateTo) {
+      // Determine which date field to filter on based on sortBy
+      const dateField = sortBy === 'publishedAt' ? 'publishedAt' : 
+                       sortBy === 'submittedAt' ? 'submittedAt' : 
+                       sortBy === 'updatedAt' ? 'updatedAt' : 
+                       'submittedAt'; // Default to submittedAt
+      
+      filter[dateField] = {};
+      
+      if (dateFrom) {
+        const startDate = new Date(dateFrom);
+        startDate.setHours(0, 0, 0, 0); // Set to start of day
+        filter[dateField].$gte = startDate;
+      }
+      
+      if (dateTo) {
+        const endDate = new Date(dateTo);
+        endDate.setHours(23, 59, 59, 999); // Set to end of day
+        filter[dateField].$lte = endDate;
+      }
+    }
+
     const skip = (page - 1) * limit;
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
+    // If search is provided, use aggregation pipeline for better performance
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      
+      // Build aggregation pipeline
+      const pipeline = [
+        // Match base filter
+        {
+          $match: {
+            ...filter,
+            isDeleted: false
+          }
+        },
+        // Lookup reviewer information
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'reviewer',
+            foreignField: '_id',
+            as: 'reviewerData'
+          }
+        },
+        {
+          $unwind: {
+            path: '$reviewerData',
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        // Lookup product information
+        {
+          $lookup: {
+            from: 'products',
+            localField: 'product',
+            foreignField: '_id',
+            as: 'productData'
+          }
+        },
+        {
+          $unwind: {
+            path: '$productData',
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        // Lookup vendor (product owner) information
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'productData.userId',
+            foreignField: '_id',
+            as: 'vendorData'
+          }
+        },
+        {
+          $unwind: {
+            path: '$vendorData',
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        // Apply search filter
+        {
+          $match: {
+            $or: [
+              // Search in review title and content
+              { title: searchRegex },
+              { content: searchRegex },
+              // Search in reviewer fields
+              { 'reviewerData.firstName': searchRegex },
+              { 'reviewerData.lastName': searchRegex },
+              { 'reviewerData.name': searchRegex },
+              { 'reviewerData.email': searchRegex },
+              // Search in product name
+              { 'productData.name': searchRegex },
+              // Search in vendor fields
+              { 'vendorData.firstName': searchRegex },
+              { 'vendorData.lastName': searchRegex },
+              { 'vendorData.email': searchRegex }
+            ]
+          }
+        },
+        // Project the fields we need
+        {
+          $project: {
+            _id: 1,
+            product: {
+              _id: '$productData._id',
+              name: '$productData.name',
+              slug: '$productData.slug',
+              avgRating: '$productData.avgRating',
+              totalReviews: '$productData.totalReviews',
+              brandColors: '$productData.brandColors',
+              logoUrl: '$productData.logoUrl',
+              userId: {
+                _id: '$vendorData._id',
+                firstName: '$vendorData.firstName',
+                lastName: '$vendorData.lastName',
+                avatar: '$vendorData.avatar',
+                slug: '$vendorData.slug',
+                email: '$vendorData.email'
+              }
+            },
+            reviewer: {
+              _id: '$reviewerData._id',
+              name: '$reviewerData.name',
+              email: '$reviewerData.email',
+              avatar: '$reviewerData.avatar',
+              firstName: '$reviewerData.firstName',
+              lastName: '$reviewerData.lastName',
+              title: '$reviewerData.title',
+              companyName: '$reviewerData.companyName',
+              companySize: '$reviewerData.companySize',
+              industry: '$reviewerData.industry',
+              slug: '$reviewerData.slug',
+              isVerified: '$reviewerData.isVerified'
+            },
+            overallRating: 1,
+            title: 1,
+            content: 1,
+            subRatings: 1,
+            verification: 1,
+            status: 1,
+            helpfulVotes: 1,
+            totalReplies: 1,
+            keywords: 1,
+            mentions: 1,
+            metaData: 1,
+            publishedAt: 1,
+            submittedAt: 1,
+            createdAt: 1,
+            updatedAt: 1
+          }
+        },
+        // Sort
+        { $sort: sortOptions },
+        // Get total count before pagination
+        {
+          $facet: {
+            metadata: [{ $count: 'total' }],
+            data: [{ $skip: skip }, { $limit: parseInt(limit) }]
+          }
+        }
+      ];
+
+      const result = await ProductReview.aggregate(pipeline);
+      
+      const reviews = result[0]?.data || [];
+      const total = result[0]?.metadata[0]?.total || 0;
+
+      const pagination = {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: parseInt(limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
+      };
+
+      return ApiResponse.success(
+        reviews,
+        'Product reviews retrieved successfully',
+        { pagination, total }
+      );
+    }
+
+    // Normal flow without search - use the existing method
     const reviews = await ProductReview.findActiveWithPopulate(filter, [
       { path: 'reviewer', select: 'name email avatar firstName lastName title companyName companySize industry slug isVerified' },
       { 
@@ -221,7 +405,9 @@ const getProductReviews = async (productId, queryParams) => {
       sortBy = 'publishedAt',
       sortOrder = 'desc',
       mention,
-      keywords
+      keywords,
+      dateFrom,
+      dateTo
     } = queryParams;
 
     const filter = {
@@ -267,6 +453,29 @@ const getProductReviews = async (productId, queryParams) => {
         filter.keywords = { $in: keywords.map(k => k.toLowerCase()) };
       } else {
         filter.keywords = keywords.toLowerCase();
+      }
+    }
+
+    // Add date filtering
+    if (dateFrom || dateTo) {
+      // Determine which date field to filter on based on sortBy
+      const dateField = sortBy === 'publishedAt' ? 'publishedAt' : 
+                       sortBy === 'submittedAt' ? 'submittedAt' : 
+                       sortBy === 'updatedAt' ? 'updatedAt' : 
+                       'submittedAt'; // Default to submittedAt
+      
+      filter[dateField] = {};
+      
+      if (dateFrom) {
+        const startDate = new Date(dateFrom);
+        startDate.setHours(0, 0, 0, 0); // Set to start of day
+        filter[dateField].$gte = startDate;
+      }
+      
+      if (dateTo) {
+        const endDate = new Date(dateTo);
+        endDate.setHours(23, 59, 59, 999); // Set to end of day
+        filter[dateField].$lte = endDate;
       }
     }
 

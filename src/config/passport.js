@@ -44,7 +44,7 @@ passport.use(new GoogleStrategy({
           type: 'WELCOME',
           title: 'Welcome to XUTHORITY!',
           message: user.role === 'vendor' ? 'Welcome to XUTHORITY! Start exploring and add your products today.' : 'Welcome to XUTHORITY! Start exploring and add your reviews today.',
-          actionUrl: user.role === 'vendor' ? '/dashboard' : '/'
+          actionUrl: user.role === 'vendor' ? '/' : '/'
         });
       } catch (notificationError) {
         console.error('Failed to send welcome notification for Google OAuth user:', notificationError);
@@ -145,7 +145,7 @@ passport.use('linkedin', new LinkedInStrategy({
           type: 'WELCOME',
           title: 'Welcome to XUTHORITY!',
           message: user.role === 'vendor' ? 'Welcome to XUTHORITY! Start exploring and add your products today.' : 'Welcome to XUTHORITY! Start exploring and add your reviews today.',
-          actionUrl: user.role === 'vendor' ? '/dashboard' : '/'
+          actionUrl: user.role === 'vendor' ? '/' : '/'
         });
       } catch (notificationError) {
         console.error('Failed to send welcome notification for LinkedIn OAuth user:', notificationError);

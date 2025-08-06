@@ -548,12 +548,16 @@ const getUsers = async (options = {}) => {
       matchQuery.status = { $in: statusArray };
     }
     
+    // Handle search - we'll need to handle industry.name search differently
     if (search) {
+      // For aggregation pipeline, we'll add industry name search later
+      // For simple query, we'll need to find matching industries first
       matchQuery.$or = [
         { firstName: { $regex: search, $options: 'i' } },
         { lastName: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
-        { companyName: { $regex: search, $options: 'i' } }
+        { companyName: { $regex: search, $options: 'i' } },
+        { companyEmail: { $regex: search, $options: 'i' } }
       ];
     }
 
@@ -576,8 +580,14 @@ const getUsers = async (options = {}) => {
         }
         endDate = now;
       } else {
-        if (dateFrom) startDate = new Date(dateFrom);
-        if (dateTo) endDate = new Date(dateTo);
+        if (dateFrom) {
+          startDate = new Date(dateFrom);
+          startDate.setHours(0, 0, 0, 0); // Set to start of day
+        }
+        if (dateTo) {
+          endDate = new Date(dateTo);
+          endDate.setHours(23, 59, 59, 999); // Set to end of day
+        }
       }
 
       if (startDate || endDate) {
@@ -589,8 +599,23 @@ const getUsers = async (options = {}) => {
 
     // If includeStats is false, use simple query (for performance when stats aren't needed)
     if (!includeStats) {
+      const Industry = require('../models/Industry');
+      
+      // If searching, find matching industries first and add them to the search
+      if (search) {
+        const matchingIndustries = await Industry.find({
+          name: { $regex: search, $options: 'i' }
+        }).select('_id');
+        
+        if (matchingIndustries.length > 0) {
+          const industryIds = matchingIndustries.map(ind => ind._id);
+          matchQuery.$or.push({ industry: { $in: industryIds } });
+        }
+      }
+      
       const [users, total] = await Promise.all([
         User.find(matchQuery)
+          .populate('industry', 'name slug status')
           .select('-password -accessToken')
           .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
           .skip(skip)
@@ -598,22 +623,6 @@ const getUsers = async (options = {}) => {
           .lean(),
         User.countDocuments(matchQuery)
       ]);
-
-      // Populate industry objects
-      const Industry = require('../models/Industry');
-      const industryIds = users.filter(u => u.industry).map(u => u.industry);
-      const industries = await Industry.find({ _id: { $in: industryIds } }).select('_id name slug');
-      const industryMap = industries.reduce((map, ind) => {
-        map[ind._id.toString()] = ind;
-        return map;
-      }, {});
-
-      // Replace industry ID with industry object
-      users.forEach(user => {
-        if (user.industry && industryMap[user.industry]) {
-          user.industry = industryMap[user.industry];
-        }
-      });
 
       return {
         users,
@@ -626,9 +635,47 @@ const getUsers = async (options = {}) => {
       };
     }
 
+    // Build the match query without the search criteria initially
+    const baseMatchQuery = { ...matchQuery };
+    delete baseMatchQuery.$or; // Remove the search $or condition temporarily
+    
     // Use aggregation pipeline to include review statistics
     const pipeline = [
-      { $match: matchQuery },
+      // Apply base filters first
+      { $match: baseMatchQuery },
+      // Lookup industry to enable search by industry name
+      {
+        $lookup: {
+          from: 'industries',
+          localField: 'industry',
+          foreignField: '_id',
+          as: 'industryData'
+        }
+      },
+      {
+        $addFields: {
+          industryName: {
+            $cond: {
+              if: { $gt: [{ $size: '$industryData' }, 0] },
+              then: { $arrayElemAt: ['$industryData.name', 0] },
+              else: null
+            }
+          }
+        }
+      },
+      // Apply search filter after industry is populated
+      ...(search ? [{
+        $match: {
+          $or: [
+            { firstName: { $regex: search, $options: 'i' } },
+            { lastName: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+            { companyName: { $regex: search, $options: 'i' } },
+            { companyEmail: { $regex: search, $options: 'i' } },
+            { industryName: { $regex: search, $options: 'i' } }
+          ]
+        }
+      }] : []),
       {
         $lookup: {
           from: 'productreviews',
@@ -701,14 +748,6 @@ const getUsers = async (options = {}) => {
         }
       },
       {
-        $lookup: {
-          from: 'industries',
-          localField: 'industry',
-          foreignField: '_id',
-          as: 'industryData'
-        }
-      },
-      {
         $addFields: {
           industry: {
             $cond: {
@@ -724,7 +763,8 @@ const getUsers = async (options = {}) => {
           password: 0,
           accessToken: 0,
           reviewStats: 0,
-          industryData: 0
+          industryData: 0,
+          industryName: 0
         }
       },
       { $sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 } },
@@ -732,10 +772,49 @@ const getUsers = async (options = {}) => {
       { $limit: parseInt(limit) }
     ];
 
-    const [users, totalResults] = await Promise.all([
+    // Create a count pipeline for accurate total count including industry name search
+    const countPipeline = [
+      { $match: baseMatchQuery },
+      {
+        $lookup: {
+          from: 'industries',
+          localField: 'industry',
+          foreignField: '_id',
+          as: 'industryData'
+        }
+      },
+      {
+        $addFields: {
+          industryName: {
+            $cond: {
+              if: { $gt: [{ $size: '$industryData' }, 0] },
+              then: { $arrayElemAt: ['$industryData.name', 0] },
+              else: null
+            }
+          }
+        }
+      },
+      ...(search ? [{
+        $match: {
+          $or: [
+            { firstName: { $regex: search, $options: 'i' } },
+            { lastName: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+            { companyName: { $regex: search, $options: 'i' } },
+            { companyEmail: { $regex: search, $options: 'i' } },
+            { industryName: { $regex: search, $options: 'i' } }
+          ]
+        }
+      }] : []),
+      { $count: 'total' }
+    ];
+    
+    const [users, countResult] = await Promise.all([
       User.aggregate(pipeline),
-      User.countDocuments(matchQuery)
+      User.aggregate(countPipeline)
     ]);
+    
+    const totalResults = countResult.length > 0 ? countResult[0].total : 0;
 
     return {
       users,

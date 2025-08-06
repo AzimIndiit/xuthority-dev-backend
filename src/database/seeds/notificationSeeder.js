@@ -23,7 +23,7 @@ const seedNotifications = async () => {
         type: 'WELCOME',
         title: 'Welcome to XUTHORITY!',
         message: 'Welcome to XUTHORITY! Start exploring and sharing your reviews today.',
-        actionUrl: '/dashboard'
+        actionUrl: '/'
       },
       {
         type: 'REVIEW_DISPUTE',

@@ -238,7 +238,7 @@ exports.registerVendor = async (req, res, next) => {
       type: 'WELCOME',
       title: 'Welcome to XUTHORITY!',
       message: user.role === 'vendor' ? 'Welcome to XUTHORITY! Start exploring and add your products today.' : 'Welcome to XUTHORITY! Start exploring and add your reviews today.',
-      actionUrl: '/dashboard'
+      actionUrl: '/'
     });
 
    const ree= await notifyAdminsNewUser(user)
