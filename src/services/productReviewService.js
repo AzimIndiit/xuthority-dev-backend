@@ -6,6 +6,7 @@ const ApiError = require('../utils/apiError');
 const { createNotification } = require('../services/notificationService');
 const { updateProductAggregateRatings } = require('../utils/productRatingHelpers');
 const { notifyAdminsNewReview } = require('../services/adminNotificationService');
+const emailService = require('./emailService');
 
 /**
  * Create a new product review
@@ -575,9 +576,85 @@ const moderateReview = async (reviewId, moderationData) => {
     }
 
     await review.populate([
-      { path: 'reviewer', select: 'name email avatar slug' },
+      { path: 'reviewer', select: 'name email avatar slug firstName lastName' },
       { path: 'product', select: 'name slug' }
     ]);
+
+    // Send notifications to the reviewer
+    try {
+      // Send in-app notification
+      if (status === 'approved') {
+        console.log(`Creating REVIEW_APPROVED notification for user ${review.reviewer._id}`);
+        const notification = await createNotification({
+          userId: review.reviewer._id,
+          type: 'REVIEW_APPROVED',
+          title: 'Your Review Has Been Approved!',
+          message: `Great news! Your review for ${review.product.name} has been approved and is now live. Thank you for contributing to our community!`,
+          meta: { 
+            productId: review.product._id, 
+            reviewId: review._id,
+            productSlug: review.product.slug 
+          },
+          actionUrl: `/profile/my-reviews`
+        });
+        console.log(`Notification created successfully:`, notification._id);
+      } else if (status === 'rejected') {
+        await createNotification({
+          userId: review.reviewer._id,
+          type: 'REVIEW_REJECTED',
+          title: 'Your Review Needs Revision',
+          message: `Your review for ${review.product.name} needs some updates before it can be published. ${moderationNote ? 'Reason: ' + moderationNote : 'Please check our community guidelines and resubmit.'}`,
+          meta: { 
+            productId: review.product._id, 
+            reviewId: review._id,
+            productSlug: review.product.slug,
+            moderationNote: moderationNote 
+          },
+          actionUrl: `/profile/my-reviews`
+        });
+      } else if (status === 'flagged') {
+        await createNotification({
+          userId: review.reviewer._id,
+          type: 'REVIEW_FLAGGED',
+          title: 'Your Review Has Been Flagged',
+          message: `Your review for ${review.product.name} has been flagged for further review. ${moderationNote ? 'Reason: ' + moderationNote : 'Our team will review it and get back to you soon.'}`,
+          meta: { 
+            productId: review.product._id, 
+            reviewId: review._id,
+            productSlug: review.product.slug,
+            moderationNote: moderationNote 
+          },
+          actionUrl: `/profile/my-reviews`
+        });
+      }
+    } catch (notificationError) {
+      // Log error but don't fail the moderation operation
+      console.error('Failed to send moderation notification:', notificationError);
+    }
+
+    // Send email notification to the reviewer
+    try {
+      const emailParams = {
+        email: review.reviewer.email,
+        userName: review.reviewer.firstName || review.reviewer.name || 'User',
+        productName: review.product.name,
+        rating: review.overallRating,
+        reviewTitle: review.title,
+        reviewId: review._id.toString(),
+        productSlug: review.product.slug
+      };
+
+      if (status === 'approved') {
+        emailParams.publishedDate = review.publishedAt;
+        await emailService.sendReviewApprovedEmail(emailParams);
+      } else if (status === 'rejected') {
+        emailParams.moderationNote = moderationNote;
+        await emailService.sendReviewRejectedEmail(emailParams);
+      }
+    } catch (emailError) {
+      // Log error but don't fail the moderation operation
+      console.error('Failed to send moderation email:', emailError);
+    }
 
     return ApiResponse.success(review, 'Review moderated successfully');
   } catch (error) {

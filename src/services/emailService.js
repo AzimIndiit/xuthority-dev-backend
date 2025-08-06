@@ -860,6 +860,94 @@ class EmailService {
       throw new Error('Failed to send vendor rejection email');
     }
   }
+
+  /**
+   * Send review approval email
+   * @param {object} params - Email parameters
+   * @param {string} params.email - Recipient email
+   * @param {string} params.userName - User's name
+   * @param {string} params.productName - Product name
+   * @param {number} params.rating - Review rating
+   * @param {string} params.reviewTitle - Review title
+   * @param {string} params.reviewId - Review ID
+   * @param {string} params.productSlug - Product slug
+   * @param {Date} params.publishedDate - Published date
+   * @returns {Promise}
+   */
+  async sendReviewApprovedEmail({ email, userName, productName, rating, reviewTitle, reviewId, productSlug, publishedDate }) {
+    try {
+      const templateData = {
+        userName,
+        productName,
+        rating,
+        reviewTitle,
+        publishedDate: publishedDate ? new Date(publishedDate).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }) : null,
+        reviewUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/products/${productSlug}#review-${reviewId}`,
+        appName: config?.app?.name || 'Xuthority',
+        currentYear: new Date().getFullYear(),
+        companyName: config?.app?.companyName || 'Xuthority Inc.',
+        companyAddress: config?.app?.companyAddress || '123 Business St, Tech City, TC 12345',
+        supportEmail: config?.email?.supportEmail || 'support@xuthority.com'
+      };
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `Your Review Has Been Approved - ${config?.app?.name || 'Xuthority'}`,
+        template: 'review-approved.ejs',
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending review approval email:', error);
+      throw new Error('Failed to send review approval email');
+    }
+  }
+
+  /**
+   * Send review rejection email
+   * @param {object} params - Email parameters
+   * @param {string} params.email - Recipient email
+   * @param {string} params.userName - User's name
+   * @param {string} params.productName - Product name
+   * @param {number} params.rating - Review rating
+   * @param {string} params.reviewTitle - Review title
+   * @param {string} params.reviewId - Review ID
+   * @param {string} params.productSlug - Product slug
+   * @param {string} params.moderationNote - Moderation note/reason
+   * @returns {Promise}
+   */
+  async sendReviewRejectedEmail({ email, userName, productName, rating, reviewTitle, reviewId, productSlug, moderationNote }) {
+    try {
+      const templateData = {
+        userName,
+        productName,
+        rating,
+        reviewTitle,
+        moderationNote,
+        editReviewUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/products/${productSlug}/edit-review`,
+        appName: config?.app?.name || 'Xuthority',
+        currentYear: new Date().getFullYear(),
+        companyName: config?.app?.companyName || 'Xuthority Inc.',
+        companyAddress: config?.app?.companyAddress || '123 Business St, Tech City, TC 12345',
+        supportEmail: config?.email?.supportEmail || 'support@xuthority.com'
+      };
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `Your Review Needs Revision - ${config?.app?.name || 'Xuthority'}`,
+        template: 'review-rejected.ejs',
+        data: templateData
+      });
+
+    } catch (error) {
+      logger.error('Error sending review rejection email:', error);
+      throw new Error('Failed to send review rejection email');
+    }
+  }
 }
 
 module.exports = new EmailService();

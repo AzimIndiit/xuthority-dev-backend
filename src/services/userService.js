@@ -272,7 +272,14 @@ exports.updateUserProfile = async (userId, updateData) => {
   ];
   const update = {};
   for (const key of allowedFields) {
-    if (updateData[key] !== undefined) update[key] = updateData[key];
+    if (updateData[key] !== undefined) {
+      // Special handling for industry field - convert empty string to null
+      if (key === 'industry' && updateData[key] === '') {
+        update[key] = null;
+      } else {
+        update[key] = updateData[key];
+      }
+    }
   }
   if (Object.keys(update).length === 0) {
     throw new ApiError('No valid fields to update', 'NO_VALID_FIELDS', 400);

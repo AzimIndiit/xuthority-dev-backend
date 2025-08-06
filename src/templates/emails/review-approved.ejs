@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Review Has Been Approved</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 600;">Review Approved! ✅</h1>
+            <p style="color: #e6e6fa; margin: 10px 0 0 0; font-size: 18px;">Your product review is now live</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 40px 30px;">
+            <h2 style="color: #333; margin-bottom: 10px; font-size: 24px;">Hi <%= userName %>,</h2>
+            
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              Great news! Your review for <strong><%= productName %></strong> has been approved and is now visible to the community.
+            </p>
+
+            <div style="background-color: #f0f4ff; border-left: 4px solid #667eea; padding: 20px; margin: 30px 0; border-radius: 4px;">
+              <h3 style="color: #667eea; margin-top: 0; margin-bottom: 15px;">Review Details:</h3>
+              <p style="margin: 5px 0;"><strong>Product:</strong> <%= productName %></p>
+              <p style="margin: 5px 0;"><strong>Rating:</strong> <%= rating %> out of 5 stars</p>
+              <p style="margin: 5px 0;"><strong>Review Title:</strong> <%= reviewTitle %></p>
+              <% if (publishedDate) { %>
+              <p style="margin: 5px 0;"><strong>Published Date:</strong> <%= publishedDate %></p>
+              <% } %>
+            </div>
+
+            <p style="font-size: 16px; margin-bottom: 25px;">
+              Thank you for taking the time to share your experience. Your feedback helps other users make informed decisions and provides valuable insights to vendors.
+            </p>
+
+            <div style="text-align: center; margin: 40px 0;">
+              <a href="<%= reviewUrl %>" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                View Your Review
+              </a>
+            </div>
+
+            <div style="background-color: #e8f5e9; padding: 20px; border-radius: 8px; margin: 30px 0;">
+              <h4 style="color: #2e7d32; margin-top: 0;">What happens next?</h4>
+              <ul style="margin: 0; padding-left: 20px; color: #2e7d32;">
+                <li style="margin-bottom: 8px;">Your review is now visible on the product page</li>
+                <li style="margin-bottom: 8px;">Other users can mark your review as helpful</li>
+                <li style="margin-bottom: 8px;">The vendor may respond to your feedback</li>
+                <li style="margin-bottom: 8px;">You can edit your review at any time from your profile</li>
+              </ul>
+            </div>
+
+            <p style="font-size: 16px; margin-top: 30px;">
+              Keep contributing to our community by sharing your experiences with other products you've used!
+            </p>
+
+            <p style="font-size: 16px; margin-top: 20px;">
+              Best regards,<br>
+              <strong>The <%= appName %> Team</strong>
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef; border-radius: 0 0 8px 8px;">
+            <p style="font-size: 14px; color: #666; margin: 0 0 10px 0;">
+              Questions? Contact us at <a href="mailto:<%= supportEmail %>" style="color: #667eea; text-decoration: none;"><%= supportEmail %></a>
+            </p>
+            <p style="font-size: 14px; color: #666; margin: 0 0 10px 0;">
+              <%= companyName %><br>
+              <%= companyAddress %>
+            </p>
+            <p style="font-size: 12px; color: #999; margin: 15px 0 0 0;">
+              © <%= currentYear %> <%= appName %>. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

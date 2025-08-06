@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const productReviewController = require('../controllers/productReviewController');
-const { auth, authorize, validate } = require('../middleware');
+const { auth, validate } = require('../middleware');
+const adminAuth = require('../middleware/adminAuth');
 const { productReviewValidator } = require('../validators');
 
 /**
@@ -523,8 +524,7 @@ router.delete('/:id/helpful',
  */
 // Moderate review (admin only)
 router.patch('/:id/moderate', 
-  auth, 
-  authorize(['admin']), 
+  adminAuth, 
   validate(productReviewValidator.moderateReview), 
   productReviewController.moderateReview
 );

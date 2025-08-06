@@ -1011,6 +1011,26 @@ const getVendorProfileStatsBySlug = async (slug) => {
       isActive: 'active'
     });
 
+    // Get average rating of vendor's products
+    const productsAvgRating = await Product.aggregate([
+      {
+        $match: {
+          userId: userId,
+          isActive: 'active'
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          avgRating: { $avg: '$avgRating' }
+        }
+      }
+    ]);
+
+    const vendorProductsAvgRating = productsAvgRating.length > 0 && productsAvgRating[0].avgRating 
+      ? Math.round(productsAvgRating[0].avgRating * 10) / 10 
+      : 0;
+
     // Get badges
     const badges = await UserBadge.find({
       userId: userId,
@@ -1026,6 +1046,7 @@ const getVendorProfileStatsBySlug = async (slug) => {
     return {
       totalReviews,
       averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+      vendorProductsAvgRating,
       disputes: disputesCount,
       totalProducts: productCount,
       followers: followersCount,
