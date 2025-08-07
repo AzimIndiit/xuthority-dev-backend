@@ -106,6 +106,7 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email })
+  
     if (!user) {
       return next(
         new ApiError("User not found. Please register", "USER_NOT_FOUND", 404),

@@ -446,7 +446,6 @@ exports.getUserProfileStats = async (userId) => {
     
     disputesCount = await Dispute.countDocuments({
       vendor: userId,
-      status: 'active'
     });
     productCount = await Product.countDocuments({
       userId: userId,

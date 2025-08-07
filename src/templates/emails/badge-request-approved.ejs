@@ -26,7 +26,7 @@
 
             <!-- Badge Display -->
             <div style="background-color: #f8f9fa; border-radius: 12px; padding: 30px; margin: 30px 0; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-              <img  style="font-size: 64px; margin-bottom: 15px;"><%= badge.icon %></div>
+              <img src="<%= badge.icon %>" alt="<%= badge.title %>" style="width: 64px; height: 64px; margin-bottom: 15px; opacity: 0.5;">
               <h3 style="color: <%= badge.colorCode || '#667eea' %>; margin: 0 0 10px 0; font-size: 24px;"><%= badge.title %></h3>
               <p style="color: #666; margin: 0; font-size: 16px;"><%= badge.description %></p>
             </div>

@@ -655,12 +655,16 @@ const getAllDisputes = async (options = {}) => {
       status,
       sortBy = 'createdAt',
       sortOrder = 'desc',
-      productSlug
+      productSlug,
+      review
     } = options;
 
     const filter = {};
     if (status) {
       filter.status = status;
+    }
+    if(review){
+      filter.review = review;
     }
     if (productSlug) {
       console.log('Looking up product with slug:', productSlug);

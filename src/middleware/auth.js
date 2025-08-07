@@ -8,7 +8,7 @@ const authenticate = (req, res, next) => {
     if (err) {
       return next(err);
     }
-    
+    console.log('user---------', user ? user.email : 'no user', user?.status)
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -20,6 +20,23 @@ const authenticate = (req, res, next) => {
         }
       });
     }
+    
+    // Check if user is blocked
+    if (user.status === 'blocked') {
+      return res.status(401).json({
+        success: false,
+        error: {
+          message: 'Access denied. Account has been blocked',
+          code: 'FORBIDDEN',
+          statusCode: 401,
+          details: {
+            status: user.status
+          }
+        }
+      });
+    }
+    
+    
     
     req.user = user;
     next();

@@ -20,7 +20,7 @@ exports.createProduct = async (req, res, next) => {
 
     // Update vendor's totalProducts count if user is a vendor
     if (req.user.role === 'vendor') {
-      const { User } = require('../models');
+      const { User, Dispute } = require('../models');
       await User.findByIdAndUpdate(
         vendorId,
         { $inc: { totalProducts: 1 } },
@@ -241,7 +241,9 @@ exports.deleteProduct = async (req, res, next) => {
         { new: true }
       );
     }
-
+    const { Dispute } = require('../models');
+    const mongoose = require('mongoose');
+    await Dispute.deleteMany({ product: new mongoose.Types.ObjectId(productId) });
     await logEvent({
       user: req.user,
       action: 'DELETE_PRODUCT',

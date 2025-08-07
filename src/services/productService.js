@@ -593,6 +593,9 @@ const updateProduct = async (productId, updateData, userId) => {
  * @returns {Object} Updated product with inactive status
  */
 const deleteProduct = async (productId, userId) => {
+  const { Dispute } = require('../models');
+  const mongoose = require('mongoose');
+  
   const product = await Product.findById(productId);
   
   if (!product) {
@@ -621,6 +624,9 @@ const deleteProduct = async (productId, userId) => {
     },
     { new: true }
   ).populate('userId', 'firstName lastName companyName email');
+  
+  // Delete all disputes related to this product
+  await Dispute.deleteMany({ product: new mongoose.Types.ObjectId(productId) });
   
   return updatedProduct;
 };

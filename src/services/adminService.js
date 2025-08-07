@@ -558,7 +558,8 @@ const getUsers = async (options = {}) => {
         { lastName: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
         { companyName: { $regex: search, $options: 'i' } },
-        { companyEmail: { $regex: search, $options: 'i' } }
+        { companyEmail: { $regex: search, $options: 'i' } },
+        { companySize : { $regex: search, $options: 'i' }}
       ];
     }
 

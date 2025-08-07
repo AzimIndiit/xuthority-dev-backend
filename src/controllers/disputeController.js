@@ -87,7 +87,8 @@ const getAllDisputes = async (req, res, next) => {
       status,
       sortBy = 'createdAt',
       sortOrder = 'desc',
-      productSlug
+      productSlug,
+      reviewId,
     } = req.query;
 
     const options = {
@@ -96,7 +97,8 @@ const getAllDisputes = async (req, res, next) => {
       status,
       sortBy,
       sortOrder,
-      productSlug
+      productSlug,
+      review:reviewId
     };
 
     const result = await disputeService.getAllDisputes(options);
