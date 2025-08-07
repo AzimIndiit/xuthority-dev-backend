@@ -5,7 +5,7 @@ const ApiResponse = require('../utils/apiResponse');
 const ApiError = require('../utils/apiError');
 const { createNotification } = require('../services/notificationService');
 const { updateProductAggregateRatings } = require('../utils/productRatingHelpers');
-const { notifyAdminsNewReview } = require('../services/adminNotificationService');
+const { notifyAdminsNewReview, createAdminNotification } = require('../services/adminNotificationService');
 const emailService = require('./emailService');
 
 /**
@@ -615,13 +615,47 @@ const updateProductReview = async (reviewId, updateData, userId) => {
       throw new ApiError('You can only update your own reviews', 'UNAUTHORIZED_UPDATE', 403);
     }
 
+    // Get product details for notifications
+    const product = await Product.findById(review.product);
+    if (!product) {
+      throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
+    }
+
     // Don't allow changing product or reviewer
     delete updateData.product;
     delete updateData.reviewer;
 
     // Update the review object and save to trigger middleware
     Object.assign(review, updateData);
+    review.status = 'pending';
     const updatedReview = await review.save();
+
+    // Send notification to vendor about review update
+    await createNotification({
+      userId: product.userId,
+      type: 'PRODUCT_REVIEW',
+      title: "Review Updated!",
+      message: `A user has updated their review on ${product.name}. The review is pending approval.`,
+      meta: { productId: product._id, reviewId: review._id },
+      actionUrl: `/product-detail/${product.slug}`
+    });
+
+    // Send notification to admins about review update
+    const reviewer = await User.findById(userId).select('name');
+    await createAdminNotification({
+      type: 'PRODUCT_REVIEW',
+      title: 'Review Updated - Pending Approval',
+      message: `${reviewer.name || 'A user'} has updated their review for ${product.name || 'a product'}. The review is now pending approval.`,
+      meta: { 
+        reviewId: review._id.toString(), 
+        productId: product._id.toString(),
+        reviewerId: reviewer._id.toString(),
+        reviewerName: reviewer.name || 'Unknown',
+        productName: product.name || 'Unknown',
+        status: 'pending'
+      },
+      actionUrl: 'reviews'
+    });
 
     await updatedReview.populate([
       { path: 'reviewer', select: 'name email avatar slug' },
@@ -640,15 +674,65 @@ const updateProductReview = async (reviewId, updateData, userId) => {
  */
 const deleteProductReview = async (reviewId, userId, userRole) => {
   try {
-    const review = await ProductReview.findByIdActive(reviewId);
+    const review = await ProductReview.findByIdActive(reviewId)
+      .populate([
+        { path: 'reviewer', select: 'name email firstName lastName' },
+        { path: 'product', select: 'name slug' }
+      ]);
 
     if (!review) {
       throw new ApiError('Product review not found', 'REVIEW_NOT_FOUND', 404);
     }
 
     // Check if user is the owner of the review or admin
-    if (review.reviewer.toString() !== userId && userRole !== 'admin') {
+    if (review.reviewer._id.toString() !== userId && userRole !== 'admin') {
       throw new ApiError('You can only delete your own reviews', 'UNAUTHORIZED_DELETE', 403);
+    }
+
+    // Determine who deleted the review
+    const deletedBy = review.reviewer._id.toString() === userId ? 'self' : 'admin';
+
+    // Send email notification to the reviewer
+    try {
+      const emailParams = {
+        email: review.reviewer.email,
+        userName: review.reviewer.firstName || review.reviewer.name || 'User',
+        productName: review.product.name,
+        rating: review.overallRating,
+        reviewTitle: review.title,
+        reviewId: review._id.toString(),
+        productSlug: review.product.slug,
+        deletedBy
+      };
+
+      await emailService.sendReviewDeletedEmail(emailParams);
+    } catch (emailError) {
+      // Log error but don't fail the deletion operation
+      console.error('Failed to send review deletion email:', emailError);
+    }
+
+    // Send in-app notification to the reviewer
+    try {
+      const notificationMessage = deletedBy === 'self' 
+        ? `Your review for ${review.product.name} has been successfully removed.`
+        : `Your review for ${review.product.name} has been removed by an administrator. If you have questions, please contact support.`;
+
+      await createNotification({
+        userId: review.reviewer._id,
+        type: 'REVIEW_DELETED',
+        title: 'Review Removed',
+        message: notificationMessage,
+        meta: { 
+          productId: review.product._id, 
+          reviewId: review._id,
+          productSlug: review.product.slug,
+          deletedBy
+        },
+        actionUrl: `/products/${review.product.slug}`
+      });
+    } catch (notificationError) {
+      // Log error but don't fail the deletion operation
+      console.error('Failed to send review deletion notification:', notificationError);
     }
 
     // Soft delete the review
