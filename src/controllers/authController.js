@@ -108,7 +108,7 @@ exports.login = async (req, res, next) => {
     const user = await User.findOne({ email })
     if (!user) {
       return next(
-        new ApiError("User not found", "USER_NOT_FOUND", 404),
+        new ApiError("User not found. Please register", "USER_NOT_FOUND", 404),
       );
     }
     const match = await bcrypt.compare(password, user.password);
