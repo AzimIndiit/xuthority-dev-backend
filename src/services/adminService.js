@@ -166,10 +166,11 @@ const getDateRangeAndFormat = (period) => {
       break;
     case 'weekly':
     default:
-      // Last 12 weeks
-      dateFilter = new Date(now.getTime() - (12 * 7 * 24 * 60 * 60 * 1000));
-      groupFormat = { year: '$year', week: '$week' };
-      periods = 12;
+      // Last 7 days (daily buckets)
+      // Include today; start date is 6 days ago
+      dateFilter = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+      groupFormat = { year: '$year', month: '$month', day: '$day' };
+      periods = 7;
       break;
   }
 
@@ -181,30 +182,18 @@ const getDateRangeAndFormat = (period) => {
  * @param {Date} dateFilter - Date filter for time period
  * @returns {Promise<Object>} Stats data
  */
-const getStatsData = async (dateFilter) => {
+const getStatsData = async () => {
+  // All-time totals (no date filtering)
   const [
     totalUsers,
     totalVendors,
     totalReviews,
     pendingVendors
   ] = await Promise.all([
-    User.countDocuments({ 
-      role: 'user',
-      createdAt: { $gte: dateFilter }
-    }),
-    User.countDocuments({ 
-      role: 'vendor',
-      createdAt: { $gte: dateFilter }
-    }),
-    ProductReview.countDocuments({
-      submittedAt: { $gte: dateFilter },
-      isDeleted: false
-    }),
-    User.countDocuments({ 
-      role: 'vendor', 
-      isVerified: false,
-      createdAt: { $gte: dateFilter }
-    })
+    User.countDocuments({ role: 'user' }),
+    User.countDocuments({ role: 'vendor' }),
+    ProductReview.countDocuments({ isDeleted: false }),
+    User.countDocuments({ role: 'vendor', isVerified: false })
   ]);
 
   return {
@@ -233,7 +222,8 @@ const getUserGrowthData = async (dateFilter, groupFormat, periods) => {
       $addFields: {
         year: { $year: '$createdAt' },
         month: { $month: '$createdAt' },
-        week: { $week: '$createdAt' }
+        week: { $week: '$createdAt' },
+        day: { $dayOfMonth: '$createdAt' }
       }
     },
     {
@@ -252,7 +242,7 @@ const getUserGrowthData = async (dateFilter, groupFormat, periods) => {
       }
     },
     {
-      $sort: { '_id.year': 1, '_id.month': 1, '_id.week': 1 }
+      $sort: { '_id.year': 1, '_id.month': 1, '_id.week': 1, '_id.day': 1 }
     }
   ];
 
@@ -279,7 +269,8 @@ const getReviewTrendsData = async (dateFilter, groupFormat, periods) => {
       $addFields: {
         year: { $year: '$submittedAt' },
         month: { $month: '$submittedAt' },
-        week: { $week: '$submittedAt' }
+        week: { $week: '$submittedAt' },
+        day: { $dayOfMonth: '$submittedAt' }
       }
     },
     {
@@ -309,7 +300,7 @@ const getReviewTrendsData = async (dateFilter, groupFormat, periods) => {
       }
     },
     {
-      $sort: { '_id.year': 1, '_id.month': 1, '_id.week': 1 }
+      $sort: { '_id.year': 1, '_id.month': 1, '_id.week': 1, '_id.day': 1 }
     }
   ];
 
@@ -328,7 +319,7 @@ const getRecentReviewsData = async (dateFilter) => {
       $match: {
         submittedAt: { $gte: dateFilter },
         isDeleted: false,
-        status:"approved"
+        // status:"approved"
       }
     },
     {
@@ -454,15 +445,28 @@ const formatChartData = (results, groupFormat, periods, isReviewData = false) =>
   for (let i = periods - 1; i >= 0; i--) {
     let periodLabel, periodId;
     
-    if (groupFormat.year && groupFormat.month) {
+    if (groupFormat.year && groupFormat.month && groupFormat.day) {
+      // Daily buckets (use local date parts to avoid timezone shift)
+      const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      periodLabel = `${yyyy}-${mm}-${dd}`; // YYYY-MM-DD
+      periodId = { year: yyyy, month: parseInt(mm, 10), day: parseInt(dd, 10) };
+    } else if (groupFormat.year && groupFormat.month) {
       // Monthly
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      periodLabel = date.toISOString().substr(0, 7); // YYYY-MM
-      periodId = { year: date.getFullYear(), month: date.getMonth() + 1 };
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      periodLabel = `${yyyy}-${mm}`; // YYYY-MM
+      periodId = { year: yyyy, month: parseInt(mm, 10) };
     } else if (groupFormat.year && groupFormat.week) {
       // Weekly
       const date = new Date(now.getTime() - (i * 7 * 24 * 60 * 60 * 1000));
-      periodLabel = date.toISOString().substr(0, 10); // YYYY-MM-DD
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      periodLabel = `${yyyy}-${mm}-${dd}`; // YYYY-MM-DD
       const week = getWeekNumber(date);
       periodId = { year: date.getFullYear(), week };
     } else {
@@ -474,7 +478,9 @@ const formatChartData = (results, groupFormat, periods, isReviewData = false) =>
     
     // Find matching result
     const matchingResult = results.find(r => {
-      if (groupFormat.year && groupFormat.month) {
+      if (groupFormat.year && groupFormat.month && groupFormat.day) {
+        return r._id.year === periodId.year && r._id.month === periodId.month && r._id.day === periodId.day;
+      } else if (groupFormat.year && groupFormat.month) {
         return r._id.year === periodId.year && r._id.month === periodId.month;
       } else if (groupFormat.year && groupFormat.week) {
         return r._id.year === periodId.year && r._id.week === periodId.week;
