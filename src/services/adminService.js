@@ -192,7 +192,11 @@ const getStatsData = async () => {
   ] = await Promise.all([
     User.countDocuments({ role: 'user' }),
     User.countDocuments({ role: 'vendor' }),
-    ProductReview.countDocuments({ isDeleted: false }),
+    // Align total reviews with public list semantics (exclude rejected and deleted)
+    ProductReview.countDocuments({ 
+      isDeleted: false, 
+      status: { $in: ['pending', 'approved', 'dispute'] }
+    }),
     User.countDocuments({ role: 'vendor', isVerified: false })
   ]);
 
@@ -421,7 +425,8 @@ const getRecentReviewsData = async (dateFilter) => {
               userId: '$$product.userId'
             }
           }
-        }
+        },
+        helpfulVotes: 1
       }
     }
   ];
@@ -932,7 +937,13 @@ const getUserProfileStats = async (userId) => {
 
     // Get review statistics
     const reviewStats = await ProductReview.aggregate([
-      { $match: { reviewer: new mongoose.Types.ObjectId(userId), isDeleted: { $ne: true } } },
+      { 
+        $match: { 
+          reviewer: new mongoose.Types.ObjectId(userId), 
+          isDeleted: false,
+          status: { $in: ['pending', 'approved', 'dispute'] }
+        } 
+      },
       {
         $group: {
           _id: '$status',
@@ -940,7 +951,7 @@ const getUserProfileStats = async (userId) => {
         }
       }
     ]);
-
+console.log("reviewStats------",reviewStats)
     const totalReviews = reviewStats.reduce((sum, stat) => sum + stat.count, 0);
     const approved = reviewStats.find(stat => stat._id === 'approved')?.count || 0;
     const pending = reviewStats.find(stat => stat._id === 'pending')?.count || 0;
