@@ -323,6 +323,7 @@ const getRecentReviewsData = async (dateFilter) => {
       $match: {
         submittedAt: { $gte: dateFilter },
         isDeleted: false,
+        status: { $in: ['pending', 'approved', 'dispute'] }
         // status:"approved"
       }
     },
