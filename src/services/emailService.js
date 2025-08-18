@@ -990,6 +990,69 @@ class EmailService {
       throw new Error('Failed to send review deleted email');
     }
   }
+
+  /**
+   * Send review deleted notification email to product owner
+   * @param {object} params - Email parameters
+   * @param {string} params.email - Product owner's email
+   * @param {string} params.userName - Product owner's name
+   * @param {string} params.productName - Product name
+   * @param {string} params.reviewerName - Reviewer's name
+   * @param {number} params.rating - Review rating
+   * @param {string} params.reviewTitle - Review title
+   * @param {string} params.reviewId - Review ID
+   * @param {string} params.productSlug - Product slug
+   * @param {string} params.deletedBy - Who deleted the review (self/admin)
+   * @param {string} params.deletionReason - Reason for deletion
+   * @returns {Promise}
+   */
+  async sendReviewDeletedToOwnerEmail({ 
+    email, 
+    userName, 
+    productName, 
+    reviewerName, 
+    rating, 
+    reviewTitle, 
+    reviewId, 
+    productSlug, 
+    deletedBy, 
+    deletionReason 
+  }) {
+    try {
+      const templateData = {
+        userName, // Product owner's name
+        productName,
+        reviewerName,
+        rating,
+        reviewTitle,
+        deletedBy,
+        deletionReason,
+        wasDeletedByUser: deletedBy === 'self',
+        wasDeletedByAdmin: deletedBy === 'admin',
+        productUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/products/${productSlug}`,
+        dashboardUrl: `${config?.app?.frontendUrl || 'http://localhost:3001'}/dashboard/reviews`,
+        appName: config?.app?.name || 'Xuthority',
+        currentYear: new Date().getFullYear(),
+        companyName: config?.app?.companyName || 'Xuthority Inc.',
+        companyAddress: config?.app?.companyAddress || '123 Business St, Tech City, TC 12345',
+        supportEmail: config?.email?.supportEmail || 'support@xuthority.com'
+      };
+
+      const subject = deletedBy === 'self' 
+        ? `Review Removed by User - ${productName}`
+        : `Review Removed by Admin - ${productName}`;
+
+      return await this.sendTemplatedEmail({
+        to: email,
+        subject: `${subject} - ${config?.app?.name || 'Xuthority'}`,
+        template: 'review-deleted-owner.ejs',
+        data: templateData
+      });
+    } catch (error) {
+      logger.error('Error sending review deleted to owner email:', error);
+      throw new Error('Failed to send review deleted to owner email');
+    }
+  }
 }
 
 module.exports = new EmailService();

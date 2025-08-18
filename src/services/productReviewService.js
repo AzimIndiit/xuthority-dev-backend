@@ -40,15 +40,15 @@ const createProductReview = async (reviewData, userId) => {
 
     await review.save();
 
-    // Send notification to vendor
-    await createNotification({
-      userId: product.userId,
-      type: 'PRODUCT_REVIEW',
-      title: "You've Got a New Review!",
-      message: 'A user has left a review on your product. Check it out and respond to engage with your customers.',
-      meta: { productId: product._id, reviewId: review._id },
-      actionUrl: `/product-detail/${product.slug}`
-    });
+    // // Send notification to vendor
+    // await createNotification({
+    //   userId: product.userId,
+    //   type: 'PRODUCT_REVIEW',
+    //   title: "You've Got a New Review!",
+    //   message: 'A user has left a review on your product. Check it out and respond to engage with your customers.',
+    //   meta: { productId: product._id, reviewId: review._id },
+    //   actionUrl: `/product-detail/${product.slug}`
+    // });
 
     // Populate the review before returning
     await review.populate([
@@ -677,7 +677,14 @@ const deleteProductReview = async (reviewId, userId, userRole) => {
     const review = await ProductReview.findByIdActive(reviewId)
       .populate([
         { path: 'reviewer', select: 'name email firstName lastName' },
-        { path: 'product', select: 'name slug' }
+        { 
+          path: 'product', 
+          select: 'name slug userId',
+          populate: {
+            path: 'userId',
+            select: 'email firstName lastName name'
+          }
+        }
       ]);
 
     if (!review) {
@@ -733,6 +740,60 @@ const deleteProductReview = async (reviewId, userId, userRole) => {
     } catch (notificationError) {
       // Log error but don't fail the deletion operation
       console.error('Failed to send review deletion notification:', notificationError);
+    }
+
+    // If review was approved, notify the product owner
+      console.log('-----review.status', review.status,review.product.userId)
+    if (review.status === 'approved' && review.product.userId) {
+      // Send email notification to product owner
+      try {
+        const ownerEmailParams = {
+          email: review.product.userId.email,
+          userName: review.product.userId.firstName || review.product.userId.name || 'Product Owner',
+          productName: review.product.name,
+          reviewerName: review.reviewer.firstName || review.reviewer.name || 'A user',
+          rating: review.overallRating,
+          reviewTitle: review.title,
+          reviewId: review._id.toString(),
+          productSlug: review.product.slug,
+          deletedBy,
+          deletionReason: deletedBy === 'self' 
+            ? 'The reviewer removed their own review'
+            : 'An administrator removed this review'
+        };
+
+        await emailService.sendReviewDeletedToOwnerEmail(ownerEmailParams);
+      } catch (emailError) {
+        // Log error but don't fail the deletion operation
+        console.error('Failed to send review deletion email to product owner:', emailError);
+      }
+
+      // Send in-app notification to product owner
+      try {
+        const ownerNotificationMessage = deletedBy === 'self' 
+          ? `A ${review.overallRating}-star review for ${review.product.name} has been removed by the reviewer.`
+          : `A ${review.overallRating}-star review for ${review.product.name} has been removed by an administrator.`;
+
+        await createNotification({
+          userId: review.product.userId._id,
+          type: 'PRODUCT_REVIEW_DELETED',
+          title: 'Product Review Removed',
+          message: ownerNotificationMessage,
+          meta: { 
+            productId: review.product._id,
+            productName: review.product.name,
+            reviewId: review._id,
+            reviewerName: review.reviewer.firstName || review.reviewer.name,
+            rating: review.overallRating,
+            productSlug: review.product.slug,
+            deletedBy
+          },
+          actionUrl: `/products/${review.product.slug}`
+        });
+      } catch (notificationError) {
+        // Log error but don't fail the deletion operation
+        console.error('Failed to send review deletion notification to product owner:', notificationError);
+      }
     }
 
     // Soft delete the review
@@ -870,7 +931,7 @@ const moderateReview = async (reviewId, moderationData) => {
 
     await review.populate([
       { path: 'reviewer', select: 'name email avatar slug firstName lastName' },
-      { path: 'product', select: 'name slug' }
+      { path: 'product', select: 'name slug userId' }
     ]);
 
     // Send notifications to the reviewer
@@ -940,6 +1001,16 @@ const moderateReview = async (reviewId, moderationData) => {
       if (status === 'approved') {
         emailParams.publishedDate = review.publishedAt;
         await emailService.sendReviewApprovedEmail(emailParams);
+         // Send notification to vendor
+         console.log('-----approved', review.product)
+    await createNotification({
+      userId: review.product.userId,
+      type: 'PRODUCT_REVIEW',
+      title: "You've Got a New Review!",
+      message: 'A user has left a review on your product. Check it out and respond to engage with your customers.',
+      meta: { productId: review.product._id, reviewId: review._id },
+      actionUrl: `/product-detail/${review.product.slug}`
+    });
       } else if (status === 'rejected') {
         emailParams.moderationNote = moderationNote;
         await emailService.sendReviewRejectedEmail(emailParams);
