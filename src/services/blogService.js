@@ -469,6 +469,7 @@ const getBlogsGroupedByCategories = async (limit = 6) => {
                 authorName: '$$blog.authorName',
                 designation: '$$blog.designation',
                 mediaUrl: '$$blog.mediaUrl',
+                thumbnailUrl: '$$blog.thumbnailUrl',
                 watchUrl: '$$blog.watchUrl',
                 tag: '$$blog.tag',
                 status: '$$blog.status',

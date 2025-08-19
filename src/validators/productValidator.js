@@ -39,6 +39,15 @@ const productValidator = {
       .isURL()
       .withMessage('Website must be a valid URL'),
 
+    body('contactEmail')
+      .notEmpty()
+      .withMessage('Contact email is required')
+      .isEmail()
+      .withMessage('Contact email must be a valid email address')
+      .normalizeEmail()
+      .isLength({ max: 100 })
+      .withMessage('Contact email must be less than 100 characters'),
+
     body('logoUrl')
       .optional()
       .isURL()
@@ -171,6 +180,15 @@ const productValidator = {
       .optional()
       .isURL()
       .withMessage('Website must be a valid URL'),
+
+    body('contactEmail')
+      .notEmpty()
+      .withMessage('Contact email is required')
+      .isEmail()
+      .withMessage('Contact email must be a valid email address')
+      .normalizeEmail()
+      .isLength({ max: 100 })
+      .withMessage('Contact email must be less than 100 characters'),
 
     body('logoUrl')
       .optional()

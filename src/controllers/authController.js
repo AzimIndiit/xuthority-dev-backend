@@ -211,6 +211,7 @@ exports.registerVendor = async (req, res, next) => {
       acceptedTerms: acceptedTerms === "true",
       acceptedMarketing: acceptedMarketing === "true",
       role: "vendor",
+      status:"approved",
       authProvider: "email",
     });
     const token = generateToken(user);

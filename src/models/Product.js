@@ -81,6 +81,22 @@ const productSchema = new mongoose.Schema(
       },
     },
 
+    // Contact email for product inquiries
+    contactEmail: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      validate: {
+        validator: function (v) {
+          // Email regex pattern for validation
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        },
+        message: "Contact email must be a valid email address",
+      },
+      maxlength: 100,
+    },
+
     description: {
       type: String,
       required: true,

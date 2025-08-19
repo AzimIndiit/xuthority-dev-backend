@@ -67,6 +67,7 @@ exports.updateProfile = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const updateData = req.body;
+    console.log('updateData-----', updateData)
     const user = await require('../services/userService').updateUserProfile(userId, updateData);
     await require('../services/auditService').logEvent({
       user: req.user,

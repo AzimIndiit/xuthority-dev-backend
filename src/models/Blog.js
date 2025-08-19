@@ -39,6 +39,10 @@ const blogSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  thumbnailUrl: {
+    type: String,
+    trim: true
+  },
   description: {
     type: String,
     required: [true, 'Description is required'],
