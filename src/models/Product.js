@@ -3,11 +3,11 @@ const slugify = require("slugify");
 
 const PRODUCT_STATUS = [
   "pending",
-  "approved",
-  "rejected",
-  "draft",
   "published",
-  "archived",
+  "rejected",
+  // New statuses for update review flow
+  "update_pending",
+  "update_rejected",
 ];
 
 const ACTIVE_STATUS = ["active", "inactive"];
@@ -225,7 +225,7 @@ const productSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: PRODUCT_STATUS,
-      default: "published",
+      default: "pending",
       index: true,
     },
 
@@ -242,6 +242,22 @@ const productSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+
+    // Pending update shadow (stores vendor-submitted changes for live products)
+    pendingUpdate: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    pendingUpdateMeta: {
+      fieldsChanged: [{ type: String }],
+      submittedAt: { type: Date },
+      submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      reviewNote: { type: String },
+    },
+
+    // Audit of last approval
+    lastApprovedAt: { type: Date },
+    lastApprovedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
 
     // SEO and metadata
     metaTitle: {

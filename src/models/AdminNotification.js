@@ -9,6 +9,12 @@ const NOTIFICATION_TYPES = [
   'PAYMENT_FAILED',
   'DISPUTE_CREATED',
   'DISPUTE_RESOLVED',
+  'CONTACT_TICKET_CREATED',
+  'PRODUCT_CREATED',
+  // Product update review flow
+  'PRODUCT_UPDATE_PENDING',
+  'PRODUCT_RESUBMITTED',
+  'PRODUCT_UPDATE_REJECTED'
 ];
 
 const adminNotificationSchema = new mongoose.Schema({

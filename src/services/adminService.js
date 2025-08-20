@@ -9,6 +9,7 @@ const emailService = require('./emailService');
 const logger = require('../config/logger');
 const { generateBlockedUserError, isAdminDeactivated } = require('../utils/authHelpers');
 const { updateProductAggregateRatings, batchUpdateProductStats } = require('../utils/productRatingHelpers');
+const { createAdminNotification } = require('./adminNotificationService');
 
 const SALT_ROUNDS = process.env.BCRYPT_SALT_ROUNDS ? parseInt(process.env.BCRYPT_SALT_ROUNDS) : 12;
 const TOKEN_EXPIRY = "7d";
@@ -1771,6 +1772,141 @@ const recalculateProductStats = async (productId, admin) => {
   }
 };
 
+/**
+ * Approve a pending product (sets status to approved and publishedAt if missing)
+ * Sends notification email to product owner
+ */
+const approveProduct = async (productId, admin) => {
+  try {
+    const product = await Product.findById(productId).populate('userId', 'firstName lastName email');
+    if (!product) {
+      throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
+    }
+
+    const previousStatus = product.status;
+    // If this is an update review approval, apply pendingUpdate first
+    if (product.status === 'update_pending' && product.pendingUpdate) {
+      const fields = Object.keys(product.pendingUpdate || {});
+      fields.forEach((key) => {
+        product[key] = product.pendingUpdate[key];
+      });
+      // Clear pending buffers
+      product.pendingUpdate = undefined;
+      product.pendingUpdateMeta = undefined;
+    }
+    product.status = 'published';
+    if (!product.publishedAt) {
+      product.publishedAt = new Date();
+    }
+    await product.save();
+
+    // Send email to product owner and in-app notification
+    try {
+      const owner = product.userId;
+      const ownerName = owner?.firstName ? `${owner.firstName} ${owner.lastName || ''}`.trim() : 'User';
+      await emailService.sendTemplatedEmail({
+        to: owner?.email,
+        subject: `Your product "${product.name}" has been approved - Xuthority`,
+        template: 'product-approved.ejs',
+        data: {
+          userName: ownerName,
+          productName: product.name,
+          productSlug: product.slug,
+          approvedDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+        }
+      });
+      // In-app notification to product owner
+      try {
+        const { createNotification } = require('./notificationService');
+        await createNotification({
+          userId: owner._id,
+          type: 'PRODUCT_APPROVED',
+          title: 'Your product was approved',
+          message: `"${product.name}" is now live on Xuthority.`,
+          meta: { productId: product._id.toString(), productSlug: product.slug },
+          actionUrl: `/product-detail/${product.slug}`
+        });
+      } catch (nErr) { /* non-blocking */ }
+    } catch (emailError) {
+      logger.error('Failed to send product approval email:', emailError);
+    }
+
+    // Audit log
+    await logEvent({
+      user: admin,
+      action: 'PRODUCT_APPROVAL',
+      target: 'Product',
+      targetId: productId,
+      details: { productName: product.name, previousStatus, newStatus: product.status }
+    });
+
+    return product;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Reject a product (sets status to rejected) and optionally include a reason
+ * Sends notification email to product owner with reason
+ */
+const rejectProduct = async (productId, admin, reason = null) => {
+  try {
+    const product = await Product.findById(productId).populate('userId', 'firstName lastName email');
+    if (!product) {
+      throw new ApiError('Product not found', 'PRODUCT_NOT_FOUND', 404);
+    }
+
+    const previousStatus = product.status;
+    product.status = previousStatus==='update_pending' ? 'update_rejected' : 'rejected';
+    await product.save();
+
+    // Send email to product owner and in-app notification
+    try {
+      const owner = product.userId;
+      const ownerName = owner?.firstName ? `${owner.firstName} ${owner.lastName || ''}`.trim() : 'User';
+      await emailService.sendTemplatedEmail({
+        to: owner?.email,
+        subject: `Update on your product submission - ${product.name}`,
+        template: 'product-rejected.ejs',
+        data: {
+          userName: ownerName,
+          productName: product.name,
+          reason: reason || 'Our moderators have determined that this submission does not meet our guidelines at this time.',
+          guidelinesUrl: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/for-vendors` : 'https://xuthority.com/for-vendors'
+        }
+      });
+      // In-app notification to product owner
+      try {
+        const { createNotification } = require('./notificationService');
+        await createNotification({
+          userId: owner._id,
+          type: 'PRODUCT_REJECTED',
+          title: 'Your product was rejected',
+          message: `Your product "${product.name}" was rejected.${reason ? ` Reason: ${reason}` : ''}`,
+          meta: { productId: product._id.toString(), productSlug: product.slug, reason: reason || '' },
+          actionUrl: `/profile/products`
+        });
+      } catch (nErr) { /* non-blocking */ }
+    } catch (emailError) {
+      logger.error('Failed to send product rejection email:', emailError);
+    }
+
+    // Audit log
+    await logEvent({
+      user: admin,
+      action: 'PRODUCT_REJECTION',
+      target: 'Product',
+      targetId: productId,
+      details: { productName: product.name, previousStatus, newStatus: product.status, reason: reason || undefined }
+    });
+
+    return product;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   adminLogin,
   createAdmin,
@@ -1797,5 +1933,7 @@ module.exports = {
   forgotAdminPassword,
   resetAdminPassword,
   verifyAdminResetToken,
-  recalculateProductStats
+  recalculateProductStats,
+  approveProduct,
+  rejectProduct
 }; 

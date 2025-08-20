@@ -25,6 +25,10 @@ const NOTIFICATION_TYPES = [
   'PAYMENT_FAILED',
   'TRIAL_ENDING',
   'TRIAL_EXPIRED',
+  // Product owner lifecycle notifications
+  'PRODUCT_APPROVED',
+  'PRODUCT_REJECTED',
+  'PRODUCT_UPDATE_REJECTED'
 ];
 
 const NOTIFICATION_STATUS = ['sent', 'failed', 'pending'];

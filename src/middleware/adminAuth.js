@@ -64,6 +64,10 @@ const adminAuth = async (req, res, next) => {
 
       req.admin = admin;
       req.user = admin; // For backward compatibility
+      // Ensure downstream checks recognize admin role
+      if (!req.user.role) {
+        req.user.role = 'admin';
+      }
       next();
     } catch (jwtError) {
       return res.status(401).json({

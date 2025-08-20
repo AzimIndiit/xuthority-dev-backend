@@ -1172,6 +1172,164 @@ exports.recalculateProductStats = async (req, res, next) => {
 };
 
 /**
+ * Get product by slug for admin (no published restriction)
+ */
+exports.getAdminProductBySlug = async (req, res, next) => {
+  try {
+    const { Product } = require('../models');
+    const slug = req.params.slug;
+    const product = await Product.findOne({ slug })
+      .populate([
+        { path: 'userId', select: 'firstName lastName companyName email slug' },
+        { path: 'industries', select: 'name slug status' },
+        { path: 'languages', select: 'name slug status' },
+        { path: 'integrations', select: 'name image status' },
+        { path: 'marketSegment', select: 'name slug status' },
+        { path: 'whoCanUse', select: 'name slug status' },
+        { path: 'softwareIds', select: 'name slug status' },
+        { path: 'solutionIds', select: 'name slug status' }
+      ]);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          message: 'Product not found',
+          code: 'PRODUCT_NOT_FOUND',
+          statusCode: 404,
+          details: {}
+        }
+      });
+    }
+
+    return res.json(ApiResponse.success(product, 'Product retrieved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Approve vendor-submitted product update
+ */
+exports.approveProductUpdate = async (req, res, next) => {
+  try {
+    const { Product } = require('../models');
+    const productId = req.params.id;
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json(ApiResponse.error('Product not found', 'PRODUCT_NOT_FOUND', 404));
+    }
+
+    const pending = product.pendingUpdate || {};
+    const fields = Object.keys(pending);
+
+    // Merge allowed fields from pendingUpdate
+    const $set = { lastApprovedAt: new Date(), lastApprovedBy: req.user._id, status: 'published' };
+    fields.forEach((k) => { $set[k] = pending[k]; });
+
+    const updated = await Product.findByIdAndUpdate(productId, {
+      $set,
+      $unset: { pendingUpdate: 1, pendingUpdateMeta: 1 },
+    }, { new: true });
+
+    return res.json(ApiResponse.success({ product: updated }, 'Product update approved'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Reject vendor-submitted product update
+ */
+exports.rejectProductUpdate = async (req, res, next) => {
+  try {
+    const { Product } = require('../models');
+    const emailService = require('../services/emailService');
+    const { notifyAdminsProductUpdateRejected } = require('../services/adminNotificationService');
+    const productId = req.params.id;
+    const { reviewNote } = req.body || {};
+
+    const product = await Product.findByIdAndUpdate(productId, {
+      $set: {
+        status: 'update_rejected',
+        'pendingUpdateMeta.reviewNote': reviewNote || '',
+      }
+    }, { new: true });
+
+    if (!product) {
+      return res.status(404).json(ApiResponse.error('Product not found', 'PRODUCT_NOT_FOUND', 404));
+    }
+
+    // Email product owner about update rejection
+    try {
+      const populated = await Product.findById(product._id).populate('userId', 'firstName lastName email');
+      const owner = populated.userId;
+      const ownerName = owner?.firstName ? `${owner.firstName} ${owner.lastName || ''}`.trim() : 'User';
+      await emailService.sendTemplatedEmail({
+        to: owner?.email,
+        subject: `Update request for "${populated.name}" was rejected`,
+        template: 'product-rejected.ejs',
+        data: {
+          userName: ownerName,
+          productName: populated.name,
+          reason: reviewNote || 'Our moderators have determined that this update does not meet our guidelines at this time.',
+          guidelinesUrl: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/for-vendors` : 'https://xuthority.com/for-vendors'
+        }
+      });
+
+      // Admin notification for update rejection
+      try { await notifyAdminsProductUpdateRejected(populated, reviewNote); } catch (e) { console.warn('notifyAdminsProductUpdateRejected failed:', e?.message); }
+
+      // In-app notification to product owner
+      try {
+        const { createNotification } = require('../services/notificationService');
+        await createNotification({
+          userId: owner._id,
+          type: 'PRODUCT_UPDATE_REJECTED',
+          title: 'Product update was rejected',
+          message: `Your update for "${populated.name}" was rejected.${reviewNote ? ` Reason: ${reviewNote}` : ''}`,
+          meta: { productId: populated._id.toString(), productSlug: populated.slug, reason: reviewNote || '' },
+          actionUrl: `/profile/products`
+        });
+      } catch (nErr) { /* non-blocking */ }
+    } catch (emailErr) {
+      console.error('Failed to send product update rejection email/notification:', emailErr);
+    }
+
+    return res.json(ApiResponse.success({ product }, 'Product update rejected'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Approve product (Admin only)
+ */
+exports.approveProduct = async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+    const product = await adminService.approveProduct(productId, req.user);
+    return res.json(ApiResponse.success({ product }, 'Product approved successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Reject product (Admin only)
+ */
+exports.rejectProduct = async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+    const { reason } = req.body || {};
+    const product = await adminService.rejectProduct(productId, req.user, reason);
+    return res.json(ApiResponse.success({ product }, 'Product rejected successfully'));
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * @openapi
  * /admin/users/{id}:
  *   delete:

@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const { Product, User, ProductReview } = require('../models');
+const { 
+  notifyAdminsProductUpdatePending,
+  notifyAdminsProductResubmitted
+} = require('./adminNotificationService');
 const ApiError = require('../utils/apiError');
 const { ObjectId } = require('mongoose').Types;
 
@@ -85,6 +89,10 @@ const getProducts = async (options = {}, user = null) => {
     maxRating,
     sortBy = 'createdAt',
     sortOrder = 'desc',
+    // Date filters
+    period,
+    dateFrom,
+    dateTo,
     // New filter parameters
     segment,
     categories,
@@ -96,7 +104,13 @@ const getProducts = async (options = {}, user = null) => {
   // Build filter
   const filter = {};
   
-  if (status) filter.status = status;
+  if (status) {
+    if (typeof status === 'string' && status.includes(',')) {
+      filter.status = { $in: status.split(',').map(s => s.trim()) };
+    } else {
+      filter.status = status;
+    }
+  }
   if (userId) filter.userId = userId; // Support old field
   if (software) filter.software = software;
   
@@ -250,6 +264,40 @@ console.log('filter========', filter,categories)
     ];
   }
 
+  // Date filters on createdAt
+  if (period || dateFrom || dateTo) {
+    const createdAtFilter = {};
+
+    if (period && !dateFrom && !dateTo) {
+      const now = new Date();
+      let start;
+      if (period === 'weekly') {
+        start = new Date(now);
+        start.setDate(now.getDate() - 7);
+      } else if (period === 'monthly') {
+        start = new Date(now);
+        start.setMonth(now.getMonth() - 1);
+      } else if (period === 'yearly') {
+        start = new Date(now);
+        start.setFullYear(now.getFullYear() - 1);
+      }
+      if (start) {
+        createdAtFilter.$gte = start;
+      }
+    }
+
+    if (dateFrom) {
+      createdAtFilter.$gte = new Date(dateFrom);
+    }
+    if (dateTo) {
+      createdAtFilter.$lte = new Date(dateTo);
+    }
+
+    if (Object.keys(createdAtFilter).length > 0) {
+      filter.createdAt = createdAtFilter;
+    }
+  }
+
   // Build sort object - support multiple sorting criteria
   const sort = {};
   
@@ -315,7 +363,7 @@ console.log('filter========', filter,categories)
 
   // Execute query with pagination
   const skip = (page - 1) * limit;
-  console.log(filter,"filter",sort);
+  console.log(filter,"filter",sort,page,limit);
   const [products, total] = await Promise.all([
     Product.find(filter)
       .populate([
@@ -456,7 +504,7 @@ const getProductById = async (productId, incrementViews = false, user = null) =>
  * @returns {Object} Product
  */
 const getProductBySlug = async (slug, incrementViews = false, user = null) => {
-  const product = await Product.findOne({ slug })
+  const product = await Product.findOne({ slug,  status: { $in: ["published", "update_rejected"] } })
     .populate([
       { path: 'userId', select: 'firstName lastName companyName email socialLinks companyDescription companyWebsiteUrl hqLocation yearFounded companyAvatar socialLinks slug' },
       { path: 'industries', select: 'name slug status' },
@@ -530,6 +578,113 @@ const updateProduct = async (productId, updateData, userId) => {
   }
 
   try {
+    // Normalize aliases and compatibility fields
+    if (Object.prototype.hasOwnProperty.call(updateData || {}, 'title') && !updateData.name) {
+      updateData.name = updateData.title;
+      delete updateData.title;
+    }
+    if (updateData.website && !updateData.websiteUrl) {
+      updateData.websiteUrl = updateData.website;
+    }
+    if (updateData.websiteUrl && !updateData.website) {
+      updateData.website = updateData.websiteUrl;
+    }
+
+    // If product is live and owner is editing fields that require review, stage as pending (review)
+    const isLive = ['published','update_rejected'].includes( product.status)
+    const reviewFields = ['name','description','softwareIds','solutionIds','industries','integrations','marketSegment'];
+    const updateKeys = Object.keys(updateData || {});
+    // Only trigger review if the value actually changes
+    const valuesDiffer = (field) => {
+      if (!updateKeys.includes(field)) return false;
+      const newVal = updateData[field];
+      const oldVal = product[field];
+      // Arrays (ObjectIds/strings)
+      if (Array.isArray(newVal) || Array.isArray(oldVal)) {
+        const toNorm = (v) => (Array.isArray(v) ? v.map((x) => String(x)).sort() : []);
+        const n1 = toNorm(newVal);
+        const n2 = toNorm(oldVal);
+        return JSON.stringify(n1) !== JSON.stringify(n2);
+      }
+      // Strings
+      if (typeof newVal === 'string' && typeof oldVal === 'string') {
+        return newVal.trim() !== oldVal.trim();
+      }
+      // ObjectId to string equality, or primitives
+      return JSON.stringify(newVal) !== JSON.stringify(oldVal);
+    };
+    const fieldsActuallyChanged = reviewFields.filter(valuesDiffer);
+    const touchesReviewFields = fieldsActuallyChanged.length > 0;
+
+    // If first submission was rejected and vendor resubmits, set to pending and notify admins
+    if (product.status === 'rejected' && (touchesReviewFields || updateKeys.length > 0)) {
+      const updated = await Product.findByIdAndUpdate(
+        productId,
+        {
+          $set: { ...updateData, status: 'pending', lastUpdated: new Date() },
+          $unset: { pendingUpdate: 1, pendingUpdateMeta: 1 }
+        },
+        { new: true, runValidators: true }
+      ).populate('userId', 'firstName lastName email');
+
+      try { await notifyAdminsProductResubmitted(updated); } catch (e) { console.warn('notifyAdminsProductResubmitted failed:', e?.message); }
+      return updated;
+    }
+
+    if (product.status === 'update_rejected' && (touchesReviewFields || updateKeys.length > 0)) {
+      const updated = await Product.findByIdAndUpdate(
+        productId,
+        {
+          $set: { ...updateData, status: 'update_pending', lastUpdated: new Date() },
+          $unset: { pendingUpdate: 1, pendingUpdateMeta: 1 }
+        },
+        { new: true, runValidators: true }
+      ).populate('userId', 'firstName lastName email');
+
+      try { await notifyAdminsProductResubmitted(updated); } catch (e) { console.warn('notifyAdminsProductResubmitted failed:', e?.message); }
+      return updated;
+    }
+
+    if (isOwner && isLive && touchesReviewFields) {
+      // compute diff subset only for changed review fields
+      const pendingUpdate = {};
+      const fieldsChanged = [];
+      for (const key of fieldsActuallyChanged) {
+        pendingUpdate[key] = updateData[key];
+        fieldsChanged.push(key);
+      }
+
+      // Apply non-review fields immediately
+      const immediateUpdate = {};
+      for (const key of updateKeys) {
+        if (!reviewFields.includes(key)) {
+          immediateUpdate[key] = updateData[key];
+        }
+      }
+
+      await Product.findByIdAndUpdate(
+        productId,
+        {
+          $set: {
+            status: 'update_pending',
+            pendingUpdate,
+            pendingUpdateMeta: {
+              fieldsChanged,
+              submittedAt: new Date(),
+              submittedBy: userId,
+            },
+            lastUpdated: new Date(),
+            ...immediateUpdate,
+          },
+        },
+        { new: true, runValidators: true }
+      );
+
+      const result = await Product.findById(productId).populate('userId', 'firstName lastName email');
+      try { await notifyAdminsProductUpdatePending(result); } catch (e) { console.warn('notifyAdminsProductUpdatePending failed:', e?.message); }
+      return result;
+    }
+
     // Handle website field compatibility
     if (updateData.website && !updateData.websiteUrl) {
       updateData.websiteUrl = updateData.website;

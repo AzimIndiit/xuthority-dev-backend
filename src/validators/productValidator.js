@@ -134,7 +134,7 @@ const productValidator = {
 
     body('status')
       .optional()
-      .isIn(['pending', 'approved', 'rejected', 'draft', 'published', 'archived'])
+      .isIn(['pending', 'approved', 'rejected', 'draft', 'published', 'archived', 'update_pending', 'update_rejected'])
       .withMessage('Invalid status'),
 
     body('isActive')
@@ -276,7 +276,7 @@ const productValidator = {
 
     body('status')
       .optional()
-      .isIn(['pending', 'approved', 'rejected', 'draft', 'published', 'archived'])
+      .isIn(['pending', 'approved', 'rejected', 'draft', 'published', 'archived', 'update_pending', 'update_rejected'])
       .withMessage('Invalid status'),
 
     body('isActive')
@@ -355,7 +355,16 @@ const productValidator = {
 
     query('status')
       .optional()
-      .isIn(['pending', 'approved', 'rejected', 'draft', 'published', 'archived'])
+      .custom((value) => {
+        if (!value) return true;
+        const allowed = ['pending', 'approved', 'rejected', 'draft', 'published', 'archived', 'update_pending', 'update_rejected'];
+        // support comma-separated lists
+        if (typeof value === 'string' && value.includes(',')) {
+          const parts = value.split(',').map(s => s.trim());
+          return parts.every((p) => allowed.includes(p));
+        }
+        return allowed.includes(value);
+      })
       .withMessage('Invalid status'),
 
     query('isActive')
@@ -426,6 +435,22 @@ const productValidator = {
       .isString()
       .trim()
       .withMessage('Segment must be a string'),
+
+    // Date filtering
+    query('period')
+      .optional()
+      .isIn(['weekly', 'monthly', 'yearly'])
+      .withMessage('Period must be one of weekly, monthly, yearly'),
+
+    query('dateFrom')
+      .optional()
+      .isISO8601()
+      .withMessage('dateFrom must be a valid ISO date'),
+
+    query('dateTo')
+      .optional()
+      .isISO8601()
+      .withMessage('dateTo must be a valid ISO date'),
 
     query('categories')
       .optional()

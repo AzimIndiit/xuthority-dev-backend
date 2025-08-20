@@ -26,7 +26,8 @@ const {
   industryValidator,
   languageValidator,
   marketSegmentValidator,
-  integrationValidator
+  integrationValidator,
+  productValidator
 } = require('../validators');
 const { 
   validateAdminLogin, 
@@ -215,5 +216,14 @@ router.put('/meta-tags/:id', metaTagController.updateMetaTag);
 router.delete('/meta-tags/:id', metaTagController.deleteMetaTag);
 router.patch('/meta-tags/:id/toggle-status', metaTagController.toggleMetaTagStatus);
 router.delete('/meta-tags/bulk', metaTagController.bulkDeleteMetaTags);
+
+// Products management routes (Admin only)
+const { productController } = require('../controllers');
+router.get('/products', validate(productValidator.query, 'query'), productController.getProducts);
+router.patch('/products/:id/approve', adminAuth, require('../controllers/adminController').approveProduct);
+router.patch('/products/:id/reject', adminAuth, require('../controllers/adminController').rejectProduct);
+router.patch('/products/:id/approve-update', adminAuth, require('../controllers/adminController').approveProductUpdate);
+router.patch('/products/:id/reject-update', adminAuth, require('../controllers/adminController').rejectProductUpdate);
+router.get('/products/:slug', adminAuth, require('../controllers/adminController').getAdminProductBySlug);
 
 module.exports = router;

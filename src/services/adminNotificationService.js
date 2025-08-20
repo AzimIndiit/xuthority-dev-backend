@@ -61,7 +61,7 @@ async function notifyAdminsNewUser(user) {
   const displayName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
   
   const message = user.role === 'vendor' 
-    ? `A new user ${displayName} signup on platform as ${user.role.charAt(0).toUpperCase() + user.role.slice(1)} and is awaiting approval. Review their details in the vendor section.`
+    ? `A new user ${displayName} signup on platform as ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}. View their profile in the user management panel.`
     : `A new user ${displayName} signup on platform as ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}. View their profile in the user management panel.`;
 
   // Set action URL based on user role - always use general route
@@ -77,6 +77,112 @@ async function notifyAdminsNewUser(user) {
       userName: displayName
     },
     actionUrl: actionUrl
+  });
+}
+
+/**
+ * Create notification for new product creation/submission
+ * @param {Object} product - Product document (ideally with populated userId)
+ */
+async function notifyAdminsNewProduct(product) {
+  try {
+    const owner = product.userId || {};
+    const displayName = `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || owner.companyName || 'Unknown Vendor';
+    const productName = product.name || 'Untitled Product';
+    const message = `New product "${productName}" was created by ${displayName}. Review it in the products section.`;
+
+    return createAdminNotification({
+      type: 'PRODUCT_CREATED',
+      title: 'New Product Submitted',
+      message,
+      meta: {
+        productId: product._id?.toString?.() || String(product._id),
+        productName: productName,
+        productSlug: product.slug || '',
+        ownerId: owner._id?.toString?.() || (owner._id ? String(owner._id) : ''),
+        ownerName: displayName,
+        ownerEmail: owner.email || ''
+      },
+      actionUrl: 'products'
+    });
+  } catch (error) {
+    console.error('Error notifying admins about new product:', error);
+    throw error;
+  }
+}
+
+/**
+ * Notify admins when a vendor submits an update to a published product
+ * @param {Object} product - Product document
+ */
+async function notifyAdminsProductUpdatePending(product) {
+  const productName = product.name || 'Untitled Product';
+  const owner = product.userId || {};
+  const displayName = `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || owner.companyName || 'Unknown Vendor';
+  const fields = product.pendingUpdateMeta?.fieldsChanged || [];
+  const message = `${displayName} submitted updates to "${productName}". Review pending changes.`;
+  return createAdminNotification({
+    type: 'PRODUCT_UPDATE_PENDING',
+    title: 'Product Update Submitted',
+    message,
+    meta: {
+      productId: product._id?.toString?.() || String(product._id),
+      productName,
+      productSlug: product.slug || '',
+      fieldsChanged: fields,
+      ownerId: owner._id?.toString?.() || (owner._id ? String(owner._id) : '')
+    },
+    actionUrl: 'products'
+  });
+}
+
+/**
+ * Notify admins when a previously rejected product is resubmitted
+ * @param {Object} product - Product document
+ */
+async function notifyAdminsProductResubmitted(product) {
+  const productName = product.name || 'Untitled Product';
+  const owner = product.userId || {};
+  const displayName = `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || owner.companyName || 'Unknown Vendor';
+  const message = `${displayName} resubmitted "${productName}" for review after rejection.`;
+  return createAdminNotification({
+    type: 'PRODUCT_RESUBMITTED',
+    title: 'Product Resubmitted',
+    message,
+    meta: {
+      productId: product._id?.toString?.() || String(product._id),
+      productName,
+      productSlug: product.slug || '',
+      ownerId: owner._id?.toString?.() || (owner._id ? String(owner._id) : '')
+    },
+    actionUrl: 'products'
+  });
+}
+
+/**
+ * Notify admins when a product update is rejected by moderators
+ * @param {Object} product - Product document (ideally with populated userId)
+ * @param {string} reason - Optional reason for rejection
+ */
+async function notifyAdminsProductUpdateRejected(product, reason) {
+  const productName = product.name || 'Untitled Product';
+  const owner = product.userId || {};
+  const displayName = `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || owner.companyName || 'Unknown Vendor';
+  const fields = product.pendingUpdateMeta?.fieldsChanged || [];
+  const message = `Update to "${productName}" was rejected. ${fields.length ? `Fields: ${fields.join(', ')}. ` : ''}${reason ? `Reason: ${reason}` : ''}`;
+  return createAdminNotification({
+    type: 'PRODUCT_UPDATE_REJECTED',
+    title: 'Product Update Rejected',
+    message,
+    meta: {
+      productId: product._id?.toString?.() || String(product._id),
+      productName,
+      productSlug: product.slug || '',
+      fieldsChanged: fields,
+      reason: reason || '',
+      ownerId: owner._id?.toString?.() || (owner._id ? String(owner._id) : '')
+    },
+    actionUrl: 'products'
   });
 }
 
@@ -127,10 +233,44 @@ async function notifyAdminsPaymentSuccess(payment, user) {
   });
 }
 
+/**
+ * Create notification for new contact/helpdesk ticket
+ * @param {Object} ticket - Contact ticket document
+ */
+async function notifyAdminsNewContact(ticket) {
+  try {
+    const displayName = `${ticket.firstName || ''} ${ticket.lastName || ''}`.trim() || 'Unknown User';
+    const message = `New helpdesk ticket ${ticket.ticketId} created by ${displayName} (${ticket.email}).`;
+    return createAdminNotification({
+      type: 'CONTACT_TICKET_CREATED',
+      title: 'New Helpdesk Ticket',
+      message,
+      meta: {
+        ticketId: ticket.ticketId,
+        contactId: ticket._id?.toString?.() || String(ticket._id),
+        requesterName: displayName,
+        requesterEmail: ticket.email,
+        subject: ticket.subject,
+        reason: ticket.reason,
+        status: ticket.status || 'open'
+      },
+      actionUrl: 'helpdesk'
+    });
+  } catch (error) {
+    console.error('Error creating admin notification for new contact ticket:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   createAdminNotification,
   notifyAdminsNewReview,
   notifyAdminsNewUser,
   notifyAdminsBadgeRequest,
-  notifyAdminsPaymentSuccess
+  notifyAdminsPaymentSuccess,
+  notifyAdminsNewProduct,
+  notifyAdminsNewContact,
+  notifyAdminsProductUpdatePending,
+  notifyAdminsProductResubmitted,
+  notifyAdminsProductUpdateRejected
 };

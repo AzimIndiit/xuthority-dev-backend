@@ -3,6 +3,7 @@ const { validationResult } = require('express-validator');
 const ApiResponse = require('../utils/apiResponse');
 const ApiError = require('../utils/apiError');
 const { logEvent } = require('../services/auditService');
+const { notifyAdminsNewProduct } = require('../services/adminNotificationService');
 
 exports.createProduct = async (req, res, next) => {
   try {
@@ -40,6 +41,14 @@ exports.createProduct = async (req, res, next) => {
       },
       req,
     });
+
+    // Notify admins about new product submission (non-blocking)
+    try {
+      await notifyAdminsNewProduct(product);
+    } catch (notifyError) {
+      console.error('Failed to notify admins for new product:', notifyError);
+      // Do not fail the request if notification fails
+    }
 
     return res.status(201).json(
       ApiResponse.success(
@@ -81,6 +90,10 @@ exports.getProducts = async (req, res, next) => {
       industries: req.query.industries ? req.query.industries.split(',') : undefined,
       marketSegment: req.query.marketSegment,
       solutions: req.query.solutions,
+      // Date filters
+      period: req.query.period,
+      dateFrom: req.query.dateFrom,
+      dateTo: req.query.dateTo,
       // New filter parameters
       segment: req.query.segment,
       categories:req.query.categories ? req.query.categories.split(',') : undefined,
@@ -92,7 +105,6 @@ exports.getProducts = async (req, res, next) => {
     if (!req.user || req.user.role !== 'admin') {
       options.isActive = 'active';
     }
-    console.log(options,"options");
 
     // Convert comma-separated strings to arrays for ObjectId fields
     if (options.industries && typeof options.industries === 'string') {
@@ -107,6 +119,8 @@ exports.getProducts = async (req, res, next) => {
     if (options.categories && typeof options.categories === 'string') {
       options.categories = options.categories.split(',');
     }
+
+    console.log(options,"options----");
 
     const result = await productService.getProducts(options, req.user);
 
